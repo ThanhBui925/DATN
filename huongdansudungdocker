@@ -1,0 +1,14 @@
+Sau khi pull code về cần chạy lần lượt các câu lệnh trong terminal
+1 :
+cd backend
+composer install
+2 : Tại thư mục DATN
+docker-compose up -d --build
+
+Sau khi đã làm các bước trên vào docker destop kiểm tra xem đã chạy đầy đủ laravel và react, phpmyadmin chưa
+-> nếu click vào được đường dẫn laravel, react và laravel là ok
+
+Khi khởi động container tự động migrate các bảng đã tạo trước đó
+Nếu tạo bảng mới cần chạy lệnh này trên terminal
+docker-compose run migrate
+Thay vì php artisan migrate như trước
