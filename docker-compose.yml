@@ -66,6 +66,19 @@ services:
     networks:
       - app-network
 
+  # Laravel Migration Service (chạy thủ công khi cần)
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    command: php artisan migrate --force
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - app-network
+
 volumes:
   db_data:
 
