@@ -14,3 +14,5 @@ Khi khởi động container tự động migrate các bảng đã tạo trướ
 Nếu tạo bảng mới cần chạy lệnh này trên terminal
 docker-compose run migrate
 Thay vì php artisan migrate như trước
+
+Lưu ý khi merge code
