@@ -2,7 +2,9 @@ Sau khi pull code về cần chạy lần lượt các câu lệnh trong termina
 1 :
 cd backend
 composer install
-2 : Tại thư mục DATN
+2 : thêm 1 tab cmd mới
+3 : npm install
+4 : Tại thư mục DATN
 docker-compose up -d --build
 
 Sau khi đã làm các bước trên vào docker destop kiểm tra xem đã chạy đầy đủ laravel và react, phpmyadmin chưa

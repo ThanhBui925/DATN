@@ -1,16 +1,19 @@
-FROM node:18
-
-# Set working directory
+# Stage 1: Cài dependencies
+FROM node:18 AS deps
 WORKDIR /app
-
-# Copy package.json and install dependencies
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 
-# Copy project files
-COPY . /app
+# Stage 2: Build app
+FROM deps AS builder
+WORKDIR /app
+COPY . .
+RUN npm run build
 
-# Expose port
+# Stage 3: Serve app
+FROM node:18-alpine AS runner
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=builder /app/dist ./dist
 EXPOSE 3000
-
-CMD ["npm", "start"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
