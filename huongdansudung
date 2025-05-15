@@ -1,6 +1,10 @@
 
 # Hướng dẫn chạy dự án DATN
+Lưu ý quan trọng
 
+Mỗi lần pull về cần đọc lại hdsd
+Mỗi lần pull về cần đọc lại hdsd
+Mỗi lần pull về cần đọc lại hdsd
 ---
 
 ## 1. Cài đặt thư viện backend (Laravel)
@@ -46,11 +50,15 @@ Mở Docker Desktop, đảm bảo các container sau đang chạy:
 | `phpmyadmin`       | Giao diện quản lý MySQL| [http://localhost:8080](http://localhost:8080) |
 
 ---
+Sau khi đã chạy thành công chỉ cần run các container trên docker
+Nếu có thay đổi Dockerfile cần chạy
+docker-compose down
 
+docker-compose up -d --build
 ## 5. Migration cơ sở dữ liệu
 
 - Khi khởi động container, các migration có sẵn sẽ tự động chạy.
-- Nếu bạn tạo migration mới :
+- Nếu tạo migration mới :
  "docker exec -it laravel_backend php artisan make:model tên_bảng --all"
 Sau đó chạy :
 ```bash
