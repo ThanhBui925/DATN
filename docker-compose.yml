@@ -27,13 +27,18 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: dev  # <<< Build từ stage dev trong Dockerfile
     container_name: react_frontend
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app          # <<< Mount mã nguồn từ local vào container
+      - /app/node_modules        # <<< Tránh xung đột thư viện node_modules
     depends_on:
       - backend
     networks:
       - app-network
+
 
   # MySQL Database
   db:
@@ -41,7 +46,7 @@ services:
     container_name: mysql_db
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=laravel
+      - MYSQL_DATABASE=DATN
     ports:
       - "3306:3306"
     volumes:
