@@ -5,8 +5,8 @@ Lưu ý quan trọng
 Mỗi lần pull về cần đọc lại hdsd
 Mỗi lần pull về cần đọc lại hdsd
 Mỗi lần pull về cần đọc lại hdsd
----
 
+Lưu ý tắt hết laragon và xampp để tránh xung đột cổng
 ## 1. Cài đặt thư viện backend (Laravel)
 
 Mở terminal và chạy:
@@ -57,9 +57,8 @@ docker-compose down
 docker-compose up -d --build
 ## 5. Migration cơ sở dữ liệu
 
-- Khi khởi động container, các migration có sẵn sẽ tự động chạy.
 - Nếu tạo migration mới :
- "docker exec -it laravel_backend php artisan make:model tên_bảng --all"
+docker exec -it laravel_backend php artisan make:model tên_bảng --all
 Sau đó chạy :
 ```bash
 docker-compose run migrate
