@@ -61,9 +61,19 @@ docker-compose up -d --build
 docker exec -it laravel_backend php artisan make:model tên_bảng --all
 Sau đó chạy :
 ```bash
-docker-compose run migrate
+docker-compose run --rm migrate # = php artisan migrate
+```
+
+Muốn chạy seeder
+```bash
+docker-compose run --rm migrate php artisan db:seed # = php artisan db:seed
 ```
 để migrate lên csdl
+- Nếu muốn dùng migrate như bình thường thì tại thư mục backend chạy câu lệnh dưới để vào bên trong container
+docker exec -it laravel_backend bash
+Sau khi vào xong sẽ hiện dòng này trong cmd
+root@947a34b7feec:/var/www/html# 
+Trong đây có thể chạy php artisan migrate, ...
 
 ---
 
