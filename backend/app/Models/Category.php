@@ -2,36 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Product extends Model
+class Category extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
-    use HasFactory, SoftDeletes;
-    protected $table = 'products';
+    use SoftDeletes, HasFactory;
+
+    protected $table = 'categories';
+
     protected $fillable = [
         'slug',
         'name',
         'description',
         'image',
-        'price',
-        'category_id',
         'status',
     ];
     protected $casts = [
         'status' => 'boolean',
-        'price' => 'decimal:2',
     ];
     protected $dates = [
         'created_at',
         'updated_at',
         'deleted_at',
     ];
-    public function category()
+    public function products()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->hasMany(Product::class, 'category_id');
     }
-
 }
