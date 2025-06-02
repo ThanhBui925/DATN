@@ -34,7 +34,8 @@ Sau khi đã cài đặt đầy đủ thư viện của BE và FE
 Quay về thư mục gốc dự án (`DATN`), chạy:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
+
 ```
 
 ---
