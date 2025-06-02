@@ -127,11 +127,19 @@ class CategoryController extends Controller
     {
         $trashedCategories = Category::onlyTrashed()->get();
 
+        if ($trashedCategories->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không có danh mục nào đã bị xóa mềm.'
+            ], 404);
+        }
+
         return response()->json([
             'status' => true,
             'data' => $trashedCategories
         ]);
     }
+
 
     public function search(Request $request)
     {
