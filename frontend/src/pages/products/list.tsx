@@ -8,7 +8,7 @@ import {
 import type { BaseRecord } from "@refinedev/core";
 import { Space, Table } from "antd";
 
-export const CategoryList = () => {
+export const ProductsList = () => {
   const { tableProps } = useTable({
     syncWithLocation: true,
   });
@@ -17,7 +17,9 @@ export const CategoryList = () => {
     <List>
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
-        <Table.Column dataIndex="name" title={"name"} />
+        <Table.Column dataIndex="title" title={"title"} />
+        <Table.Column dataIndex="price" title={"price"} />
+        <Table.Column dataIndex="description" title={"description"} />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"

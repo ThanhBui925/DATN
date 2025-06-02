@@ -53,10 +53,10 @@ class CategoryController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, $slug)
+    public function update(Request $request, $id)
     {
         // 1. Tìm category theo slug, nếu không tìm thấy sẽ báo lỗi 404
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::where('slug', $id)->firstOrFail();
 
         // 2. Validate dữ liệu gửi lên (có thể cập nhật 1 số trường)
         $validated = $request->validate([

@@ -1,15 +1,15 @@
 import { Create, useForm } from "@refinedev/antd";
 import { Form, Input } from "antd";
 
-export const CategoryCreate = () => {
+export const ProductsCreate = () => {
   const { formProps, saveButtonProps } = useForm({});
 
   return (
     <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label={"Name"}
-          name={["name"]}
+          label={"Title"}
+          name={["title"]}
           rules={[
             {
               required: true,
@@ -18,20 +18,6 @@ export const CategoryCreate = () => {
         >
           <Input />
         </Form.Item>
-        
-        <Form.Item
-          label={"slug"}
-          name={["slug"]}
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-
-      
       </Form>
     </Create>
   );
