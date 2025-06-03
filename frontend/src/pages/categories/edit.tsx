@@ -8,8 +8,20 @@ export const CategoryEdit = () => {
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label={"Title"}
-          name={["title"]}
+          label={"Name"}
+          name={["name"]}
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        
+        <Form.Item
+          label={"slug"}
+          name={["slug"]}
           rules={[
             {
               required: true,
