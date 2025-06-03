@@ -9,15 +9,15 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::all();
+        $categories = Category::orderBy('id', 'desc')->get();
         return response()->json([
             'status' => true,
             'data' => $categories
         ]);
     }
-    public function show($slug)
+    public function show($id)
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::findOrFail($id);
 
         return response()->json([
             'status' => true,
@@ -25,45 +25,64 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        // 1. Validate dữ liệu đầu vào
+
+   public function store(Request $request)
+{
+    // Debug nhận dữ liệu
+    // dd($request->all(), $request->file('image'));
+
+    try {
         $validated = $request->validate([
-            'slug' => 'required|unique:categories,slug|max:255',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
-            'status' => 'in:active,inactive'
+            'image' => 'nullable|image|max:5120',
+            'status' => 'nullable|in:active,inactive',
         ]);
 
-        // 2. Tạo category mới với dữ liệu đã validate
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+        } else {
+            $imagePath = null;
+        }
+
         $category = Category::create([
-            'slug' => $validated['slug'],
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'image' => $validated['image'] ?? null,
+            'image' => $imagePath,
             'status' => $validated['status'] ?? 'active',
         ]);
 
-        // 3. Trả về kết quả
         return response()->json([
             'status' => true,
             'message' => 'Category created successfully',
-            'data' => $category
+            'data' => $category,
         ], 201);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 422);
     }
+}
+
+
+
+
+
+
+
 
     public function update(Request $request, $id)
     {
-        // 1. Tìm category theo slug, nếu không tìm thấy sẽ báo lỗi 404
-        $category = Category::where('slug', $id)->firstOrFail();
+        // 1. Tìm category theo id
+        $category = Category::findOrFail($id);
 
-        // 2. Validate dữ liệu gửi lên (có thể cập nhật 1 số trường)
+        // 2. Validate dữ liệu gửi lên
         $validated = $request->validate([
-            'slug' => "sometimes|required|unique:categories,slug,{$category->id}|max:255",
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|file|image|max:2048',
             'status' => 'in:active,inactive'
         ]);
 
@@ -78,9 +97,9 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function destroy($slug)
+    public function destroy($id)
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::where('id', $id)->firstOrFail();
         $category->delete();
 
         return response()->json([
@@ -89,9 +108,9 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function restore($slug)
+    public function restore($id)
     {
-        $category = Category::withTrashed()->where('slug', $slug)->firstOrFail();
+        $category = Category::withTrashed()->findOrFail($id);
         $category->restore();
 
         return response()->json([
@@ -101,9 +120,10 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function forceDelete($slug)
+
+    public function forceDelete($id)
     {
-        $category = Category::withTrashed()->where('slug', $slug)->firstOrFail();
+        $category = Category::withTrashed()->findOrFail($id);
 
         // Kiểm tra xem danh mục có sản phẩm không
         if ($category->products()->exists()) {
@@ -121,6 +141,7 @@ class CategoryController extends Controller
             'message' => 'Xóa vĩnh viễn danh mục thành công.'
         ]);
     }
+
 
 
     public function trashed()
