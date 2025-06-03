@@ -18,6 +18,19 @@ export const CategoryList = () => {
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
         <Table.Column dataIndex="name" title={"name"} />
+        <Table.Column dataIndex="description" title={"Description"} />
+        <Table.Column
+          dataIndex="image"
+          title="Image"
+          render={(value: string) => (
+            <img
+              src={`http://localhost:8000${value}`}
+              alt="Image"
+              style={{ width: 100, height: "auto", objectFit: "cover" }}
+            />
+          )}
+        />
+
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
