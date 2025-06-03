@@ -13,14 +13,13 @@ class Category extends Model
     protected $table = 'categories';
 
     protected $fillable = [
-        'slug',
         'name',
         'description',
         'image',
         'status',
     ];
     protected $casts = [
-        'status' => 'boolean',
+        'status' => 'string',
     ];
     protected $dates = [
         'created_at',

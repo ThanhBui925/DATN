@@ -4,9 +4,10 @@ import {
   List,
   ShowButton,
   useTable,
+
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
+import { Space, Table, Tag } from "antd";
 
 export const CategoryList = () => {
   const { tableProps } = useTable({
@@ -16,15 +17,37 @@ export const CategoryList = () => {
   return (
     <List>
       <Table {...tableProps} rowKey="id">
-        <Table.Column dataIndex="id" title={"ID"} />
-        <Table.Column dataIndex="name" title={"name"} />
+        <Table.Column title="STT" key="index" render={(text, record, index) => index + 1}/>
+        <Table.Column dataIndex="name" title={"Name"} />
+        <Table.Column dataIndex="description" title={"Description"} />
+        <Table.Column
+          dataIndex="image"
+          title="Image"
+          render={(value: string) => (
+            <img
+              src={value}
+              alt="Image"
+              style={{ width: 100, height: "auto", objectFit: "cover" }}
+            />
+          )}
+        />
+        <Table.Column
+          dataIndex="status"
+          title="Status"
+          render={(value: string) => (
+            <Tag color={value === "active" ? "green" : "red"}>
+              {value.toUpperCase()}
+            </Tag>
+          )}
+        />
+
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
               <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
+              <ShowButton hideText size="small" recordItemId={record.slug} />
               <DeleteButton hideText size="small" recordItemId={record.id} />
             </Space>
           )}
