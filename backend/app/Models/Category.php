@@ -20,7 +20,7 @@ class Category extends Model
         'status',
     ];
     protected $casts = [
-        'status' => 'boolean',
+        'status' => 'string',
     ];
     protected $dates = [
         'created_at',
