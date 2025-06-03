@@ -12,7 +12,6 @@ class Product extends Model
     use HasFactory, SoftDeletes;
     protected $table = 'products';
     protected $fillable = [
-        'slug',
         'name',
         'description',
         'image',
@@ -21,7 +20,7 @@ class Product extends Model
         'status',
     ];
     protected $casts = [
-        'status' => 'boolean',
+        'status' => 'string',
         'price' => 'decimal:2',
     ];
     protected $dates = [
@@ -29,9 +28,28 @@ class Product extends Model
         'updated_at',
         'deleted_at',
     ];
+
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+
+    public function sizes()
+    {
+        return $this->belongsToMany(Size::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(VariantProduct::class)->withTrashed();
+    }
+
+    public function colors()
+    {
+        return $this->belongsToMany(Color::class);
+    }
+
+    
+
 
 }
