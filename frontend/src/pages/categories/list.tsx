@@ -30,7 +30,7 @@ export const CategoryList = () => {
             />
           )}
         />
-
+        <Table.Column dataIndex="status" title={"Status"} />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
