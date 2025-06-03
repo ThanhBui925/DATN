@@ -16,7 +16,7 @@ export const CategoryList = () => {
   return (
     <List>
       <Table {...tableProps} rowKey="id">
-        <Table.Column dataIndex="id" title={"ID"} />
+      <Table.Column title="STT" key="index" render={(text, record, index) => index + 1} />
         <Table.Column dataIndex="name" title={"name"} />
         <Table.Column dataIndex="description" title={"Description"} />
         <Table.Column
