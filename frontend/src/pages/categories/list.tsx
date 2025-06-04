@@ -25,13 +25,22 @@ export const CategoryList = () => {
           title="Image"
           render={(value: string) => (
             <img
-              src={`http://localhost:8000${value}`}
+              src={`http://localhost:8000/storage/${value}`}
+
               alt="Image"
               style={{ width: 100, height: "auto", objectFit: "cover" }}
             />
           )}
         />
-        <Table.Column dataIndex="status" title={"Status"} />
+        <Table.Column
+          dataIndex="status"
+          title="Status"
+          render={(value: string) => (
+            <Tag color={value === "active" ? "green" : "red"}>
+              {value.toUpperCase()}
+            </Tag>
+          )}
+        />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
