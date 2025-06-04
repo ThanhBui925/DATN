@@ -9,12 +9,38 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::orderBy('id', 'desc')->get();
+        $query = Category::query();
+
+        // Tìm kiếm theo tên
+        if ($request->filled('keyword')) {
+            $query->where('name', 'like', '%' . $request->keyword . '%');
+        }
+
+        // Lọc theo trạng thái (active/inactive)
+        if ($request->filled('status')) {
+            $status = strtolower(trim($request->status));
+            $query->whereRaw('LOWER(TRIM(status)) = ?', [$status]);
+        }
+
+        // Sắp xếp mới nhất
+        $categories = $query->orderBy('id', 'desc')->get();
+
+        // Nếu không có dữ liệu, trả về thông báo
+        if ($categories->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không tìm thấy danh mục phù hợp.'
+            ], 404);
+        }
+
+        // Trả về dữ liệu nếu có
         return response()->json([
             'status' => true,
             'data' => $categories
         ]);
     }
+
+
     public function show($id)
     {
         $category = Category::findOrFail($id);
