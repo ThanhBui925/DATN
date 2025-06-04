@@ -84,20 +84,6 @@ export const CategoryCreate = () => {
 
           <Col span={12}>
             <Form.Item
-              label="Status"
-              name="status"
-              initialValue="active" // mặc định chọn active
-              rules={[{ required: true, message: "Please select status!" }]}
-            >
-              <Select>
-                <Option value="active">Active</Option>
-                <Option value="inactive">Inactive</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item
               label="Image"
               name="image"
               valuePropName="fileList"
