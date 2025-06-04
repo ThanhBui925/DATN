@@ -29,10 +29,40 @@ export const CategoryCreate = () => {
     // Dùng formProps.onFinish để gửi qua data provider
     return formProps.onFinish?.(formData);
   };
+    meta: {
+      contentType: "multipart/form-data",
+    },
+  });
+  const onFinish = async (values: any) => {
+  const formData = new FormData();
+  formData.append("name", values.name);
+  formData.append("description", values.description || "");
+  formData.append("status", values.status || "active");
+  if (
+    values.image &&
+    Array.isArray(values.image) &&
+    values.image.length > 0 &&
+    values.image[0].originFileObj
+  ) {
+    formData.append("image", values.image[0].originFileObj);
+  }
 
+  try {
+    await fetch("/api/categories", {
+      method: "POST",
+      body: formData,
+    });
+    // Xử lý thành công ở đây (ví dụ: thông báo, redirect, ...)
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert(JSON.stringify(error));
+  }
+};
   return (
     <Create saveButtonProps={saveButtonProps}>
+
       <Form {...formProps} layout="vertical" onFinish={onFinish}>
+      <Form {...formProps} layout="vertical" encType="multipart/form-data">
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -65,7 +95,7 @@ export const CategoryCreate = () => {
                 name="image"
                 listType="picture"
                 maxCount={1}
-                beforeUpload={() => false}
+                beforeUpload={() => false} // prevent auto upload, let form handle
               >
                 <Button icon={<UploadOutlined />}>Select Image</Button>
               </Upload>
