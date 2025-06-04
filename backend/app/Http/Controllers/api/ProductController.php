@@ -291,7 +291,6 @@ class ProductController extends Controller
         }
     }
 
-
     /**
      * Restore a soft-deleted product.
      */
@@ -336,9 +335,5 @@ class ProductController extends Controller
 
         return response()->json(['data' => $trashedProducts], 200);
     }
-
-
-
-     
 
 }
