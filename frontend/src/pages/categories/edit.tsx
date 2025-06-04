@@ -20,8 +20,8 @@ export const CategoryEdit = () => {
         </Form.Item>
         
         <Form.Item
-          label={"slug"}
-          name={["slug"]}
+          label={"Description"}
+          name={["Description"]}
           rules={[
             {
               required: true,
@@ -30,6 +30,7 @@ export const CategoryEdit = () => {
         >
           <Input />
         </Form.Item>
+        
       </Form>
     </Edit>
   );
