@@ -22,11 +22,6 @@ export const CategoryCreate = () => {
     ) {
       formData.append("image", values.image[0].originFileObj);
     }
-
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-
     return formProps.onFinish?.(formData);
   };
 
