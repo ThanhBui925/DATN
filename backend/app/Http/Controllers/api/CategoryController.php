@@ -3,244 +3,134 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Support\Facades\Storage;
+
 class CategoryController extends Controller
 {
+    use ApiResponseTrait;
+
     public function index(Request $request)
     {
         $query = Category::query();
 
-        // Tìm kiếm theo tên
         if ($request->filled('keyword')) {
             $query->where('name', 'like', '%' . $request->keyword . '%');
         }
 
-        // Lọc theo trạng thái (active/inactive)
         if ($request->filled('status')) {
-            $status = strtolower(trim($request->status));
-            $query->whereRaw('LOWER(TRIM(status)) = ?', [$status]);
+            $query->whereRaw('LOWER(TRIM(status)) = ?', [strtolower(trim($request->status))]);
         }
 
-        // Sắp xếp mới nhất
         $categories = $query->orderBy('id', 'desc')->get();
 
-        // Nếu không có dữ liệu, trả về thông báo
         if ($categories->isEmpty()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không tìm thấy danh mục phù hợp.'
-            ], 404);
+            return $this->error('Không tìm thấy danh mục phù hợp.', null, 404);
         }
 
-        // Trả về dữ liệu nếu có
-        return response()->json([
-            'status' => true,
-            'data' => $categories
-        ]);
+        return $this->success($categories);
     }
-
 
     public function show($id)
     {
         $category = Category::findOrFail($id);
-
-        return response()->json([
-            'status' => true,
-            'data' => $category
-        ]);
+        return $this->success($category);
     }
 
-
-   public function store(Request $request)
-   {
-       try {
-           $messages = [
-               'name.unique' => 'Danh mục đã tồn tại',
-               'name.required' => 'Tên danh mục là bắt buộc',
-               'name.max' => 'Tên danh mục không được vượt quá 255 ký tự',
-               'image.image' => 'File phải là hình ảnh hợp lệ',
-               'image.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg, gif',
-               'image.max' => 'Ảnh không được lớn hơn 5MB',
-               'status.in' => 'Trạng thái không hợp lệ',
-           ];
-
-
-           $validated = $request->validate([
-               'name' => 'required|string|max:255|unique:categories,name',
-               'description' => 'nullable|string',
-               'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-               'status' => 'nullable|in:active,inactive',
-           ], $messages);
-
-
-           $imagePath = null;
-           if ($request->hasFile('image')) {
-               $imagePath = $request->file('image')->store('categories', 'public');
-               $imageUrl = \Illuminate\Support\Facades\Storage::url($imagePath);
-           } else {
-               $imageUrl = null;
-           }
-
-
-           $category = \App\Models\Category::create([
-               'name' => $validated['name'],
-               'description' => $validated['description'] ?? null,
-               'image' => $imageUrl,
-               'status' => $validated['status'] ?? 'active',
-           ]);
-
-
-           return response()->json([
-               'status' => true,
-               'message' => 'Category created successfully',
-               'data' => $category,
-           ], 201);
-       } catch (\Illuminate\Validation\ValidationException $e) {
-           return response()->json([
-               'status' => false,
-               'message' => 'Category already exists',
-               'errors' => $e->errors(),
-           ], 422);
-       } catch (\Exception $e) {
-           return response()->json([
-               'status' => false,
-               'message' => 'Server error',
-               'error' => $e->getMessage(),
-           ], 500);
-       }
-   }
-
-
-
-
-
-
-
-
-
-    public function update(Request $request, $id)
+    public function store(StoreCategoryRequest $request)
     {
-        // 1. Tìm category theo id
+        try {
+            $imageUrl = $request->hasFile('image')
+                ? Storage::url($request->file('image')->store('categories', 'public'))
+                : null;
+
+            $category = Category::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'image' => $imageUrl,
+                'status' => $request->status ?? 'active',
+            ]);
+
+            return $this->success($category, 'Category created successfully', 201);
+        } catch (\Exception $e) {
+            return $this->error('Server error', $e->getMessage(), 500);
+        }
+    }
+
+    public function update(UpdateCategoryRequest $request, $id)
+    {
         $category = Category::findOrFail($id);
 
-        // 2. Validate dữ liệu gửi lên
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|file|image|max:2048',
-            'status' => 'in:active,inactive'
-        ]);
+        if ($request->hasFile('image')) {
+            $imageUrl = Storage::url($request->file('image')->store('categories', 'public'));
+            $request->merge(['image' => $imageUrl]);
+        }
 
-        // 3. Cập nhật dữ liệu
-        $category->update($validated);
+        $category->update($request->all());
 
-        // 4. Trả về kết quả
-        return response()->json([
-            'status' => true,
-            'message' => 'Category updated successfully',
-            'data' => $category
-        ]);
+        return $this->success($category, 'Category updated successfully');
     }
 
     public function destroy($id)
     {
-        $category = Category::where('id', $id)->firstOrFail();
+        $category = Category::findOrFail($id);
         $category->delete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Category deleted successfully'
-        ]);
+        return $this->success(null, 'Category deleted successfully');
     }
 
     public function restore($id)
     {
         $category = Category::withTrashed()->findOrFail($id);
         $category->restore();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Category restored successfully',
-            'data' => $category
-        ]);
+        return $this->success($category, 'Category restored successfully');
     }
-
 
     public function forceDelete($id)
     {
         $category = Category::withTrashed()->findOrFail($id);
 
-        // Kiểm tra xem danh mục có sản phẩm không
         if ($category->products()->exists()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không thể xóa vĩnh viễn vì vẫn còn sản phẩm thuộc danh mục này.'
-            ], 400);
+            return $this->error('Không thể xóa vĩnh viễn vì vẫn còn sản phẩm thuộc danh mục này.', null, 400);
         }
 
-        // Xóa vĩnh viễn nếu không còn sản phẩm liên quan
         $category->forceDelete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Xóa vĩnh viễn danh mục thành công.'
-        ]);
+        return $this->success(null, 'Xóa vĩnh viễn danh mục thành công.');
     }
-
-
 
     public function trashed()
     {
-        $trashedCategories = Category::onlyTrashed()->get();
+        $trashed = Category::onlyTrashed()->get();
 
-        if ($trashedCategories->isEmpty()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không có danh mục nào đã bị xóa mềm.'
-            ], 404);
+        if ($trashed->isEmpty()) {
+            return $this->error('Không có danh mục nào đã bị xóa mềm.', null, 404);
         }
 
-        return response()->json([
-            'status' => true,
-            'data' => $trashedCategories
-        ]);
+        return $this->success($trashed);
     }
-
 
     public function search(Request $request)
     {
         $query = $request->input('query');
 
-        // Nếu không có query thì trả về lỗi luôn
         if (!$query) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Missing search query'
-            ], 400);
+            return $this->error('Missing search query', null, 400);
         }
 
-        // Tìm kiếm
         $categories = Category::where('name', 'LIKE', "%{$query}%")
             ->orWhere('slug', 'LIKE', "%{$query}%")
             ->get();
 
-        return response()->json([
-            'status' => true,
-            'data' => $categories
-        ]);
+        return $this->success($categories);
     }
-
 
     public function paginate(Request $request)
     {
         $perPage = $request->input('per_page', 10);
         $categories = Category::paginate($perPage);
-
-        return response()->json([
-            'status' => true,
-            'data' => $categories
-        ]);
+        return $this->success($categories);
     }
-
 }
