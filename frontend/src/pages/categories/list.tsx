@@ -46,7 +46,7 @@ export const CategoryList = () => {
                             <img
                                 src={ value }
                                 alt="Image"
-                                style={{ width: 100, height: "auto", objectFit: "cover" }}
+                                style={{ width: 90, height: 50, objectFit: "cover" }}
                             />
                         ) : (
                             <span>Chưa có ảnh</span>
