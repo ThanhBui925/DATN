@@ -165,14 +165,34 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product = Product::find($id);
+        $product = Product::with('variants.images')->find($id);
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
 
-        $product->delete();
-        return $this->successResponse(null, 'Xóa sản phẩm thành công');
+        DB::beginTransaction();
+        try {
+            // Xóa mềm ảnh của các biến thể
+            foreach ($product->variants as $variant) {
+                $variant->images()->delete(); // xóa mềm ảnh biến thể
+            }
+
+            // Xóa mềm các biến thể
+            $product->variants()->delete();
+
+            // Xóa mềm sản phẩm
+            $product->delete();
+
+            DB::commit();
+
+            return $this->successResponse(null, 'Xóa sản phẩm thành công');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Product deletion failed: ' . $e->getMessage());
+            return $this->errorResponse('Xóa sản phẩm thất bại. Vui lòng thử lại.', 500);
+        }
     }
+
 
     public function trashed()
     {
