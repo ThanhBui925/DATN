@@ -68,8 +68,8 @@ function App() {
                     name: "categories",
                     list: "/categories",
                     create: "/categories/create",
-                    edit: "/categories/edit/:slug",
-                    show: "/categories/show/:slug",
+                    edit: "/categories/edit/:id",
+                    show: "/categories/show/:id",
                     meta: {
                       canDelete: true,
                     },

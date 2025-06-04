@@ -17,15 +17,16 @@ export const CategoryList = () => {
   return (
     <List>
       <Table {...tableProps} rowKey="id">
-        <Table.Column title="STT" key="index" render={(text, record, index) => index + 1}/>
-        <Table.Column dataIndex="name" title={"Name"} />
+      <Table.Column title="STT" key="index" render={(text, record, index) => index + 1} />
+        <Table.Column dataIndex="name" title={"name"} />
         <Table.Column dataIndex="description" title={"Description"} />
         <Table.Column
           dataIndex="image"
           title="Image"
           render={(value: string) => (
             <img
-              src={value}
+              src={`http://localhost:8000/storage/${value}`}
+
               alt="Image"
               style={{ width: 100, height: "auto", objectFit: "cover" }}
             />
@@ -40,7 +41,6 @@ export const CategoryList = () => {
             </Tag>
           )}
         />
-
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
