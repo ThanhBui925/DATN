@@ -5,10 +5,13 @@ import {
   List,
   ShowButton,
   useTable,
+
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
+import { Space, Table, Tag } from "antd";
 import { Button, Modal, Space, Table } from "antd";
 import { useForceDelete } from "../../hooks/useForceDelete";
+
 
 export const CategoryList = () => {
   const { tableProps } = useTable({
@@ -33,12 +36,21 @@ export const CategoryList = () => {
           render={(value: string) => (
             <img
               src={`http://localhost:8000/storage/${value}`}
+
               alt="Image"
               style={{ width: 100, height: "auto", objectFit: "cover" }}
             />
           )}
         />
-        <Table.Column dataIndex="status" title="Status" />
+        <Table.Column
+          dataIndex="status"
+          title="Status"
+          render={(value: string) => (
+            <Tag color={value === "active" ? "green" : "red"}>
+              {value.toUpperCase()}
+            </Tag>
+          )}
+        />
         <Table.Column
           title="Actions"
           dataIndex="actions"
