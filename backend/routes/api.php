@@ -16,18 +16,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{id}/detail', [OrderController::class, 'showDetail']);
     Route::get('/orders/{id}/pdf', [OrderController::class, 'generatePDF']);
 
-
     //Quản lý tài khoản người dùng
     Route::get('/users', [UserController::class, 'index']);
     Route::put('/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
     Route::put('/users/{id}/reset-password', [UserController::class, 'resetPassword']);
-
-    //Quản lý banner
-    Route::get('/banners', [BannerController::class, 'index']);
-    Route::post('/banners', [BannerController::class, 'store']);
-    Route::put('/banners/{id}', [BannerController::class, 'update']);
-    Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
-
 
 
 });
