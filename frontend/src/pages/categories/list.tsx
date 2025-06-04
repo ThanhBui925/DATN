@@ -24,7 +24,7 @@ export const CategoryList = () => {
           title="Image"
           render={(value: string) => (
             <img
-              src={`http://localhost:8000${value}`}
+              src={`http://localhost:8000/storage/${value}`}
               alt="Image"
               style={{ width: 100, height: "auto", objectFit: "cover" }}
             />
