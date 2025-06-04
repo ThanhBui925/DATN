@@ -2,6 +2,8 @@ import { Create, useForm } from "@refinedev/antd";
 import { Form, Input, Row, Col, Upload, Button, Select } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
+const { Option } = Select;
+
 export const CategoryCreate = () => {
   const { formProps, saveButtonProps } = useForm({
     resource: "categories",
@@ -26,7 +28,7 @@ export const CategoryCreate = () => {
     // Debug FormData
     console.log([...formData.entries()]);
 
-    // Dùng formProps.onFinish để gửi qua data provider
+    // Gọi onFinish mặc định của formProps để gửi dữ liệu
     return formProps.onFinish?.(formData);
   };
 
@@ -43,11 +45,27 @@ export const CategoryCreate = () => {
               <Input />
             </Form.Item>
           </Col>
+
           <Col span={12}>
             <Form.Item label="Description" name="description">
               <Input />
             </Form.Item>
           </Col>
+
+          <Col span={12}>
+            <Form.Item
+              label="Status"
+              name="status"
+              initialValue="active" // mặc định chọn active
+              rules={[{ required: true, message: "Please select status!" }]}
+            >
+              <Select>
+                <Option value="active">Active</Option>
+                <Option value="inactive">Inactive</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
           <Col span={12}>
             <Form.Item
               label="Image"
