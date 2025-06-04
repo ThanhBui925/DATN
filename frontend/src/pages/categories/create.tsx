@@ -1,126 +1,117 @@
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, Row, Col, Upload, Button, Select } from "antd";
+import {Form, Input, Upload, Button, Select, Row, Col, Breadcrumb} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
-const { Option } = Select;
-
 export const CategoryCreate = () => {
-  const { formProps, saveButtonProps } = useForm({
+  const { saveButtonProps, formProps } = useForm({
     resource: "categories",
     action: "create",
   });
 
   const onFinish = async (values: any) => {
     const formData = new FormData();
-    formData.append("name", values.name);
+    formData.append("name", values.name || "");
     formData.append("description", values.description || "");
     formData.append("status", values.status || "active");
 
     if (
-      values.image &&
-      Array.isArray(values.image) &&
-      values.image.length > 0 &&
-      values.image[0].originFileObj
+        values.image &&
+        Array.isArray(values.image) &&
+        values.image.length > 0 &&
+        values.image[0].originFileObj
     ) {
       formData.append("image", values.image[0].originFileObj);
     }
 
-    // Debug FormData
-    console.log([...formData.entries()]);
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
 
-    // Gọi onFinish mặc định của formProps để gửi dữ liệu
     return formProps.onFinish?.(formData);
   };
-    meta: {
-      contentType: "multipart/form-data",
-    },
-  });
-  const onFinish = async (values: any) => {
-  const formData = new FormData();
-  formData.append("name", values.name);
-  formData.append("description", values.description || "");
-  formData.append("status", values.status || "active");
-  if (
-    values.image &&
-    Array.isArray(values.image) &&
-    values.image.length > 0 &&
-    values.image[0].originFileObj
-  ) {
-    formData.append("image", values.image[0].originFileObj);
-  }
 
-  try {
-    await fetch("/api/categories", {
-      method: "POST",
-      body: formData,
-    });
-    // Xử lý thành công ở đây (ví dụ: thông báo, redirect, ...)
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    alert(JSON.stringify(error));
-  }
-};
   return (
-    <Create saveButtonProps={saveButtonProps}>
-
-      <Form {...formProps} layout="vertical" onFinish={onFinish}>
-      <Form {...formProps} layout="vertical" encType="multipart/form-data">
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[{ required: true, message: "Please input name!" }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label="Description" name="description">
-              <Input />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item
-              label="Status"
-              name="status"
-              initialValue="active" // mặc định chọn active
-              rules={[{ required: true, message: "Please select status!" }]}
-            >
-              <Select>
-                <Option value="active">Active</Option>
-                <Option value="inactive">Inactive</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item
-              label="Image"
-              name="image"
-              valuePropName="fileList"
-              getValueFromEvent={(e) => {
-                if (Array.isArray(e)) {
-                  return e;
-                }
-                return e && e.fileList;
-              }}
-              extra="Upload an image"
-            >
-              <Upload
-                name="image"
-                listType="picture"
-                maxCount={1}
-                beforeUpload={() => false} // prevent auto upload, let form handle
+      <Create
+          title={'Tạo mới'}
+          saveButtonProps={{
+            ...saveButtonProps,
+            children: "Lưu",
+          }}
+          breadcrumb={
+            <Breadcrumb>
+              <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
+              <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
+              <Breadcrumb.Item>Thêm mới</Breadcrumb.Item>
+            </Breadcrumb>
+          }
+      >
+        <Form {...formProps} layout="vertical" onFinish={onFinish}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                  label="Tên danh mục"
+                  name="name"
+                  rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
               >
-                <Button icon={<UploadOutlined />}>Select Image</Button>
-              </Upload>
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
-    </Create>
+                <Input />
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                  label="Trạng thái"
+                  name="status"
+                  initialValue="active"
+              >
+                <Select>
+                  <Select.Option value="active">Hoạt động</Select.Option>
+                  <Select.Option value="inactive">Không hoạt động</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                  label="Ảnh"
+                  name="image"
+                  valuePropName="fileList"
+                  getValueFromEvent={(e) => {
+                    if (Array.isArray(e)) {
+                      return e;
+                    }
+                    return e && e.fileList;
+                  }}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng chọn ít nhất 1 ảnh!",
+                      validator: (_, value) => {
+                        if (value && value.length > 0) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error("Vui lòng chọn ít nhất 1 ảnh!"));
+                      },
+                    },
+                  ]}
+              >
+                <Upload
+                    name="image"
+                    listType="picture"
+                    maxCount={1}
+                    beforeUpload={() => false}
+                >
+                  <Button icon={<UploadOutlined />}>Chọn 1 tệp</Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item label="Mô tả" name="description">
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Create>
   );
 };

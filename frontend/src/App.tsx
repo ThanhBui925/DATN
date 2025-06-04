@@ -1,4 +1,4 @@
-import { Authenticated, GitHubBanner, Refine } from "@refinedev/core";
+import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -43,7 +43,6 @@ import { ProductsCreate, ProductsEdit, ProductsList, ProductsShow } from "./page
 function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
@@ -55,12 +54,10 @@ function App() {
                 authProvider={authProvider}
                 resources={[
                   {
-                    name: "blog_posts",
-                    list: "/blog-posts",
-                    create: "/blog-posts/create",
-                    edit: "/blog-posts/edit/:id",
-                    show: "/blog-posts/show/:id",
+                    name: "dashboard",
+                    list: "/dashboard",
                     meta: {
+                      label: "Bảng điều khiển",
                       canDelete: true,
                     },
                   },
@@ -71,6 +68,7 @@ function App() {
                     edit: "/categories/edit/:id",
                     show: "/categories/show/:id",
                     meta: {
+                      label: "Danh mục",
                       canDelete: true,
                     },
                   },
@@ -81,6 +79,7 @@ function App() {
                     edit: "/products/edit/:id",
                     show: "/products/show/:id",
                     meta: {
+                      label: "Sản phẩm",
                       canDelete: true,
                     },
                   },
