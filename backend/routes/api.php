@@ -4,8 +4,6 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 
 // Route api for categories
-
-
 Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete']);
 Route::post('categories/{id}/restore', [CategoryController::class, 'restore']);
