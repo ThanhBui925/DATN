@@ -21,6 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+<<<<<<< Updated upstream
+=======
+        'role',
+        'status',
+>>>>>>> Stashed changes
     ];
 
     /**
@@ -33,6 +38,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+<<<<<<< Updated upstream
     /**
      * Get the attributes that should be cast.
      *
@@ -45,4 +51,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+=======
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+>>>>>>> Stashed changes
 }
