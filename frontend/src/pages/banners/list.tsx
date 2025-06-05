@@ -61,17 +61,17 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
                         <Space>
                             <EditButton
                                 hideText
-                                size="small"
+                                size="large"
                                 recordItemId={record.id}
                             />
                             <ShowButton
                                 hideText
-                                size="small"
+                                size="large"
                                 recordItemId={record.id}
                             />
                             <DeleteButton
                                 hideText
-                                size="small"
+                                size="large"
                                 recordItemId={record.id}
                             />
                         </Space>

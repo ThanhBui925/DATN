@@ -7,7 +7,7 @@ import {UploadOutlined} from "@ant-design/icons";
 export const BlogPostEdit = () => {
 
     const {saveButtonProps, formProps, queryResult} = useForm({
-        resource: "categories",
+        resource: "blogs",
         action: "edit",
     });
 
