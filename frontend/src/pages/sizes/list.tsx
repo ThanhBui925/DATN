@@ -69,7 +69,7 @@ export const SizeList = () => {
                 <Table.Column
                     title="STT"
                     key="id"
-                    render={(index) => index + 1}
+                    render={(value, record, index) => index + 1}
                 />
                 <Table.Column dataIndex="name" title="Tên kích cỡ"/>
                 <Table.Column

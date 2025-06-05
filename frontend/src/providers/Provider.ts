@@ -1,7 +1,7 @@
 import simpleRestDataProvider from "@refinedev/simple-rest";
 
-const base = simpleRestDataProvider("http://localhost:8000/api");
 const BASE_URL = "http://localhost:8000/api";
+const base = simpleRestDataProvider(BASE_URL);
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function unwrapData(fn: Function) {
