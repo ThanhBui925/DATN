@@ -8,7 +8,7 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type {BaseRecord} from "@refinedev/core";
-import {Breadcrumb, Button, Modal, Space, Table} from "antd";
+import {Breadcrumb, Button, Modal, Space, Table, Tag} from "antd";
 import {useForceDelete} from "../../hooks/useForceDelete";
 
 export const CategoryList = () => {
@@ -41,15 +41,29 @@ export const CategoryList = () => {
                 <Table.Column
                     dataIndex="image"
                     title="Ảnh"
-                    render={(value: string) => (
-                        <img
-                            src={`http://localhost:8000/storage/${value}`}
-                            alt="Image"
-                            style={{width: 100, height: "auto", objectFit: "cover"}}
-                        />
-                    )}
+                    render={(value: string) =>
+                        value ? (
+                            <img
+                                src={ value }
+                                alt="Image"
+                                style={{ width: 90, height: 50, objectFit: "cover" }}
+                            />
+                        ) : (
+                            <span>Chưa có ảnh</span>
+                        )
+                    }
                 />
-                <Table.Column dataIndex="status" title="Trạng thái"/>
+                <Table.Column
+                    dataIndex="status"
+                    title="Trạng thái"
+                    render={(value: string) => {
+                        if (value === "inactive") {
+                            return <Tag color="red">Không hoạt động</Tag>;
+                        } else {
+                            return <Tag color="green">Hoạt động</Tag>;
+                        }
+                    }}
+                />
                 <Table.Column
                     title="Hành động"
                     dataIndex="actions"
@@ -67,24 +81,16 @@ export const CategoryList = () => {
 
                         return (
                             <Space>
-                                <EditButton hideText size="small" recordItemId={record.id}/>
-                                <ShowButton hideText size="small" recordItemId={record.id}/>
+                                <EditButton hideText size="large" recordItemId={record.id}/>
+                                <ShowButton hideText size="large" recordItemId={record.id}/>
                                 <DeleteButton
                                     hideText
-                                    size="small"
+                                    size="large"
                                     recordItemId={record.id}
                                     confirmTitle="Bạn có muốn xoá mềm danh mục này?"
                                     confirmOkText="Xoá"
                                     confirmCancelText="Huỷ"
                                 />
-                                <Button
-                                    icon={<DeleteOutlined/>}
-                                    danger
-                                    size="small"
-                                    onClick={handleClick}
-                                >
-                                    Xoá vĩnh viễn
-                                </Button>
                             </Space>
                         );
                     }}

@@ -1,5 +1,5 @@
-import { Edit, useForm } from "@refinedev/antd";
-import {Breadcrumb, Button, Col, Form, Input, Row, Select, Upload} from "antd";
+import {Edit, Show, useForm} from "@refinedev/antd";
+import {Breadcrumb, Button, Col, Form, Input, Row, Select, Skeleton, Upload} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
 export const CategoryEdit = () => {
@@ -8,7 +8,7 @@ export const CategoryEdit = () => {
         action: "edit",
     });
 
-    const { data } = queryResult;
+    const { data, isLoading } = queryResult;
     const initialImage = data?.data?.image || null;
 
     const onFinish = async (values: any) => {
@@ -24,16 +24,17 @@ export const CategoryEdit = () => {
             values.image[0].originFileObj
         ) {
             formData.append("image", values.image[0].originFileObj);
-        } else if (initialImage && !values.image) {
-            formData.append("image", initialImage);
-        }
-
-        for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
         }
 
         return formProps.onFinish?.(formData);
     };
+    if (isLoading) {
+        return (
+            <Show>
+                <Skeleton active paragraph={{ rows: 4 }} />
+            </Show>
+        );
+    }
 
     return (
         <Edit
@@ -52,6 +53,7 @@ export const CategoryEdit = () => {
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
                     <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
                     <Breadcrumb.Item>Cập nhật</Breadcrumb.Item>
+                    <Breadcrumb.Item>{ data?.data?.name }</Breadcrumb.Item>
                 </Breadcrumb>
             }
         >
