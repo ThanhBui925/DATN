@@ -39,6 +39,8 @@ import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { ProductsCreate, ProductsEdit, ProductsList, ProductsShow } from "./pages/products";
+import {ColorList} from "./pages/colors/list";
+import React from "react";
 
 function App() {
   return (
@@ -72,7 +74,7 @@ function App() {
                       canDelete: true,
                     },
                   },
-                   {
+                  {
                     name: "products",
                     list: "/products",
                     create: "/products/create",
@@ -80,6 +82,17 @@ function App() {
                     show: "/products/show/:id",
                     meta: {
                       label: "Sản phẩm",
+                      canDelete: true,
+                    },
+                  },
+                  {
+                    name: "colors",
+                    list: "/colors",
+                    create: "/colors/create",
+                    edit: "/colors/edit/:id",
+                    show: "/colors/show/:id",
+                    meta: {
+                      label: "Quản lý màu sắc",
                       canDelete: true,
                     },
                   },
@@ -123,11 +136,14 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
                     </Route>
-                      <Route path="/products">
+                    <Route path="/products">
                       <Route index element={<ProductsList />} />
                       <Route path="create" element={<ProductsCreate />} />
                       <Route path="edit/:id" element={<ProductsEdit />} />
                       <Route path="show/:id" element={<ProductsShow />} />
+                    </Route>
+                    <Route path="/colors">
+                      <Route index element={<ColorList />} />
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
