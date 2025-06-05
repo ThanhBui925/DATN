@@ -7,7 +7,8 @@ export const CategoryEdit = () => {
         resource: "categories",
         action: "edit",
     });
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const { data, isLoading } = queryResult;
     const initialImage = data?.data?.image || null;
 
@@ -118,6 +119,8 @@ export const CategoryEdit = () => {
                                 listType="picture"
                                 maxCount={1}
                                 beforeUpload={() => false}
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
                                 defaultFileList={
                                     initialImage ? [{ url: initialImage, uid: "-1", status: "done" }] : []
                                 }

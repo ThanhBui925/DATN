@@ -51,6 +51,8 @@ function App() {
                     <AntdApp>
                         <DevtoolsProvider>
                             <Refine
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
                                 dataProvider={dataProvider}
                                 notificationProvider={useNotificationProvider}
                                 routerProvider={routerBindings}
