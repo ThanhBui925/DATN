@@ -1,4 +1,5 @@
 <?php
+<<<<<<< Updated upstream
 
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
@@ -15,3 +16,18 @@ Route::delete('products/{id}/force-delete', [ProductController::class, 'forceDel
 Route::post('products/{id}/restore', [ProductController::class, 'restore']);
 Route::get('products/trashed', [ProductController::class, 'trashed']);
 Route::apiResource('products', ProductController::class);
+=======
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BannerController;
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']);
+Route::middleware('auth:sanctum')->get('/banners', [BannerController::class, 'index']);
+Route::middleware('auth:sanctum')->post('/banners', [BannerController::class, 'store']);
+Route::middleware('auth:sanctum')->put('/banners/{id}', [BannerController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/banners/{id}', [BannerController::class, 'destroy']);
+
+>>>>>>> Stashed changes
