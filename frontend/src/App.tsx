@@ -28,7 +28,7 @@ import {
     BlogPostEdit,
     BlogPostList,
     BlogPostShow,
-} from "./pages/blog-posts";
+} from "./pages/blogs";
 import {
     CategoryCreate,
     CategoryEdit,
@@ -109,6 +109,18 @@ function App() {
                                             canDelete: true,
                                         },
                                     },
+
+                                    {
+                                        name: "blogs",
+                                        list: "/blogs",
+                                        create: "/blogs/create",
+                                        edit: "/blogs/edit/:id",
+                                        show: "/blogs/show/:id",
+                                        meta: {
+                                            label: "Quản lý bài viết",
+                                            canDelete: true,
+                                        },
+                                    },
                                 ]}
                                 options={{
                                     syncWithLocation: true,
@@ -138,7 +150,7 @@ function App() {
                                             element={<NavigateToResource resource="blog_posts"/>}
                                         />
 
-                                        <Route path="/blog-posts">
+                                        <Route path="/blogs">
                                             <Route index element={<BlogPostList/>}/>
                                             <Route path="create" element={<BlogPostCreate/>}/>
                                             <Route path="edit/:id" element={<BlogPostEdit/>}/>
