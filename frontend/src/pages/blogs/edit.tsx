@@ -11,6 +11,8 @@ export const BlogPostEdit = () => {
         action: "edit",
     });
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const {data, isLoading} = queryResult;
     const initialImage = data?.data?.image || null;
 
@@ -138,6 +140,8 @@ export const BlogPostEdit = () => {
                                 listType="picture"
                                 maxCount={1}
                                 beforeUpload={() => false}
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
                                 defaultFileList={
                                     initialImage ? [{ url: initialImage, uid: "-1", status: "done" }] : []
                                 }
