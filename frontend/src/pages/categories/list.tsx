@@ -56,13 +56,12 @@ export const CategoryList = () => {
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
-                    render={(value: string) => {
-                        if (value === "inactive") {
-                            return <Tag color="red">Không hoạt động</Tag>;
-                        } else {
-                            return <Tag color="green">Hoạt động</Tag>;
-                        }
-                    }}
+                    render={(value) => (
+                        <Tag color={value == 0 ? "red" : "green"}>
+                            {value == 0 ? "Không hoạt động" : "Hoạt động"}
+                        </Tag>
+                    )}
+
                 />
                 <Table.Column
                     title="Hành động"

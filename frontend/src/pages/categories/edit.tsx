@@ -85,8 +85,8 @@ export const CategoryEdit = () => {
                             rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
                         >
                             <Select>
-                                <Select.Option value="active">Hoạt động</Select.Option>
-                                <Select.Option value="inactive">Không hoạt động</Select.Option>
+                                <Select.Option value="1">Hoạt động</Select.Option>
+                                <Select.Option value="0">Không hoạt động</Select.Option>
                             </Select>
                         </Form.Item>
                     </Col>
