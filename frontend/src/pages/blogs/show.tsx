@@ -57,21 +57,26 @@ export const BlogPostShow = () => {
                       Trạng thái
                   </Title>
                   {record?.status ? (
-                      <>
-                          <Tag color={record.status === "published" ? "green" : ""}>
-                              {record.status === "published" ? "Công khai" : ""}
-                          </Tag>
-                          <Tag color={record.status === "draft" ? "red" : ""}>
-                              {record.status === "draft" ? "Nháp" : ""}
-                          </Tag>
-                          <Tag color={record.status === "private" ? "blue" : ""}>
-                              {record.status === "private" ? "Riêng tư" : ""}
-                          </Tag>
-                      </>
+                      (() => {
+                          const statusMap: Record<string, { color: string; label: string }> = {
+                              published: { color: "green", label: "Công khai" },
+                              draft: { color: "red", label: "Nháp" },
+                              private: { color: "blue", label: "Riêng tư" },
+                          };
+
+                          const status = statusMap[record.status];
+
+                          return status ? (
+                              <Tag color={status.color}>{status.label}</Tag>
+                          ) : (
+                              <Tag>{record.status}</Tag>
+                          );
+                      })()
                   ) : (
                       <TextField value="Không có trạng thái" style={{ fontSize: 16 }} />
                   )}
               </Col>
+
 
               <Col span={24}>
                   <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>

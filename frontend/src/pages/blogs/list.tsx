@@ -8,7 +8,7 @@ import {
     useTable,
 } from "@refinedev/antd";
 import {type BaseRecord } from "@refinedev/core";
-import {Breadcrumb, Space, Table} from "antd";
+import {Breadcrumb, Space, Table, Tag} from "antd";
 
 export const BlogPostList = () => {
     const {tableProps} = useTable({
@@ -46,7 +46,26 @@ export const BlogPostList = () => {
                     }
                 />
                 <Table.Column dataIndex="title" title={"Tiêu đề"}/>
-                <Table.Column dataIndex="status" title={"Trạng thái"}/>
+                <Table.Column
+                    dataIndex="status"
+                    title="Trạng thái"
+                    render={(value: string) => {
+                        if (!value) return null;
+
+                        const statusMap: Record<string, { color: string; label: string }> = {
+                            published: { color: "green", label: "Công khai" },
+                            draft: { color: "red", label: "Nháp" },
+                            private: { color: "blue", label: "Riêng tư" },
+                        };
+
+                        const status = statusMap[value];
+
+                        return status && (
+                            <Tag color={status.color}>{status.label}</Tag>
+                        );
+                    }}
+                />
+
                 <Table.Column
                     dataIndex={["created_at"]}
                     title={"Ngày tạo"}
