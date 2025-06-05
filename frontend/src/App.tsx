@@ -1,7 +1,7 @@
 import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-
+import { DashboardOutlined, AppstoreOutlined, ShoppingOutlined, BgColorsOutlined } from "@ant-design/icons";
 
 import {
   ErrorComponent,
@@ -61,6 +61,7 @@ function App() {
                     meta: {
                       label: "Bảng điều khiển",
                       canDelete: true,
+                      icon: <DashboardOutlined />,
                     },
                   },
                   {
@@ -72,6 +73,7 @@ function App() {
                     meta: {
                       label: "Danh mục",
                       canDelete: true,
+                      icon: <AppstoreOutlined />,
                     },
                   },
                   {
@@ -83,6 +85,7 @@ function App() {
                     meta: {
                       label: "Sản phẩm",
                       canDelete: true,
+                      icon: <ShoppingOutlined />,
                     },
                   },
                   {
@@ -94,6 +97,7 @@ function App() {
                     meta: {
                       label: "Quản lý màu sắc",
                       canDelete: true,
+                      icon: <BgColorsOutlined />,
                     },
                   },
                 ]}
