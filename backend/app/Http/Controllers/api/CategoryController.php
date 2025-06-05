@@ -51,7 +51,7 @@ class CategoryController extends Controller
             $category = Category::create([
                 'name' => $request->name,
                 'description' => $request->description,
-                'image' => $imageUrl,
+                'image' => env('APP_URL', "http://127.0.0.1:8000") .  $imageUrl,
                 'status' => $request->status ?? 'active',
             ]);
 
@@ -61,19 +61,36 @@ class CategoryController extends Controller
         }
     }
 
-    public function update(UpdateCategoryRequest $request, $id)
+     public function update(UpdateCategoryRequest $request, $id)
     {
-        $category = Category::findOrFail($id);
+        try {
+            $category = Category::findOrFail($id);
 
-        if ($request->hasFile('image')) {
-            $imageUrl = Storage::url($request->file('image')->store('categories', 'public'));
-            $request->merge(['image' => $imageUrl]);
+            $data = $request->all();
+
+            if ($request->hasFile('image')) {
+                $data['image'] = Storage::url($request->file('image')->store('categories', 'public'));
+
+                if (!empty($category->image)) {
+                    $oldImagePath = str_replace('/storage/', '', $category->image);
+                    if (Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
+                    }
+                }
+            } else {
+                $data['image'] = $category->image;
+            }
+
+            $category->update($data);
+
+            return $this->success($category, 'Category updated successfully');
+        } catch (\Exception $e) {
+            return $this->error('Server error', $e->getMessage(), 500);
         }
-
-        $category->update($request->all());
-
-        return $this->success($category, 'Category updated successfully');
     }
+
+
+
 
     public function destroy($id)
     {
