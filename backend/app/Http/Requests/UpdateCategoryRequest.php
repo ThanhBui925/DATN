@@ -14,10 +14,10 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'string|max:255', // Bỏ required
             'description' => 'nullable|string',
-            'image' => 'nullable|file|image|max:2048',
-            'status' => 'in:active,inactive',
+            'image' => 'nullable|file|image|max:5012',
+            'status' => 'in:0,1', // Bỏ required
         ];
     }
 }

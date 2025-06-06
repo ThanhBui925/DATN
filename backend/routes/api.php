@@ -26,14 +26,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
-        Route::apiResource('/', CategoryController::class)->parameter('/', 'category');
+        Route::apiResource('/', CategoryController::class)->parameter('', 'category');
     });
 
     Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
-        Route::apiResource('/', ProductController::class)->parameter('/', 'product');
+        Route::apiResource('/', ProductController::class)->parameter('', 'product');
     });
 
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
