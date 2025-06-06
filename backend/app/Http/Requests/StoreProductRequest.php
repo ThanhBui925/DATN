@@ -28,7 +28,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.size_id' => 'required|exists:sizes,id',
             'variants.*.color_id' => 'required|exists:colors,id',
             'variants.*.quantity' => 'required|integer|min:0',
-            'variants.*.status' => 'required|in:active,inactive',
+            'variants.*.status' => 'nullable|in:0,1',
             'variants.*.images' => 'nullable|array',
             'variants.*.images.*' => 'string',
         ];
