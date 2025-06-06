@@ -560,5 +560,255 @@
         }
       ]
     }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "date_order": "2025-06-01T10:30:00",
+      "total_price": 1950000.00,
+      "order_status": "confirmed",
+      "cancel_reason": null,
+      "payment_status": "paid",
+      "shipping_address": "123 Đường Láng, Đống Đa, Hà Nội",
+      "payment_method": "vnpay",
+      "shipped_at": "2025-06-01T14:00:00",
+      "delivered_at": null,
+      "user_id": 1,
+      "customer_id": 1,
+      "shipping_id": 1,
+      "recipient_name": "Nguyễn Văn A",
+      "recipient_phone": "0987654321",
+      "created_at": "2025-06-01T10:30:00",
+      "updated_at": "2025-06-01T14:00:00",
+      "voucher": {
+        "id": 1,
+        "slug": "voucher-1",
+        "code": "DISCOUNT10",
+        "discount": 10,
+        "discount_type": "percentage",
+        "expiry_date": "2025-06-15T23:59:59",
+        "status": "active",
+        "description": "Giảm 10% cho đơn hàng đầu tiên",
+        "usage_limit": 100,
+        "usage_count": 5,
+        "deleted_at": null,
+        "created_at": "2025-06-05T12:30:00",
+        "updated_at": "2025-06-05T12:30:00"
+      },
+      "items": [
+        {
+          "id": 1,
+          "product": {
+            "id": 1,
+            "slug": "dien-thoai-iphone-14",
+            "category_id": 1,
+            "name": "iPhone 14",
+            "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+            "price": 20000000,
+            "sale_price": 18000000,
+            "sale_end": "2025-06-30T23:59:59",
+            "status": 1,
+            "deleted_at": null,
+            "created_at": "2025-06-05T22:57:00",
+            "updated_at": "2025-06-05T22:57:00"
+          },
+          "variant": {
+            "id": 1,
+            "size": {
+              "name": "128GB"
+            },
+            "color": {
+              "name": "Midnight Black"
+            },
+            "status": "active"
+          },
+          "quantity": 1,
+          "price": 18000000
+        },
+        {
+          "id": 2,
+          "product": {
+            "id": 2,
+            "slug": "tai-nghe-airpods-pro",
+            "category_id": 2,
+            "name": "AirPods Pro",
+            "description": "Tai nghe không dây với chất lượng âm thanh tuyệt vời",
+            "price": 6000000,
+            "sale_price": 5500000,
+            "sale_end": "2025-06-30T23:59:59",
+            "status": 1,
+            "deleted_at": null,
+            "created_at": "2025-06-05T22:57:00",
+            "updated_at": "2025-06-05T22:57:00"
+          },
+          "variant": null,
+          "quantity": 2,
+          "price": 5500000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "date_order": "2025-06-02T14:15:00",
+      "total_price": 850000.00,
+      "order_status": "pending",
+      "cancel_reason": null,
+      "payment_status": "unpaid",
+      "shipping_address": "456 Lê Lợi, Quận 1, TP.HCM",
+      "payment_method": "cash",
+      "shipped_at": null,
+      "delivered_at": null,
+      "user_id": 2,
+      "customer_id": 2,
+      "shipping_id": 2,
+      "recipient_name": "Trần Thị B",
+      "recipient_phone": "0912345678",
+      "created_at": "2025-06-02T14:15:00",
+      "updated_at": "2025-06-02T14:15:00",
+      "voucher": null,
+      "items": [
+        {
+          "id": 3,
+          "product": {
+            "id": 3,
+            "slug": "sạc-du-phong-10000mah",
+            "category_id": 3,
+            "name": "Sạc dự phòng 10000mAh",
+            "description": "Sạc dự phòng dung lượng cao, sạc nhanh",
+            "price": 850000,
+            "sale_price": null,
+            "sale_end": null,
+            "status": 1,
+            "deleted_at": null,
+            "created_at": "2025-06-05T22:57:00",
+            "updated_at": "2025-06-05T22:57:00"
+          },
+          "variant": {
+            "id": 2,
+            "size": null,
+            "color": {
+              "name": "White"
+            },
+            "status": "active"
+          },
+          "quantity": 1,
+          "price": 850000
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "date_order": "2025-06-03T09:00:00",
+      "total_price": 2300000.00,
+      "order_status": "delivered",
+      "cancel_reason": null,
+      "payment_status": "paid",
+      "shipping_address": "789 Trần Hưng Đạo, Hải Phòng",
+      "payment_method": "card",
+      "shipped_at": "2025-06-03T12:00:00",
+      "delivered_at": "2025-06-04T10:00:00",
+      "user_id": 3,
+      "customer_id": 3,
+      "shipping_id": 3,
+      "recipient_name": "Lê Văn C",
+      "recipient_phone": "0931234567",
+      "created_at": "2025-06-03T09:00:00",
+      "updated_at": "2025-06-04T10:00:00",
+      "voucher": {
+        "id": 2,
+        "slug": "voucher-2",
+        "code": "SAVE50K",
+        "discount": 50000,
+        "discount_type": "fixed",
+        "expiry_date": "2025-06-20T23:59:59",
+        "status": "active",
+        "description": "Giảm 50,000 VNĐ cho đơn hàng từ 1,000,000 VNĐ",
+        "usage_limit": 50,
+        "usage_count": 10,
+        "deleted_at": null,
+        "created_at": "2025-06-05T12:30:00",
+        "updated_at": "2025-06-05T12:30:00"
+      },
+      "items": [
+        {
+          "id": 4,
+          "product": {
+            "id": 4,
+            "slug": "laptop-macbook-air",
+            "category_id": 4,
+            "name": "MacBook Air M1",
+            "description": "Laptop mỏng nhẹ với chip M1 mạnh mẽ",
+            "price": 2350000,
+            "sale_price": null,
+            "sale_end": null,
+            "status": 1,
+            "deleted_at": null,
+            "created_at": "2025-06-05T22:57:00",
+            "updated_at": "2025-06-05T22:57:00"
+          },
+          "variant": {
+            "id": 3,
+            "size": {
+              "name": "512GB"
+            },
+            "color": {
+              "name": "Space Gray"
+            },
+            "status": "active"
+          },
+          "quantity": 1,
+          "price": 2350000
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "date_order": "2025-06-04T16:45:00",
+      "total_price": 500000.00,
+      "order_status": "canceled",
+      "cancel_reason": "Khách hàng hủy",
+      "payment_status": "unpaid",
+      "shipping_address": "101 Nguyễn Huệ, Đà Nẵng",
+      "payment_method": "paypal",
+      "shipped_at": null,
+      "delivered_at": null,
+      "user_id": 4,
+      "customer_id": 4,
+      "shipping_id": 4,
+      "recipient_name": "Phạm Thị D",
+      "recipient_phone": "0908765432",
+      "created_at": "2025-06-04T16:45:00",
+      "updated_at": "2025-06-04T17:00:00",
+      "voucher": null,
+      "items": [
+        {
+          "id": 5,
+          "product": {
+            "id": 5,
+            "slug": "op-lung-iphone-14",
+            "category_id": 5,
+            "name": "Ốp lưng iPhone 14",
+            "description": "Ốp lưng silicon cao cấp cho iPhone 14",
+            "price": 500000,
+            "sale_price": null,
+            "sale_end": null,
+            "status": 1,
+            "deleted_at": null,
+            "created_at": "2025-06-05T22:57:00",
+            "updated_at": "2025-06-05T22:57:00"
+          },
+          "variant": {
+            "id": 4,
+            "size": null,
+            "color": {
+              "name": "Transparent"
+            },
+            "status": "active"
+          },
+          "quantity": 1,
+          "price": 500000
+        }
+      ]
+    }
   ]
 }
