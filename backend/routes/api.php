@@ -1,42 +1,52 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\UserController; // Đảm bảo đã import UserController
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\{
+    AuthController,
+    BannerController,
+    CategoryController,
+    ProductController,
+    OrderController,
+    UserController
+};
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-
-Route::apiResource('categories', CategoryController::class);
-Route::prefix('categories')->group(function () {
-    Route::get('/trashed', [CategoryController::class, 'trashed']);
-    Route::post('/{id}/restore', [CategoryController::class, 'restore']);
-    Route::delete('/{id}/force-delete', [CategoryController::class, 'forceDelete']);
-});
-
-Route::apiResource('products', ProductController::class);
-Route::prefix('products')->group(function () {
-    Route::get('/trashed', [ProductController::class, 'trashed']);
-    Route::post('/{id}/restore', [ProductController::class, 'restore']);
-    Route::delete('/{id}/force-delete', [ProductController::class, 'forceDelete']);
+Route::controller(AuthController::class)->group(function () {
+    Route::post('/login', 'login');
+    Route::post('/register', 'register');
+    Route::middleware('auth:sanctum')->get('/user', 'user');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::prefix('orders')->group(function () {
-        Route::get('/', [OrderController::class, 'index']); // Lấy danh sách đơn hàng
-        Route::put('/{id}/status', [OrderController::class, 'updateStatus']); // Cập nhật trạng thái đơn hàng
-        Route::get('/search', [OrderController::class, 'searchByProduct']); // Tìm kiếm đơn hàng theo sản phẩm
-        Route::get('/{id}/detail', [OrderController::class, 'showDetail']); // Xem chi tiết đơn hàng
-        Route::get('/{id}/pdf', [OrderController::class, 'generatePDF']); // Tạo PDF hóa đơn
-    });
-    Route::prefix('users')->group(function () {
-        Route::get('/', [UserController::class, 'index']); // Lấy danh sách người dùng (có search, filter, paginate)
-        Route::put('/{id}/toggle-status', [UserController::class, 'toggleStatus']); // Chuyển đổi trạng thái người dùng (active/inactive)
-        Route::put('/{id}/reset-password', [UserController::class, 'resetPassword']); // Đặt lại mật khẩu cho người dùng
+    Route::apiResource('banners', BannerController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+        Route::get('/trashed', 'trashed');
+        Route::post('{id}/restore', 'restore');
+        Route::delete('{id}/force-delete', 'forceDelete');
+        Route::apiResource('/', CategoryController::class)->parameter('/', 'category');
     });
 
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/trashed', 'trashed');
+        Route::post('{id}/restore', 'restore');
+        Route::delete('{id}/force-delete', 'forceDelete');
+        Route::apiResource('/', ProductController::class)->parameter('/', 'product');
+    });
+
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/search', 'searchByProduct');
+        Route::put('/{id}/status', 'updateStatus');
+        Route::get('/{id}/detail', 'showDetail');
+        Route::get('/{id}/pdf', 'generatePDF');
+    });
+
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::put('/{id}/toggle-status', 'toggleStatus');
+        Route::put('/{id}/reset-password', 'resetPassword');
+    });
 });
