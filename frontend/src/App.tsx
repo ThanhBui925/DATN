@@ -65,6 +65,7 @@ import {
     CustomerList, CustomerShow
 } from "./pages/customers";
 import Dashboard from "./pages/dashboard/list";
+import {OrdersList, OrdersShow} from "./pages/orders";
 
 function App() {
     return (
@@ -230,10 +231,9 @@ function App() {
                                         </Route>
 
                                         <Route path="/orders">
-                                            <Route index element={<CategoryList/>}/>
-                                            <Route path="create" element={<CategoryCreate/>}/>
+                                            <Route index element={<OrdersList/>}/>
                                             <Route path="edit/:id" element={<CategoryEdit/>}/>
-                                            <Route path="show/:id" element={<CategoryShow/>}/>
+                                            <Route path="show/:id" element={<OrdersShow/>}/>
                                         </Route>
 
                                         <Route
