@@ -64,6 +64,7 @@ import {
 import {
     CustomerList, CustomerShow
 } from "./pages/customers";
+import Dashboard from "./pages/dashboard/list";
 
 function App() {
     return (
@@ -211,6 +212,11 @@ function App() {
                                             </Authenticated>
                                         }
                                     >
+
+                                        <Route path="/dashboard">
+                                            <Route index element={<Dashboard/>}/>
+                                        </Route>
+
                                         <Route
                                             index
                                             element={<NavigateToResource resource="blog_posts"/>}
