@@ -1,15 +1,19 @@
-import {Edit, Show, useForm} from "@refinedev/antd";
+import {Edit, Show, useForm } from "@refinedev/antd";
+import MDEditor from "@uiw/react-md-editor";
 import {Breadcrumb, Button, Col, Form, Input, Row, Select, Skeleton, Upload} from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import TextArea from "antd/es/input/TextArea";
+import {UploadOutlined} from "@ant-design/icons";
 
-export const CategoryEdit = () => {
-    const { saveButtonProps, formProps, queryResult } = useForm({
-        resource: "categories",
+export const BlogPostEdit = () => {
+
+    const {saveButtonProps, formProps, queryResult} = useForm({
+        resource: "blogs",
         action: "edit",
     });
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const { data, isLoading } = queryResult;
+    const {data, isLoading} = queryResult;
     const initialImage = data?.data?.image || null;
 
     const onFinish = async (values: any) => {
@@ -32,7 +36,7 @@ export const CategoryEdit = () => {
     if (isLoading) {
         return (
             <Show>
-                <Skeleton active paragraph={{ rows: 4 }} />
+                <Skeleton active paragraph={{rows: 16}}/>
             </Show>
         );
     }
@@ -52,9 +56,9 @@ export const CategoryEdit = () => {
             breadcrumb={
                 <Breadcrumb>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
-                    <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
+                    <Breadcrumb.Item>Bài viết</Breadcrumb.Item>
                     <Breadcrumb.Item>Cập nhật</Breadcrumb.Item>
-                    <Breadcrumb.Item>{ data?.data?.name }</Breadcrumb.Item>
+                    <Breadcrumb.Item>{data?.data?.name}</Breadcrumb.Item>
                 </Breadcrumb>
             }
         >
@@ -64,35 +68,52 @@ export const CategoryEdit = () => {
                 onFinish={onFinish}
                 initialValues={{
                     ...formProps.initialValues,
-                    image: initialImage ? [{ url: initialImage, status: "done" }] : [],
+                    image: initialImage ? [{url: initialImage, status: "done"}] : [],
                 }}
             >
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item
-                            label="Tên danh mục"
-                            name="name"
-                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
+                            label={"Tiêu đề"}
+                            name={["title"]}
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
                         >
                             <Input />
                         </Form.Item>
-                    </Col>
-
-                    <Col span={6}>
                         <Form.Item
-                            label="Trạng thái"
-                            name="status"
-                            initialValue="active"
-                            rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+                            label={"Tiêu đề ngắn"}
+                            name={["description"]}
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
                         >
-                            <Select>
-                                <Select.Option value="1">Hoạt động</Select.Option>
-                                <Select.Option value="0">Không hoạt động</Select.Option>
-                            </Select>
+                            <TextArea />
                         </Form.Item>
-                    </Col>
-
-                    <Col span={6}>
+                        <Form.Item
+                            label={"Trạng thái"}
+                            name={["status"]}
+                            initialValue={"draft"}
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
+                        >
+                            <Select
+                                defaultValue={"published"}
+                                options={[
+                                    { value: "draft", label: "Nháp" },
+                                    { value: "published", label: "Công khai" },
+                                    { value: "private", label: "Riêng tư" },
+                                ]}
+                            />
+                        </Form.Item>
                         <Form.Item
                             label="Ảnh"
                             name="image"
@@ -129,10 +150,17 @@ export const CategoryEdit = () => {
                             </Upload>
                         </Form.Item>
                     </Col>
-
-                    <Col span={24}>
-                        <Form.Item label="Mô tả" name="description">
-                            <Input.TextArea rows={4} />
+                    <Col span={12}>
+                        <Form.Item
+                            label={"Nội dung"}
+                            name="content"
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
+                        >
+                            <MDEditor data-color-mode="light" />
                         </Form.Item>
                     </Col>
                 </Row>

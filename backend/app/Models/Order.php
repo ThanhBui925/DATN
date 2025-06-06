@@ -1,36 +1,39 @@
 <?php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    protected $table = 'orders';
+    use HasFactory;
+
+    protected $table = 'shop_order';
+
     protected $fillable = [
-        'user_id',
-        'status',
-        'total_amount',
-        'shipping_address',
-        'billing_address',
+        'slug', 'date_order', 'total_price', 'order_status', 'cancel_reason',
+        'payment_status', 'shipping_address', 'payment_method', 'shipped_at',
+        'delivered_at', 'user_id', 'customer_id', 'shipping_id',
+        'recipient_name', 'recipient_phone'
     ];
-    protected $casts = [
-        'status' => 'string',
-        'total_amount' => 'decimal:2',
-    ];
-    protected $dates = [
-        'created_at',
-        'updated_at',
-    ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function shipping()
+    {
+        return $this->belongsTo(Shipping::class);
+    }
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
-    public function products()
+    public function orderItems()
     {
-        return $this->belongsToMany(Product::class, 'order_product')
-                    ->withPivot('quantity', 'price');
+        return $this->hasMany(OrderItem::class);
     }
 }

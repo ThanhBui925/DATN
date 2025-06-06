@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductCategory extends Model
+class Permission extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductCategoryFactory> */
     use HasFactory;
+
+    protected $fillable = ['name', 'slug', 'guard_name'];
+
 }

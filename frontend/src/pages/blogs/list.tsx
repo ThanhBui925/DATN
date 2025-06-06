@@ -1,47 +1,61 @@
 import {
     CreateButton,
+    DateField,
     DeleteButton,
     EditButton,
     List,
     ShowButton,
     useTable,
 } from "@refinedev/antd";
-import type {BaseRecord} from "@refinedev/core";
+import {type BaseRecord } from "@refinedev/core";
 import {Breadcrumb, Space, Table, Tag} from "antd";
 
-export const ProductsList = () => {
+export const BlogPostList = () => {
     const {tableProps} = useTable({
         syncWithLocation: true,
     });
 
     return (
         <List
-            title={`Sản phẩm`}
+            title={'Bài viết'}
             breadcrumb={
                 <Breadcrumb>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
-                    <Breadcrumb.Item>Sản phẩm</Breadcrumb.Item>
+                    <Breadcrumb.Item>Bài viết</Breadcrumb.Item>
                 </Breadcrumb>
             }
             headerButtons={() => (
-                <CreateButton>Thêm sản phẩm</CreateButton>
+                <CreateButton>Thêm bài viết</CreateButton>
             )}
         >
             <Table {...tableProps} rowKey="id">
+                <Table.Column dataIndex="id" title={"STT"}/>
                 <Table.Column
-                    title="STT"
-                    key="index"
-                    render={(text, record, index) => index + 1}
+                    dataIndex="image"
+                    title="Ảnh"
+                    render={(value: string) =>
+                        value ? (
+                            <img
+                                src={value}
+                                alt="Image"
+                                style={{width: 90, height: 50, objectFit: "cover"}}
+                            />
+                        ) : (
+                            <span>Chưa có ảnh</span>
+                        )
+                    }
                 />
-                <Table.Column dataIndex="name" title={"Tên sản phẩm"}/>
-                <Table.Column dataIndex="price" title={"Giá sản phẩm"}/>
+                <Table.Column dataIndex="title" title={"Tiêu đề"}/>
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
                     render={(value: string) => {
+                        if (!value) return null;
+
                         const statusMap: Record<string, { color: string; label: string }> = {
-                            1: { color: "green", label: "Hoạt động" },
-                            0: { color: "red", label: "Ngừng hoạt động" }
+                            published: { color: "green", label: "Công khai" },
+                            draft: { color: "red", label: "Nháp" },
+                            private: { color: "blue", label: "Riêng tư" },
                         };
 
                         const status = statusMap[value];
@@ -51,7 +65,12 @@ export const ProductsList = () => {
                         );
                     }}
                 />
-                <Table.Column dataIndex={['category', 'name']} title="Danh mục" />
+
+                <Table.Column
+                    dataIndex={["created_at"]}
+                    title={"Ngày tạo"}
+                    render={(value: any) => <DateField value={value}/>}
+                />
                 <Table.Column
                     title={"Hành động"}
                     dataIndex="actions"
