@@ -1,6 +1,6 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Row, Col, Image, List } from "antd";
+import {Typography, Row, Col, Image, List, Breadcrumb} from "antd";
 
 const { Title } = Typography;
 
@@ -10,7 +10,18 @@ export const ProductsShow = () => {
     const record = data?.data;
 
     return (
-        <Show isLoading={isLoading}>
+        <Show
+            isLoading={isLoading}
+            title={"Chi tiết sản phẩm"}
+            breadcrumb={
+                <Breadcrumb>
+                    <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
+                    <Breadcrumb.Item>Sản phẩm</Breadcrumb.Item>
+                    <Breadcrumb.Item>Chi tiết</Breadcrumb.Item>
+                    <Breadcrumb.Item>{ record?.name }</Breadcrumb.Item>
+                </Breadcrumb>
+            }
+        >
             <Row gutter={[16, 16]}>
                 <Col span={12}>
                     <Title level={5}>ID</Title>
@@ -54,7 +65,7 @@ export const ProductsShow = () => {
                             <Row gutter={[8, 8]}>
                                 {record.imageDesc.map((url: any, index: number) => (
                                     <Col key={index}>
-                                        <Image src={url} width={100} style={{ borderRadius: "4px" }} />
+                                        <Image src={url.url} width={100} style={{ borderRadius: "4px" }} />
                                     </Col>
                                 ))}
                             </Row>

@@ -111,6 +111,14 @@
       "name": "Đen",
       "created_at": "2025-06-05 10:30:00",
       "updated_at": "2025-06-05 10:30:00"
+    },
+    {
+      "id": "0e39",
+      "name": "担当 太郎 lequyhieu"
+    },
+    {
+      "id": "9180",
+      "name": "agaga"
     }
   ],
   "customers": [
@@ -442,7 +450,7 @@
       "id": "1",
       "slug": "dien-thoai-iphone-14",
       "category_id": 1,
-      "name": "iPhone 14",
+      "name": "iPhone 14 (data UI edit)",
       "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
       "price": 20000000,
       "sale_price": 18000000,
@@ -462,6 +470,95 @@
         "created_at": "2025-06-02 14:12:16",
         "updated_at": "2025-06-02 15:48:06"
       }
+    },
+    {
+      "id": "2",
+      "slug": "dien-thoai-iphone-14",
+      "category_id": 1,
+      "name": "iPhone 14 (data UI show)",
+      "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+      "price": 20000000,
+      "sale_price": 18000000,
+      "sale_end": "2025-06-30 23:59:59",
+      "status": 1,
+      "deleted_at": null,
+      "created_at": "2025-06-05 22:57:00",
+      "updated_at": "2025-06-05 22:57:00",
+      "image": "https://picsum.photos/200/300?grayscale",
+      "imageDesc": [
+        {
+          "url": "https://picsum.photos/200/300?grayscale"
+        },
+        {
+          "url": "https://picsum.photos/200/300?grayscale"
+        },
+        {
+          "url": "https://picsum.photos/200/300?grayscale"
+        }
+      ],
+      "category": {
+        "id": "1",
+        "slug": "dien-thoai",
+        "name": "Điện thoại",
+        "description": "Các loại điện thoại",
+        "image": "https://picsum.photos/200/300?grayscale",
+        "status": "active",
+        "deleted_at": "2025-06-02 15:48:06",
+        "created_at": "2025-06-02 14:12:16",
+        "updated_at": "2025-06-02 15:48:06"
+      },
+      "variants": [
+        {
+          "id": "1",
+          "slug": "bien-the-1",
+          "product_id": 1,
+          "name": "Biến thể Đen S",
+          "quantity": 50,
+          "size_id": 1,
+          "color_id": 1,
+          "status": "active",
+          "created_at": "2025-06-05 12:20:00",
+          "updated_at": "2025-06-05 12:20:00",
+          "color": {
+            "id": "1",
+            "slug": "mau-den",
+            "name": "Đen",
+            "created_at": "2025-06-05 10:30:00",
+            "updated_at": "2025-06-05 10:30:00"
+          },
+          "size": {
+            "id": "1",
+            "slug": "size-s",
+            "name": "S",
+            "created_at": "2025-06-05 12:00:00",
+            "updated_at": "2025-06-05 12:00:00"
+          }
+        },
+        {
+          "id": "2",
+          "slug": "bien-the-2",
+          "product_id": 1,
+          "name": "Biến thể Trắng M",
+          "quantity": 30,
+          "size_id": 2,
+          "color_id": 2,
+          "status": "active",
+          "created_at": "2025-06-05 12:25:00",
+          "updated_at": "2025-06-05 12:25:00",
+          "color":
+          {
+            "id": "0e39",
+            "name": "担当 太郎 lequyhieu"
+          },
+          "size": {
+            "id": "1",
+            "slug": "size-s",
+            "name": "S",
+            "created_at": "2025-06-05 12:00:00",
+            "updated_at": "2025-06-05 12:00:00"
+          }
+        }
+      ]
     }
   ]
 }

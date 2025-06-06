@@ -25,6 +25,9 @@ export const ColorList = () => {
     } = useForm({
         resource: "colors",
         action: "create",
+        onMutationSuccess: () => {
+            setIsCreateModalOpen(false);
+        },
     });
 
     const {
@@ -35,19 +38,10 @@ export const ColorList = () => {
         action: "edit",
         id: selectedRecord?.id,
         redirect: false,
+        onMutationSuccess: () => {
+            setIsCreateModalOpen(false);
+        },
     });
-
-    const onCreateFinish = async (values: any) => {
-        const formData = new FormData();
-        formData.append("name", values.name || "");
-        return createFormProps.onFinish?.(formData);
-    };
-
-    const onEditFinish = async (values: any) => {
-        const formData = new FormData();
-        formData.append("name", values.name || "");
-        return editFormProps.onFinish?.(formData);
-    };
 
     return (
         <List
@@ -69,7 +63,7 @@ export const ColorList = () => {
                 <Table.Column
                     title="STT"
                     key="id"
-                    render={(index) => index + 1}
+                    render={(value, record, index) => index + 1}
                 />
                 <Table.Column dataIndex="name" title="Tên màu sắc"/>
                 <Table.Column
@@ -114,7 +108,7 @@ export const ColorList = () => {
                         children: "Lưu",
                     }}
                 >
-                    <Form {...createFormProps} layout="vertical" onFinish={onCreateFinish}>
+                    <Form {...createFormProps} layout="vertical">
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item
@@ -127,6 +121,7 @@ export const ColorList = () => {
                             </Col>
                         </Row>
                     </Form>
+
                 </Create>
             </Modal>
 
@@ -154,7 +149,7 @@ export const ColorList = () => {
                         },
                     }}
                 >
-                    <Form {...editFormProps} layout="vertical" onFinish={onEditFinish} initialValues={selectedRecord!}>
+                    <Form {...editFormProps} layout="vertical" initialValues={selectedRecord!}>
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item
