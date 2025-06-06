@@ -54,6 +54,16 @@ import {
     BannerList,
     BannerShow,
 } from "./pages/banners";
+import {
+    BgColorsOutlined,
+    DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined,
+    ShoppingOutlined,
+    UnorderedListOutlined,
+    UserOutlined
+} from "@ant-design/icons";
+import {
+    CustomerList, CustomerShow
+} from "./pages/customers";
 
 function App() {
     return (
@@ -75,6 +85,7 @@ function App() {
                                         list: "/dashboard",
                                         meta: {
                                             label: "Bảng điều khiển",
+                                            icon: <DashboardOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -86,6 +97,7 @@ function App() {
                                         show: "/categories/show/:id",
                                         meta: {
                                             label: "Danh mục",
+                                            icon: <UnorderedListOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -97,6 +109,7 @@ function App() {
                                         show: "/products/show/:id",
                                         meta: {
                                             label: "Sản phẩm",
+                                            icon: <ShoppingOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -108,6 +121,7 @@ function App() {
                                         show: "/colors/show/:id",
                                         meta: {
                                             label: "Quản lý màu sắc",
+                                            icon: <BgColorsOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -120,6 +134,7 @@ function App() {
                                         show: "/sizes/show/:id",
                                         meta: {
                                             label: "Quản lý kích cỡ",
+                                            icon: <ExpandOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -132,6 +147,7 @@ function App() {
                                         show: "/blogs/show/:id",
                                         meta: {
                                             label: "Quản lý bài viết",
+                                            icon: <FileTextOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -156,6 +172,18 @@ function App() {
                                         show: "/banners/show/:id",
                                         meta: {
                                             label: "Quản lý banner",
+                                            icon: <GiftOutlined/>,
+                                            canDelete: true,
+                                        },
+                                    },
+
+                                    {
+                                        name: "customers",
+                                        list: "/customers",
+                                        show: "/customers/show/:id",
+                                        meta: {
+                                            label: "Quản lý khách hàng",
+                                            icon: <UserOutlined />,
                                             canDelete: true,
                                         },
                                     },
@@ -229,6 +257,11 @@ function App() {
                                             <Route path="create" element={<BannerCreate/>}/>
                                             <Route path="edit/:id" element={<BannerEdit/>}/>
                                             <Route path="show/:id" element={<BannerShow/>}/>
+                                        </Route>
+
+                                        <Route path="/customers">
+                                            <Route index element={<CustomerList/>}/>
+                                            <Route path="show/:id" element={<CustomerShow/>}/>
                                         </Route>
 
                                         <Route path="*" element={<ErrorComponent/>}/>
