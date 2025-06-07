@@ -6,9 +6,9 @@ import {
     DeleteButton,
     DateField,
     ImageField,
-    TagField,
+    TagField, CreateButton,
 } from "@refinedev/antd";
-import { Table, Space } from "antd";
+import {Table, Space, Breadcrumb} from "antd";
 import { IResourceComponentsProps } from "@refinedev/core";
 
 export const BannerList: React.FC<IResourceComponentsProps> = () => {
@@ -17,7 +17,18 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
     });
 
     return (
-        <List title="Danh sách Banner">
+        <List
+            title="Danh sách Banner"
+            breadcrumb={
+                <Breadcrumb>
+                    <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
+                    <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
+                </Breadcrumb>
+            }
+            headerButtons={() => (
+                <CreateButton>Thêm danh mục</CreateButton>
+            )}
+        >
             <Table {...tableProps} rowKey="id">
                 <Table.Column dataIndex="id" title="Mã số" />
                 <Table.Column dataIndex="title" title="Tiêu đề" />
@@ -39,8 +50,8 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
                     title="Trạng thái"
                     render={(value) => (
                         <TagField
-                            value={value === "active" ? "Hoạt động" : "Không hoạt động"}
-                            color={value === "active" ? "green" : "red"}
+                            value={value === "1" ? "Hoạt động" : "Không hoạt động"}
+                            color={value === "1" ? "green" : "red"}
                         />
                     )}
                 />

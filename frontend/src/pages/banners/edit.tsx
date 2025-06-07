@@ -24,7 +24,7 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
         formData.append("link_url", values.link_url || "");
         formData.append("start_date", values.start_date ? dayjs(values.start_date).format("YYYY-MM-DD HH:mm:ss") : "");
         formData.append("end_date", values.end_date ? dayjs(values.end_date).format("YYYY-MM-DD HH:mm:ss") : "");
-        formData.append("status", values.status || "active");
+        formData.append("status", values.status || "1");
 
         if (
             values.image_url &&
@@ -114,10 +114,12 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
                             name="status"
                             rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
                         >
-                            <Select>
-                                <Select.Option value="active">Hoạt động</Select.Option>
-                                <Select.Option value="inactive">Không hoạt động</Select.Option>
-                            </Select>
+                            <Select
+                                options={[
+                                    { value: "1", label: "Hoạt động" },
+                                    { value: "0", label: "Không hoạt động" },
+                                ]}
+                            />
                         </Form.Item>
                     </Col>
 
