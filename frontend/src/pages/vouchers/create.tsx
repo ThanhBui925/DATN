@@ -7,6 +7,7 @@ export const VoucherCreate = () => {
     action: "create",
   });
 
+
   return (
       <Create
           title={"Tạo mới Voucher"}
@@ -42,11 +43,6 @@ export const VoucherCreate = () => {
                 <InputNumber
                     style={{ width: "100%" }}
                     min={0}
-                    formatter={(value) =>
-                        formProps.form?.getFieldValue("discount_type") === "percentage"
-                            ? `${value}%`
-                            : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'
-                    }
                 />
               </Form.Item>
             </Col>
@@ -70,7 +66,7 @@ export const VoucherCreate = () => {
               >
                 <DatePicker
                     showTime
-                    format="DD/MM/YYYY HH:mm"
+                    format="DD/MM/YYYY HH:mm:ss"
                     style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -79,12 +75,12 @@ export const VoucherCreate = () => {
               <Form.Item
                   label="Trạng thái"
                   name="status"
-                  initialValue="active"
+                  initialValue="1"
                   rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
               >
                 <Select>
-                  <Select.Option value="active">Hoạt động</Select.Option>
-                  <Select.Option value="inactive">Không hoạt động</Select.Option>
+                  <Select.Option value="1">Hoạt động</Select.Option>
+                  <Select.Option value="2">Không hoạt động</Select.Option>
                 </Select>
               </Form.Item>
             </Col>

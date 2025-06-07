@@ -1,5 +1,6 @@
 import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, Select, DatePicker, Row, Col, Breadcrumb, InputNumber } from "antd";
+import dayjs from "dayjs";
 export const VoucherEdit = () => {
     const { saveButtonProps, formProps, queryResult } = useForm({
         resource: "vouchers",
@@ -7,8 +8,13 @@ export const VoucherEdit = () => {
     });
 
     const initialValues = {
-        ...queryResult?.data?.data,
-        expiry_date: queryResult?.data?.data?.expiry_date ?? null,
+        code: queryResult?.data?.data?.code || "",
+        discount: queryResult?.data?.data?.discount || 0,
+        discount_type: queryResult?.data?.data?.discount_type || "fixed",
+        expiry_date: queryResult?.data?.data?.expiry_date ? dayjs(queryResult.data.data.expiry_date) : null,
+        status: queryResult?.data?.data?.status || "1",
+        usage_limit: queryResult?.data?.data?.usage_limit || null,
+        description: queryResult?.data?.data?.description || "",
     };
 
     return (
@@ -74,21 +80,27 @@ export const VoucherEdit = () => {
                         >
                             <DatePicker
                                 showTime
-                                format="DD/MM/YYYY HH:mm"
+                                format="YYYY-MM-DD HH:mm:ss"
                                 style={{ width: "100 " }}
                             />
                         </Form.Item>
                     </Col>
                     <Col span={12}>
                         <Form.Item
-                            label="Trạng thái"
-                            name="status"
-                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
+                            label={"Trạng thái"}
+                            name={["status"]}
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
                         >
-                            <Select>
-                                <Select.Option value="active">Hoạt động</Select.Option>
-                                <Select.Option value="inactive">Không hoạt động</Select.Option>
-                            </Select>
+                            <Select
+                                options={[
+                                    { value: "1", label: "Hoạt động" },
+                                    { value: "0", label: "Không hoạt động" },
+                                ]}
+                            />
                         </Form.Item>
                     </Col>
                     <Col span={12}>

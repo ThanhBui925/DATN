@@ -126,8 +126,8 @@ export const BannerShow: React.FC<IResourceComponentsProps> = () => {
                         Trạng thái
                     </Title>
                     {record?.status ? (
-                        <Tag color={record.status === "active" ? "green" : "red"}>
-                            {record.status === "active" ? "Hoạt động" : "Không hoạt động"}
+                        <Tag color={record.status === "1" ? "green" : "red"}>
+                            {record.status === "1" ? "Hoạt động" : "Không hoạt động"}
                         </Tag>
                     ) : (
                         <TextField value="Không có trạng thái" style={{ fontSize: 16 }} />

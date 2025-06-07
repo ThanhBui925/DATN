@@ -88,7 +88,7 @@ export const ProductsCreate = () => {
                 formData.append(`variants[${index}][size_id]`, variant.size_id || "");
                 formData.append(`variants[${index}][color_id]`, variant.color_id || "");
                 formData.append(`variants[${index}][quantity]`, variant.quantity || "0");
-                formData.append(`variants[${index}][status]`, variant.status || "active");
+                formData.append(`variants[${index}][status]`, variant.status || "1");
 
                 if (
                     variant.images &&
@@ -172,7 +172,6 @@ export const ProductsCreate = () => {
                         <Form.Item
                             label="Trạng thái"
                             name="status"
-                            initialValue="1"
                             rules={[
                                 {
                                     required: true,
@@ -181,7 +180,6 @@ export const ProductsCreate = () => {
                             ]}
                         >
                             <Select
-                                defaultValue="1"
                                 options={[
                                     { value: "1", label: "Hoạt động" },
                                     { value: "0", label: "Ngừng hoạt động" },
