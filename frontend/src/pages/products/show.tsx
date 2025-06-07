@@ -98,14 +98,14 @@ export const ProductsShow = () => {
                                             <Title level={5}>Số lượng</Title>
                                             <TextField value={variant.quantity} />
                                             <Title level={5}>Trạng thái</Title>
-                                            <TextField value={variant.status === "active" ? "Hoạt động" : "Ngừng hoạt động"} />
+                                            <TextField value={variant.status === "1" ? "Hoạt động" : "Ngừng hoạt động"} />
                                             <Title level={5}>Ảnh biến thể</Title>
                                             {variant.images && variant.images.length > 0 ? (
                                                 <Image.PreviewGroup>
                                                     <Row gutter={[8, 8]}>
-                                                        {variant.images.map((url: any, index: string) => (
+                                                        {variant.images.map((image: any, index: string) => (
                                                             <Col key={index}>
-                                                                <Image src={url} width={100} style={{ borderRadius: "4px" }} />
+                                                                <Image src={image.image_url} width={100} style={{ borderRadius: "4px" }} />
                                                             </Col>
                                                         ))}
                                                     </Row>

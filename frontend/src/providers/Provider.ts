@@ -1,6 +1,6 @@
 import simpleRestDataProvider from "@refinedev/simple-rest";
 
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_APP_API_URL ? import.meta.env.VITE_APP_API_URL + '/api' : import.meta.env.VITE_APP_JSON_URL || 'http://localhost:5000';
 const base = simpleRestDataProvider(BASE_URL);
 
 // eslint-disable-next-line @typescript-eslint/ban-types

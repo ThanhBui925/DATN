@@ -1,22 +1,39 @@
 import type { AuthProvider } from "@refinedev/core";
+import {axiosInstance} from "./utils/axios";
 
-export const TOKEN_KEY = "refine-auth";
+export const TOKEN_KEY = "authentication_token";
 
 export const authProvider: AuthProvider = {
-  login: async ({ username, email, password }) => {
-    if ((username || email) && password) {
-      localStorage.setItem(TOKEN_KEY, username);
-      return {
-        success: true,
-        redirectTo: "/",
-      };
+  login: async ({ email, password }) => {
+    if (email && password) {
+      try {
+        await axiosInstance.get("/sanctum/csrf-cookie");
+        const response: any = await axiosInstance.post("/api/login", { email, password });
+        localStorage.setItem(TOKEN_KEY, response.data.token);
+        localStorage.setItem("role", response.data.user.role);
+        if (response.data.user.role === 'admin') {
+          return {
+            success: true,
+            redirectTo: "/dashboard",
+            mesage: response.data.mesage || "Đăng nhập trị viên thành công",
+          };
+        } else {
+          return {
+            success: true,
+            redirectTo: "/",
+            mesage: response.data.mesage || "Đăng nhập thành công",
+          };
+        }
+      } catch (error) {
+        return { success: false, error: { name: "Tài khoản mật khẩu không tồn tại !", message: "Đăng nhập thất bại !" } };
+      }
     }
 
     return {
       success: false,
       error: {
-        name: "LoginError",
-        message: "Invalid username or password",
+        name: "Có lỗi từ hệ thống, vui lòng thử lại sau ! ",
+        message: "Đăng nhập thất bại !",
       },
     };
   },
