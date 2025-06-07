@@ -79,7 +79,6 @@ export const BlogPostCreate = () => {
                             ]}
                         >
                             <Select
-                                defaultValue={"published"}
                                 options={[
                                     { value: "draft", label: "Nháp" },
                                     { value: "published", label: "Công khai" },

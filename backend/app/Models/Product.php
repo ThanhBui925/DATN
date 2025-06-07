@@ -13,11 +13,13 @@ class Product extends Model
     protected $table = 'products';
     protected $fillable = [
         'name',
-        'description',
-        'image',
-        'price',
         'category_id',
+        'description',
+        'price',
+        'sale_price',
+        'sale_end',
         'status',
+        'image',
     ];
     protected $casts = [
         'status' => 'string',

@@ -1,0 +1,960 @@
+{
+	"info": {
+		"_postman_id": "79677f5f-6004-4df7-b45c-fc4f2f7bbef4",
+		"name": "API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45660502",
+		"_collection_link": "https://blue-astronaut-3872178.postman.co/workspace/Th%C3%A0nh's-Workspace~ba879cd7-c42e-40c4-87e0-d64fb2805072/collection/45660502-79677f5f-6004-4df7-b45c-fc4f2f7bbef4?action=share&source=collection_link&creator=45660502"
+	},
+	"item": [
+		{
+			"name": "delete-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/categories/26",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						"26"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAll-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/categories",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/categories/26",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						"26"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Danh mục mới update 7",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Danh mục mới update 5",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "status",
+							"value": "0",
+							"type": "text"
+						},
+						{
+							"key": "_method",
+							"value": "PUT",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/categories/26",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						"26"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "restore-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/categories/26/restore",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						"26",
+						"restore"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add-category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày Adidas 1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Danh mục adidas",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/categories/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "trashed-category",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày Adidas",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Danh mục adidas",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/categories/trashed",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"categories",
+						"trashed"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "spadmin",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "spadmin@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "Thanh2001@",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "thanhbui925",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "thanhbui925@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "Thanh2001@",
+							"type": "text"
+						},
+						{
+							"key": "password_confirmation",
+							"value": "Thanh2001@",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show-product",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/products/9",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllProduct",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteProduct",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept-Charset",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/products/9",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "trashProduct",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/products/trashed",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"trashed"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "restoreProduct",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|CWRjbRvAbU0TLcWXa87LgmHfKrKfevJZ3PapYhDjbe59f44c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/products/9/restore",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"9",
+						"restore"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addProduct",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày adidas 10",
+							"type": "text"
+						},
+						{
+							"key": "category_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Giày adidas mnoiws",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "20000",
+							"type": "text"
+						},
+						{
+							"key": "sale_price",
+							"value": "15000",
+							"type": "text"
+						},
+						{
+							"key": "sale_end",
+							"value": "2025-12-31",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[0][name]",
+							"value": "Variant 1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][size_id]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][quantity]",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[1][name]",
+							"value": "Variant 2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][size_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][quantity]",
+							"value": "6",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/products/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateProduct",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày adidas update 2",
+							"type": "text"
+						},
+						{
+							"key": "category_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Giày adidas update",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "15000",
+							"type": "text"
+						},
+						{
+							"key": "sale_price",
+							"value": "10000",
+							"type": "text"
+						},
+						{
+							"key": "sale_end",
+							"value": "2025-6-30",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[0][name]",
+							"value": "Variant 1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][size_id]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][quantity]",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[1][name]",
+							"value": "Variant 2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][size_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][quantity]",
+							"value": "6",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "_method",
+							"value": "PUT",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/products/24",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"24"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

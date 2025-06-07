@@ -7,7 +7,7 @@ import {UploadOutlined} from "@ant-design/icons";
 export const BlogPostEdit = () => {
 
     const {saveButtonProps, formProps, queryResult} = useForm({
-        resource: "categories",
+        resource: "blogs",
         action: "edit",
     });
 
@@ -20,7 +20,7 @@ export const BlogPostEdit = () => {
         const formData = new FormData();
         formData.append("name", values.name || "");
         formData.append("description", values.description || "");
-        formData.append("status", values.status || "active");
+        formData.append("status", values.status || "published");
 
         if (
             values.image &&
@@ -98,7 +98,6 @@ export const BlogPostEdit = () => {
                         <Form.Item
                             label={"Trạng thái"}
                             name={["status"]}
-                            initialValue={"draft"}
                             rules={[
                                 {
                                     required: true,
@@ -106,7 +105,6 @@ export const BlogPostEdit = () => {
                             ]}
                         >
                             <Select
-                                defaultValue={"published"}
                                 options={[
                                     { value: "draft", label: "Nháp" },
                                     { value: "published", label: "Công khai" },

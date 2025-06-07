@@ -42,6 +42,30 @@ import {ProductsCreate, ProductsEdit, ProductsList, ProductsShow} from "./pages/
 import {ColorList} from "./pages/colors/list";
 import React from "react";
 import {SizeList} from "./pages/sizes/list";
+import {
+    VoucherList,
+    VoucherCreate,
+    VoucherEdit,
+    VoucherShow
+} from "./pages/vouchers";
+import {
+    BannerCreate,
+    BannerEdit,
+    BannerList,
+    BannerShow,
+} from "./pages/banners";
+import {
+    BgColorsOutlined,
+    DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined, ShoppingCartOutlined,
+    ShoppingOutlined, SolutionOutlined,
+    UnorderedListOutlined,
+    UserOutlined
+} from "@ant-design/icons";
+import {
+    CustomerList, CustomerShow
+} from "./pages/customers";
+import Dashboard from "./pages/dashboard/list";
+import {OrdersList, OrdersShow} from "./pages/orders";
 
 function App() {
     return (
@@ -63,6 +87,18 @@ function App() {
                                         list: "/dashboard",
                                         meta: {
                                             label: "Bảng điều khiển",
+                                            icon: <DashboardOutlined/>,
+                                            canDelete: true,
+                                        },
+                                    },
+                                    {
+                                        name: "orders",
+                                        list: "/orders",
+                                        edit: "/orders/edit/:id",
+                                        show: "/orders/show/:id",
+                                        meta: {
+                                            label: "Quản lý đơn hàng",
+                                            icon: <ShoppingCartOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -74,6 +110,7 @@ function App() {
                                         show: "/categories/show/:id",
                                         meta: {
                                             label: "Danh mục",
+                                            icon: <UnorderedListOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -85,6 +122,7 @@ function App() {
                                         show: "/products/show/:id",
                                         meta: {
                                             label: "Sản phẩm",
+                                            icon: <ShoppingOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -96,6 +134,7 @@ function App() {
                                         show: "/colors/show/:id",
                                         meta: {
                                             label: "Quản lý màu sắc",
+                                            icon: <BgColorsOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -108,6 +147,7 @@ function App() {
                                         show: "/sizes/show/:id",
                                         meta: {
                                             label: "Quản lý kích cỡ",
+                                            icon: <ExpandOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -120,6 +160,44 @@ function App() {
                                         show: "/blogs/show/:id",
                                         meta: {
                                             label: "Quản lý bài viết",
+                                            icon: <FileTextOutlined/>,
+                                            canDelete: true,
+                                        },
+                                    },
+
+                                    {
+                                        name: "vouchers",
+                                        list: "/vouchers",
+                                        create: "/vouchers/create",
+                                        edit: "/vouchers/edit/:id",
+                                        show: "/vouchers/show/:id",
+                                        meta: {
+                                            label: "Quản lý voucher",
+                                            icon: <GiftOutlined/>,
+                                            canDelete: true,
+                                        },
+                                    },
+
+                                    {
+                                        name: "banners",
+                                        list: "/banners",
+                                        create: "/banners/create",
+                                        edit: "/banners/edit/:id",
+                                        show: "/banners/show/:id",
+                                        meta: {
+                                            label: "Quản lý banner",
+                                            icon: <PictureOutlined />,
+                                            canDelete: true,
+                                        },
+                                    },
+
+                                    {
+                                        name: "customers",
+                                        list: "/customers",
+                                        show: "/customers/show/:id",
+                                        meta: {
+                                            label: "Quản lý khách hàng",
+                                            icon: <UserOutlined />,
                                             canDelete: true,
                                         },
                                     },
@@ -147,6 +225,17 @@ function App() {
                                             </Authenticated>
                                         }
                                     >
+
+                                        <Route path="/dashboard">
+                                            <Route index element={<Dashboard/>}/>
+                                        </Route>
+
+                                        <Route path="/orders">
+                                            <Route index element={<OrdersList/>}/>
+                                            <Route path="edit/:id" element={<CategoryEdit/>}/>
+                                            <Route path="show/:id" element={<OrdersShow/>}/>
+                                        </Route>
+
                                         <Route
                                             index
                                             element={<NavigateToResource resource="blog_posts"/>}
@@ -179,6 +268,25 @@ function App() {
                                         {/* Màu sắc */}
                                         <Route path="/sizes">
                                             <Route index element={<SizeList/>}/>
+                                        </Route>
+
+                                        <Route path="/vouchers">
+                                            <Route index element={<VoucherList/>}/>
+                                            <Route path="create" element={<VoucherCreate/>}/>
+                                            <Route path="edit/:id" element={<VoucherEdit/>}/>
+                                            <Route path="show/:id" element={<VoucherShow/>}/>
+                                        </Route>
+
+                                        <Route path="/banners">
+                                            <Route index element={<BannerList/>}/>
+                                            <Route path="create" element={<BannerCreate/>}/>
+                                            <Route path="edit/:id" element={<BannerEdit/>}/>
+                                            <Route path="show/:id" element={<BannerShow/>}/>
+                                        </Route>
+
+                                        <Route path="/customers">
+                                            <Route index element={<CustomerList/>}/>
+                                            <Route path="show/:id" element={<CustomerShow/>}/>
                                         </Route>
 
                                         <Route path="*" element={<ErrorComponent/>}/>

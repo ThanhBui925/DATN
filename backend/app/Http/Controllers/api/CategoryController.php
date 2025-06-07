@@ -61,34 +61,72 @@ class CategoryController extends Controller
         }
     }
 
-     public function update(UpdateCategoryRequest $request, $id)
-    {
-        try {
-            $category = Category::findOrFail($id);
+    public function update(UpdateCategoryRequest $request, $id)
+{
+    try {
+        $category = Category::findOrFail($id);
 
-            $data = $request->all();
+        // Lấy dữ liệu thô từ request để debug
+        \Log::info('Raw request data: ', $request->all());
 
-            if ($request->hasFile('image')) {
-                $data['image'] = Storage::url($request->file('image')->store('categories', 'public'));
+        // Lấy dữ liệu đã qua validation (có thể rỗng nếu không gửi trường nào)
+        $validatedData = $request->validated();
+
+        // Tạo mảng dữ liệu để cập nhật, ban đầu là dữ liệu cũ
+        $data = $category->toArray();
+
+        // Ghi đè các trường có trong validated data
+        if (!empty($validatedData)) {
+            foreach ($validatedData as $key => $value) {
+                if ($key === 'status' && $value !== null) {
+                    $data[$key] = (int) $value; // Chuyển status thành integer (0 hoặc 1) phù hợp với tinyint
+                } else {
+                    $data[$key] = $value;
+                }
+            }
+        }
+
+        // Xử lý file image
+        $imageUrl = $request->hasFile('image')
+            ? Storage::url($request->file('image')->store('categories', 'public'))
+            : null;
+
+        if ($imageUrl) {
+            \Log::info('File received: ' . $request->file('image')->getClientOriginalName());
+            \Log::info('File size: ' . $request->file('image')->getSize() . ' bytes');
+            \Log::info('File mime type: ' . $request->file('image')->getMimeType());
+            if ($request->file('image')->isValid()) {
+                $data['image'] = env('APP_URL', "http://127.0.0.1:8000") . $imageUrl;
+                \Log::info('New image path: ' . $data['image']);
 
                 if (!empty($category->image)) {
-                    $oldImagePath = str_replace('/storage/', '', $category->image);
+                    $oldImagePath = str_replace(env('APP_URL', "http://127.0.0.1:8000") . '/storage/', '', $category->image);
                     if (Storage::disk('public')->exists($oldImagePath)) {
                         Storage::disk('public')->delete($oldImagePath);
                     }
                 }
             } else {
-                $data['image'] = $category->image;
+                \Log::error('Invalid file uploaded');
+                $data['image'] = $category->image; // Giữ ảnh cũ nếu file không hợp lệ
             }
-
-            $category->update($data);
-
-            return $this->success($category, 'Category updated successfully');
-        } catch (\Exception $e) {
-            return $this->error('Server error', $e->getMessage(), 500);
         }
-    }
 
+        // Log dữ liệu trước khi update
+        \Log::info('Data to update: ', $data);
+
+        // Cập nhật
+        $category->update($data);
+        $category->refresh();
+
+        // Log dữ liệu sau khi update
+        \Log::info('Updated category: ', $category->toArray());
+
+        return $this->success($category, 'Category updated successfully');
+    } catch (\Exception $e) {
+        \Log::error('Update failed: ' . $e->getMessage());
+        return $this->error('Server error', $e->getMessage(), 500);
+    }
+}
 
 
 
