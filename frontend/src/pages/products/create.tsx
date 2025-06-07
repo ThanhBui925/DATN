@@ -319,13 +319,6 @@ export const ProductsCreate = () => {
                                                         <Select
                                                             placeholder="Chọn kích thước"
                                                             {...sizeSelectProps}
-                                                            options={[
-                                                                { label: "39", value: "39" },
-                                                                { label: "40", value: "40" },
-                                                                { label: "41", value: "41" },
-                                                                { label: "42", value: "42" },
-                                                                { label: "43", value: "43" }
-                                                            ]}
                                                             loading={sizeSelectProps.loading}
                                                         />
                                                     </Form.Item>
@@ -342,13 +335,6 @@ export const ProductsCreate = () => {
                                                         <Select
                                                             placeholder="Chọn màu sắc"
                                                             {...colorSelectProps}
-                                                            options={[
-                                                                { label: "Đỏ", value: "1" },
-                                                                { label: "Xanh", value: "2" },
-                                                                { label: "Vàng", value: "3" },
-                                                                { label: "Trắng", value: "4" },
-                                                                { label: "Đen", value: "5" }
-                                                            ]}
                                                             loading={colorSelectProps.loading}
                                                         />
                                                     </Form.Item>
@@ -369,7 +355,7 @@ export const ProductsCreate = () => {
                                                     <Form.Item
                                                         label="Trạng thái"
                                                         name={[index, "status"]}
-                                                        initialValue="active"
+                                                        initialValue="1"
                                                         rules={[
                                                             {
                                                                 required: true,
@@ -378,10 +364,10 @@ export const ProductsCreate = () => {
                                                         ]}
                                                     >
                                                         <Select
-                                                            defaultValue="active"
+                                                            defaultValue="1"
                                                             options={[
-                                                                { value: "active", label: "Hoạt động" },
-                                                                { value: "inactive", label: "Ngừng hoạt động" },
+                                                                { value: "1", label: "Hoạt động" },
+                                                                { value: "0", label: "Ngừng hoạt động" },
                                                             ]}
                                                         />
                                                     </Form.Item>
