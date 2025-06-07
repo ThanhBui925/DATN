@@ -14,11 +14,11 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser || !$currentUser->isAdmin()) { 
-            return response()->json([
-                'message' => 'Bạn không có quyền thực hiện hành động này.'
-            ], 403);
-        }
+        // if (!$currentUser || !$currentUser->isAdmin()) { 
+        //     return response()->json([
+        //         'message' => 'Bạn không có quyền thực hiện hành động này.'
+        //     ], 403);
+        // }
 
         $query = User::with(['roles', 'customer']);
 
