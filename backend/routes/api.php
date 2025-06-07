@@ -16,7 +16,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {   
 
     Route::apiResource('banners', BannerController::class)->only([
         'index', 'store', 'update', 'destroy'
@@ -49,4 +49,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
     });
-});
+// });

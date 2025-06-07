@@ -1,6 +1,6 @@
 import simpleRestDataProvider from "@refinedev/simple-rest";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "http://localhost:8000/api";
 const base = simpleRestDataProvider(BASE_URL);
 
 // eslint-disable-next-line @typescript-eslint/ban-types
