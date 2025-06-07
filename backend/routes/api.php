@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\{
     CategoryController,
     ProductController,
     OrderController,
-    UserController
+    UserController,
+    ColorController,
+    SizeController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -16,7 +18,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
 
-// Route::middleware('auth:sanctum')->group(function () {   
+// Route::middleware('auth:sanctum')->group(function () {ss
 
     Route::apiResource('banners', BannerController::class)->only([
         'index', 'store', 'update', 'destroy'
@@ -44,9 +46,12 @@ Route::controller(AuthController::class)->group(function () {
         Route::get('/{id}/pdf', 'generatePDF');
     });
 
-    Route::prefix('users')->controller(UserController::class)->group(function () {
+    Route::prefix('customers')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
     });
-// });
+
+    Route::apiResource('colors', ColorController::class);
+    Route::apiResource('sizes', SizeController::class);
+
