@@ -56,11 +56,11 @@ export const CategoryCreate = () => {
               <Form.Item
                   label="Trạng thái"
                   name="status"
-                  initialValue="active"
+                  initialValue="1"
               >
                 <Select>
-                  <Select.Option value="active">Hoạt động</Select.Option>
-                  <Select.Option value="inactive">Không hoạt động</Select.Option>
+                  <Select.Option value="1">Hoạt động</Select.Option>
+                  <Select.Option value="0">Không hoạt động</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
