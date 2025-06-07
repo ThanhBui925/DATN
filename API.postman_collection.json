@@ -654,6 +654,307 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "addProduct",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày adidas 10",
+							"type": "text"
+						},
+						{
+							"key": "category_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Giày adidas mnoiws",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "20000",
+							"type": "text"
+						},
+						{
+							"key": "sale_price",
+							"value": "15000",
+							"type": "text"
+						},
+						{
+							"key": "sale_end",
+							"value": "2025-12-31",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[0][name]",
+							"value": "Variant 1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][size_id]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][quantity]",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[1][name]",
+							"value": "Variant 2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][size_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][quantity]",
+							"value": "6",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/products/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateProduct",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Giày adidas update 2",
+							"type": "text"
+						},
+						{
+							"key": "category_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Giày adidas update",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "15000",
+							"type": "text"
+						},
+						{
+							"key": "sale_price",
+							"value": "10000",
+							"type": "text"
+						},
+						{
+							"key": "sale_end",
+							"value": "2025-6-30",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[0][name]",
+							"value": "Variant 1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][size_id]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][quantity]",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[0][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[1][name]",
+							"value": "Variant 2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][size_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][color_id]",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][quantity]",
+							"value": "6",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][status]",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "variants[1][images][]",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/DKXN.png"
+						},
+						{
+							"key": "_method",
+							"value": "PUT",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/products/24",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"24"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
