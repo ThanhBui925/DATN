@@ -1,8 +1,10 @@
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, Upload, Button, Row, Col, Breadcrumb } from "antd";
+import { Form, Input, DatePicker, Select, Upload, Button, Row, Col, Breadcrumb, Typography, Divider } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { IResourceComponentsProps } from "@refinedev/core";
 import dayjs from "dayjs";
+
+const { Title } = Typography;
 
 export const BannerCreate: React.FC<IResourceComponentsProps> = () => {
     const { formProps, saveButtonProps } = useForm({
@@ -13,7 +15,6 @@ export const BannerCreate: React.FC<IResourceComponentsProps> = () => {
     const onFinish = async (values: any) => {
         const formData = new FormData();
         formData.append("title", values.title || "");
-        formData.append("slug", values.slug || "");
         formData.append("description", values.description || "");
         formData.append("link_url", values.link_url || "");
         formData.append("start_date", values.start_date ? dayjs(values.start_date).format("YYYY-MM-DD HH:mm:ss") : "");
@@ -34,10 +35,11 @@ export const BannerCreate: React.FC<IResourceComponentsProps> = () => {
 
     return (
         <Create
-            title="Thêm Banner"
+            title="Thêm mới Banner"
             saveButtonProps={{
                 ...saveButtonProps,
                 children: "Lưu",
+                size: "large",
             }}
             breadcrumb={
                 <Breadcrumb>
@@ -48,52 +50,44 @@ export const BannerCreate: React.FC<IResourceComponentsProps> = () => {
             }
         >
             <Form {...formProps} layout="vertical" onFinish={onFinish}>
-                <Row gutter={16}>
-                    <Col span={12}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Tiêu đề"
                             name="title"
                             rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
                         >
-                            <Input />
+                            <Input placeholder="Nhập tiêu đề banner" size="large" />
                         </Form.Item>
                     </Col>
-
-                    <Col span={12}>
-                        <Form.Item
-                            label="Đường dẫn"
-                            name="slug"
-                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Liên kết URL"
                             name="link_url"
+                            rules={[{ type: "url", message: "Vui lòng nhập URL hợp lệ" }]}
                         >
-                            <Input />
+                            <Input placeholder="Nhập URL (ví dụ: https://example.com)" size="large" />
                         </Form.Item>
                     </Col>
-
-                    <Col span={6}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Trạng thái"
                             name="status"
                             initialValue="1"
+                            rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
                         >
-                            <Select>
+                            <Select size="large">
                                 <Select.Option value="1">Hoạt động</Select.Option>
-                                <Select.Option value="2">Không hoạt động</Select.Option>
+                                <Select.Option value="0">Không hoạt động</Select.Option>
                             </Select>
                         </Form.Item>
                     </Col>
+                </Row>
 
-                    <Col span={6}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
-                            label="Hình ảnh"
+                            label="Hình ảnh banner"
                             name="image_url"
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
@@ -105,51 +99,76 @@ export const BannerCreate: React.FC<IResourceComponentsProps> = () => {
                             rules={[
                                 {
                                     required: true,
-                                    message: "Vui lòng chọn ít nhất 1 ảnh!",
+                                    message: "Vui lòng chọn một ảnh!",
                                     validator: (_, value) => {
                                         if (value && value.length > 0) {
                                             return Promise.resolve();
                                         }
-                                        return Promise.reject(new Error("Vui lòng chọn ít nhất 1 ảnh!"));
+                                        return Promise.reject(new Error("Vui lòng chọn một ảnh!"));
                                     },
                                 },
                             ]}
+                            extra="Định dạng hỗ trợ: JPG, PNG. Kích thước tối đa: 2MB."
                         >
                             <Upload
                                 name="image_url"
-                                listType="picture"
+                                listType="picture-card"
                                 maxCount={1}
                                 beforeUpload={() => false}
+                                accept="image/jpeg,image/png"
                             >
-                                <Button icon={<UploadOutlined />}>Chọn 1 tệp</Button>
+                                <div>
+                                    <UploadOutlined />
+                                    <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+                                </div>
                             </Upload>
                         </Form.Item>
                     </Col>
+                </Row>
 
-                    <Col span={12}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Ngày bắt đầu"
                             name="start_date"
                         >
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
+                            <DatePicker
+                                showTime
+                                format="YYYY-MM-DD HH:mm:ss"
+                                style={{ width: "100%" }}
+                                size="large"
+                                placeholder="Chọn ngày bắt đầu"
+                            />
                         </Form.Item>
                     </Col>
-
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Ngày kết thúc"
                             name="end_date"
                         >
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
+                            <DatePicker
+                                showTime
+                                format="YYYY-MM-DD HH:mm:ss"
+                                style={{ width: "100%" }}
+                                size="large"
+                                placeholder="Chọn ngày kết thúc"
+                            />
                         </Form.Item>
                     </Col>
+                </Row>
 
+                <Row gutter={[16, 16]}>
                     <Col span={24}>
                         <Form.Item
-                            label="Mô tả"
+                            label="Mô tả banner"
                             name="description"
                         >
-                            <Input.TextArea rows={4} />
+                            <Input.TextArea
+                                rows={6}
+                                placeholder="Nhập mô tả cho banner"
+                                showCount
+                                maxLength={1000}
+                            />
                         </Form.Item>
                     </Col>
                 </Row>

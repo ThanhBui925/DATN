@@ -1,6 +1,8 @@
-import {Edit, Show, useForm} from "@refinedev/antd";
-import {Breadcrumb, Button, Col, Form, Input, Row, Select, Skeleton, Upload} from "antd";
+import { Edit, useForm } from "@refinedev/antd";
+import { Breadcrumb, Button, Col, Form, Input, Row, Select, Skeleton, Upload, Typography, Divider } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+
+const { Title } = Typography;
 
 export const CategoryEdit = () => {
     const { saveButtonProps, formProps, queryResult } = useForm({
@@ -29,32 +31,34 @@ export const CategoryEdit = () => {
 
         return formProps.onFinish?.(formData);
     };
+
     if (isLoading) {
         return (
-            <Show>
+            <Edit>
                 <Skeleton active paragraph={{ rows: 4 }} />
-            </Show>
+            </Edit>
         );
     }
 
     return (
         <Edit
-            title={'Cập nhật'}
+            title={<Title level={3}>Cập nhật danh mục</Title>}
             saveButtonProps={{
                 ...saveButtonProps,
                 children: "Lưu",
+                size: "large",
             }}
             deleteButtonProps={{
                 children: "Xóa",
-                // onClick: handleDelete,
+                size: "large",
             }}
             headerButtons={() => null}
             breadcrumb={
-                <Breadcrumb>
+                <Breadcrumb style={{ marginBottom: 16 }}>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
                     <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
                     <Breadcrumb.Item>Cập nhật</Breadcrumb.Item>
-                    <Breadcrumb.Item>{ data?.data?.name }</Breadcrumb.Item>
+                    <Breadcrumb.Item>{data?.data?.name}</Breadcrumb.Item>
                 </Breadcrumb>
             }
         >
@@ -64,38 +68,47 @@ export const CategoryEdit = () => {
                 onFinish={onFinish}
                 initialValues={{
                     ...formProps.initialValues,
-                    image: initialImage ? [{ url: initialImage, status: "done" }] : [],
+                    image: initialImage ? [{ uid: "-1", url: initialImage, status: "done" }] : [],
                 }}
             >
-                <Row gutter={16}>
-                    <Col span={12}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={16}>
                         <Form.Item
                             label="Tên danh mục"
                             name="name"
                             rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
                         >
-                            <Input />
+                            <Input placeholder="Nhập tên danh mục" size="large" />
                         </Form.Item>
                     </Col>
-
-                    <Col span={6}>
+                    <Col xs={24} sm={8}>
                         <Form.Item
                             label="Trạng thái"
                             name="status"
-                            rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+                            rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
                         >
-                            <Select
-                                options={[
-                                    { value: "1", label: "Hoạt động" },
-                                    { value: "0", label: "Không hoạt động" },
-                                ]}
+                            <Select size="large">
+                                <Select.Option value="1">Hoạt động</Select.Option>
+                                <Select.Option value="0">Không hoạt động</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
+                </Row>
+
+                <Row gutter={[16, 16]}>
+                    <Col span={16}>
+                        <Form.Item label="Mô tả danh mục" name="description">
+                            <Input.TextArea
+                                rows={5}
+                                placeholder="Nhập mô tả cho danh mục"
+                                showCount
+                                maxLength={1000}
                             />
                         </Form.Item>
                     </Col>
-
-                    <Col span={6}>
+                    <Col xs={8} sm={8}>
                         <Form.Item
-                            label="Ảnh"
+                            label="Ảnh danh mục"
                             name="image"
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
@@ -106,34 +119,35 @@ export const CategoryEdit = () => {
                             }}
                             rules={[
                                 {
+                                    required: true,
+                                    message: "Vui lòng chọn một ảnh!",
                                     validator: (_, value) => {
-                                        if (!value || value.length === 0) {
-                                            return Promise.reject(new Error("Vui lòng chọn ít nhất 1 ảnh!"));
+                                        if (value && value.length > 0) {
+                                            return Promise.resolve();
                                         }
-                                        return Promise.resolve();
+                                        return Promise.reject(new Error("Vui lòng chọn một ảnh!"));
                                     },
                                 },
                             ]}
+                            extra="Định dạng hỗ trợ: JPG, PNG. Kích thước tối đa: 2MB."
                         >
                             <Upload
                                 name="image"
-                                listType="picture"
+                                listType="picture-card"
                                 maxCount={1}
                                 beforeUpload={() => false}
+                                accept="image/jpeg,image/png"
                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
                                 defaultFileList={
-                                    initialImage ? [{ url: initialImage, uid: "-1", status: "done" }] : []
+                                    initialImage ? [{ uid: "-1", url: initialImage, status: "done" }] : []
                                 }
                             >
-                                <Button icon={<UploadOutlined />}>Chọn 1 tệp</Button>
+                                <div>
+                                    <UploadOutlined />
+                                    <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+                                </div>
                             </Upload>
-                        </Form.Item>
-                    </Col>
-
-                    <Col span={24}>
-                        <Form.Item label="Mô tả" name="description">
-                            <Input.TextArea rows={4} />
                         </Form.Item>
                     </Col>
                 </Row>

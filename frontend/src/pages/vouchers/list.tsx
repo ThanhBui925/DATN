@@ -78,23 +78,13 @@ export const VoucherList = () => {
                     dataIndex="usage"
                     title="Sử dụng"
                     render={(_, record: BaseRecord) => (
-                        <span>{record.usage_count}/{record.usage_limit || "∞"}</span>
+                        <span>{ record.usage_count || 0}/{record.usage_limit || "∞"}</span>
                     )}
                 />
                 <Table.Column
                     title="Hành động"
                     dataIndex="actions"
                     render={(_, record: BaseRecord) => {
-                        const handleClick = () => {
-                            Modal.confirm({
-                                title: "Bạn có muốn xoá vĩnh viễn voucher này?",
-                                okText: "Xoá",
-                                cancelText: "Huỷ",
-                                onOk: () => {
-                                    forceDelete(record.id as number);
-                                },
-                            });
-                        };
 
                         return (
                             <Space>
