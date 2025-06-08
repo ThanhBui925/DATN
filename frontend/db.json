@@ -563,7 +563,7 @@
   ],
   "orders": [
     {
-      "id": 1,
+      "id": "1",
       "date_order": "2025-06-01T10:30:00",
       "total_price": 1950000.00,
       "order_status": "confirmed",
