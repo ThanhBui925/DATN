@@ -1,8 +1,10 @@
 import { Edit, useForm } from "@refinedev/antd";
-import { Breadcrumb, Button, Col, Form, Input, Row, DatePicker, Select, Upload, Skeleton } from "antd";
+import { Breadcrumb, Button, Col, Form, Input, Row, DatePicker, Select, Upload, Skeleton, Typography } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { IResourceComponentsProps } from "@refinedev/core";
 import dayjs from "dayjs";
+
+const { Title } = Typography;
 
 export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
     const { formProps, saveButtonProps, queryResult } = useForm({
@@ -48,21 +50,21 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
 
     return (
         <Edit
-            title="Chỉnh sửa Banner"
+            title={`Chỉnh sửa Banner`}
             saveButtonProps={{
                 ...saveButtonProps,
                 children: "Lưu",
+                size: "large",
             }}
             deleteButtonProps={{
                 children: "Xóa",
+                size: "large",
             }}
-            headerButtons={() => null}
             breadcrumb={
                 <Breadcrumb>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
                     <Breadcrumb.Item>Banner</Breadcrumb.Item>
-                    <Breadcrumb.Item>Chỉnh sửa</Breadcrumb.Item>
-                    <Breadcrumb.Item>{bannerData?.title}</Breadcrumb.Item>
+                    <Breadcrumb.Item>Thêm mới</Breadcrumb.Item>
                 </Breadcrumb>
             }
         >
@@ -72,60 +74,58 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
                 onFinish={onFinish}
                 initialValues={{
                     ...formProps.initialValues,
-                    image_url: initialImage ? [{ url: initialImage, status: "done" }] : [],
+                    image_url: initialImage ? [{ uid: "-1", url: initialImage, status: "done" }] : [],
                     start_date: bannerData?.start_date ? dayjs(bannerData.start_date) : undefined,
                     end_date: bannerData?.end_date ? dayjs(bannerData.end_date) : undefined,
-                    status: bannerData?.status || "active",
+                    status: bannerData?.status || "1",
                 }}
             >
-                <Row gutter={16}>
-                    <Col span={12}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Tiêu đề"
                             name="title"
                             rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
                         >
-                            <Input />
+                            <Input placeholder="Nhập tiêu đề banner" size="large" />
                         </Form.Item>
                     </Col>
-
-                    <Col span={12}>
-                        <Form.Item
-                            label="Đường dẫn"
-                            name="slug"
-                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Liên kết URL"
                             name="link_url"
+                            rules={[{ type: "url", message: "Vui lòng nhập URL hợp lệ" }]}
                         >
-                            <Input />
+                            <Input placeholder="Nhập URL (ví dụ: https://example.com)" size="large" />
                         </Form.Item>
                     </Col>
-
-                    <Col span={6}>
+                    <Col xs={24} sm={12}>
+                        <Form.Item
+                            label="Slug"
+                            name="slug"
+                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
+                        >
+                            <Input placeholder="Nhập slug" size="large" />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Trạng thái"
                             name="status"
-                            rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+                            rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
                         >
-                            <Select
-                                options={[
-                                    { value: "1", label: "Hoạt động" },
-                                    { value: "0", label: "Không hoạt động" },
-                                ]}
-                            />
+                            <Select size="large">
+                                <Select.Option value="1">Hoạt động</Select.Option>
+                                <Select.Option value="0">Không hoạt động</Select.Option>
+                            </Select>
                         </Form.Item>
                     </Col>
+                </Row>
 
-                    <Col span={6}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
-                            label="Hình ảnh"
+                            label="Hình ảnh banner"
                             name="image_url"
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
@@ -136,55 +136,82 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
                             }}
                             rules={[
                                 {
+                                    required: true,
+                                    message: "Vui lòng chọn một ảnh!",
                                     validator: (_, value) => {
-                                        if (!value || value.length === 0) {
-                                            return Promise.reject(new Error("Vui lòng chọn ít nhất 1 ảnh!"));
+                                        if (value && value.length > 0) {
+                                            return Promise.resolve();
                                         }
-                                        return Promise.resolve();
+                                        return Promise.reject(new Error("Vui lòng chọn một ảnh!"));
                                     },
                                 },
                             ]}
+                            extra="Định dạng hỗ trợ: JPG, PNG. Kích thước tối đa: 2MB."
                         >
                             <Upload
                                 name="image_url"
-                                listType="picture"
+                                listType="picture-card"
                                 maxCount={1}
                                 beforeUpload={() => false}
+                                accept="image/jpeg,image/png"
                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
                                 defaultFileList={
-                                    initialImage ? [{ url: initialImage, uid: "-1", status: "done" }] : []
+                                    initialImage ? [{ uid: "-1", url: initialImage, status: "done" }] : []
                                 }
                             >
-                                <Button icon={<UploadOutlined />}>Chọn 1 tệp</Button>
+                                <div>
+                                    <UploadOutlined />
+                                    <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+                                </div>
                             </Upload>
                         </Form.Item>
                     </Col>
+                </Row>
 
-                    <Col span={12}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Ngày bắt đầu"
                             name="start_date"
                         >
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
+                            <DatePicker
+                                showTime
+                                format="YYYY-MM-DD HH:mm:ss"
+                                style={{ width: "100%" }}
+                                size="large"
+                                placeholder="Chọn ngày bắt đầu"
+                            />
                         </Form.Item>
                     </Col>
-
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                         <Form.Item
                             label="Ngày kết thúc"
                             name="end_date"
                         >
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
+                            <DatePicker
+                                showTime
+                                format="YYYY-MM-DD HH:mm:ss"
+                                style={{ width: "100%" }}
+                                size="large"
+                                placeholder="Chọn ngày kết thúc"
+                            />
                         </Form.Item>
                     </Col>
+                </Row>
 
+                <Row gutter={[16, 16]}>
                     <Col span={24}>
                         <Form.Item
-                            label="Mô tả"
+                            label="Mô tả banner"
                             name="description"
                         >
-                            <Input.TextArea rows={4} />
+                            <Input.TextArea
+                                rows={6}
+                                placeholder="Nhập mô tả cho banner"
+                                showCount
+                                maxLength={1000}
+                            />
                         </Form.Item>
                     </Col>
                 </Row>

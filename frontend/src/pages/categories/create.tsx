@@ -1,6 +1,8 @@
 import { Create, useForm } from "@refinedev/antd";
-import {Form, Input, Upload, Button, Select, Row, Col, Breadcrumb} from "antd";
+import { Form, Input, Upload, Button, Select, Row, Col, Breadcrumb, Typography, Divider } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+
+const { Title } = Typography;
 
 export const CategoryCreate = () => {
   const { saveButtonProps, formProps } = useForm({
@@ -12,7 +14,7 @@ export const CategoryCreate = () => {
     const formData = new FormData();
     formData.append("name", values.name || "");
     formData.append("description", values.description || "");
-    formData.append("status", values.status || "active");
+    formData.append("status", values.status || "1");
 
     if (
         values.image &&
@@ -27,13 +29,14 @@ export const CategoryCreate = () => {
 
   return (
       <Create
-          title={'Tạo mới'}
+          title={<Title level={3}>Tạo mới danh mục</Title>}
           saveButtonProps={{
             ...saveButtonProps,
             children: "Lưu",
+            size: "large",
           }}
           breadcrumb={
-            <Breadcrumb>
+            <Breadcrumb style={{ marginBottom: 16 }}>
               <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
               <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
               <Breadcrumb.Item>Thêm mới</Breadcrumb.Item>
@@ -41,33 +44,48 @@ export const CategoryCreate = () => {
           }
       >
         <Form {...formProps} layout="vertical" onFinish={onFinish}>
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={16}>
               <Form.Item
                   label="Tên danh mục"
                   name="name"
                   rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
               >
-                <Input />
+                <Input placeholder="Nhập tên danh mục" size="large" />
               </Form.Item>
             </Col>
-
-            <Col span={6}>
+            <Col xs={24} sm={8}>
               <Form.Item
                   label="Trạng thái"
                   name="status"
                   initialValue="1"
+                  rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
               >
-                <Select>
+                <Select size="large">
                   <Select.Option value="1">Hoạt động</Select.Option>
                   <Select.Option value="0">Không hoạt động</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
+          </Row>
 
-            <Col span={6}>
+          <Row gutter={[16, 16]}>
+            <Col span={16}>
               <Form.Item
-                  label="Ảnh"
+                  label="Mô tả danh mục"
+                  name="description"
+              >
+                <Input.TextArea
+                    rows={5}
+                    placeholder="Nhập mô tả cho danh mục"
+                    showCount
+                    maxLength={1000}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={8} sm={8}>
+              <Form.Item
+                  label="Ảnh danh mục"
                   name="image"
                   valuePropName="fileList"
                   getValueFromEvent={(e) => {
@@ -79,30 +97,29 @@ export const CategoryCreate = () => {
                   rules={[
                     {
                       required: true,
-                      message: "Vui lòng chọn ít nhất 1 ảnh!",
+                      message: "Vui lòng chọn một ảnh!",
                       validator: (_, value) => {
                         if (value && value.length > 0) {
                           return Promise.resolve();
                         }
-                        return Promise.reject(new Error("Vui lòng chọn ít nhất 1 ảnh!"));
+                        return Promise.reject(new Error("Vui lòng chọn một ảnh!"));
                       },
                     },
                   ]}
+                  extra="Định dạng hỗ trợ: JPG, PNG. Kích thước tối đa: 2MB."
               >
                 <Upload
                     name="image"
-                    listType="picture"
+                    listType="picture-card"
                     maxCount={1}
                     beforeUpload={() => false}
+                    accept="image/jpeg,image/png"
                 >
-                  <Button icon={<UploadOutlined />}>Chọn 1 tệp</Button>
+                  <div>
+                    <UploadOutlined />
+                    <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+                  </div>
                 </Upload>
-              </Form.Item>
-            </Col>
-
-            <Col span={24}>
-              <Form.Item label="Mô tả" name="description">
-                <Input.TextArea rows={4} />
               </Form.Item>
             </Col>
           </Row>

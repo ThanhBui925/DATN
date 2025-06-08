@@ -1,8 +1,8 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Row, Col, Skeleton, Tag, Breadcrumb } from "antd";
+import { Typography, Row, Col, Skeleton, Tag, Breadcrumb, Card, Divider } from "antd";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export const VoucherShow = () => {
     const { queryResult } = useShow({});
@@ -29,15 +29,16 @@ export const VoucherShow = () => {
         })
         : "Không có ngày hết hạn";
 
+    // Định dạng giá trị giảm giá
     const formattedDiscount = record?.discount
         ? `${record.discount}${record.discount_type === "percentage" ? "%" : " VNĐ"}`
         : "Không có giá trị giảm giá";
 
     return (
         <Show
-            title={'Chi tiết Voucher'}
+            title={<Title level={3}>Chi tiết Voucher</Title>}
             breadcrumb={
-                <Breadcrumb>
+                <Breadcrumb style={{ marginBottom: 16 }}>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
                     <Breadcrumb.Item>Vouchers</Breadcrumb.Item>
                     <Breadcrumb.Item>Chi tiết</Breadcrumb.Item>
@@ -45,90 +46,94 @@ export const VoucherShow = () => {
                 </Breadcrumb>
             }
         >
-            <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Mã Voucher
-                    </Title>
-                    <TextField
-                        value={record?.code || "Không có mã"}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+                <Divider orientation="left">Thông tin cơ bản</Divider>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Mã Voucher
+                        </Title>
+                        <TextField
+                            value={record?.code || "Không có mã"}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Giá trị giảm giá
+                        </Title>
+                        <Text strong style={{ fontSize: 16, color: "#1890ff" }}>
+                            {formattedDiscount}
+                        </Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Loại giảm giá
+                        </Title>
+                        <TextField
+                            value={record?.discount_type === "percentage" ? "Phần trăm" : "Cố định"}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                    <Col xs={24} sm={24}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Mô tả
+                        </Title>
+                        <TextField
+                            value={record?.description || "Không có mô tả"}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                </Row>
 
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Giá trị giảm giá
-                    </Title>
-                    <TextField
-                        value={formattedDiscount}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Loại giảm giá
-                    </Title>
-                    <TextField
-                        value={record?.discount_type === "percentage" ? "Phần trăm" : "Cố định"}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Mô tả
-                    </Title>
-                    <TextField
-                        value={record?.description || "Không có mô tả"}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Ngày hết hạn
-                    </Title>
-                    <TextField
-                        value={formattedExpiryDate}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Trạng thái
-                    </Title>
-                    {record?.status ? (
-                        <Tag color={record.status === "1" ? "green" : "red"}>
-                            {record.status === "1" ? "Hoạt động" : "Không hoạt động"}
-                        </Tag>
-                    ) : (
-                        <TextField value="Không có trạng thái" style={{ fontSize: 16 }} />
-                    )}
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Giới hạn sử dụng
-                    </Title>
-                    <TextField
-                        value={record?.usage_limit || "Không giới hạn"}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-
-                <Col span={24}>
-                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
-                        Số lần đã sử dụng
-                    </Title>
-                    <TextField
-                        value={record?.usage_count || 0}
-                        style={{ fontSize: 16 }}
-                    />
-                </Col>
-            </Row>
+                <Divider orientation="left">Chi tiết sử dụng</Divider>
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Ngày hết hạn
+                        </Title>
+                        <Text strong style={{ fontSize: 16, color: "#fa8c16" }}>
+                            {formattedExpiryDate}
+                        </Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Trạng thái
+                        </Title>
+                        {record?.status ? (
+                            <Tag
+                                color={record.status === "1" ? "green" : "red"}
+                                style={{ fontSize: 14, padding: "4px 8px" }}
+                            >
+                                {record.status === "1" ? "Hoạt động" : "Không hoạt động"}
+                            </Tag>
+                        ) : (
+                            <TextField
+                                value="Không có trạng thái"
+                                style={{ fontSize: 16, color: "#000" }}
+                            />
+                        )}
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Giới hạn sử dụng
+                        </Title>
+                        <TextField
+                            value={record?.usage_limit || "Không giới hạn"}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Số lần đã sử dụng
+                        </Title>
+                        <TextField
+                            value={record?.usage_count || 0}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                </Row>
+            </Card>
         </Show>
     );
 };
