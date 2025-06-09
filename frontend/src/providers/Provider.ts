@@ -1,4 +1,5 @@
 import simpleRestDataProvider from "@refinedev/simple-rest";
+import {axiosInstance} from "../utils/axios";
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL ? import.meta.env.VITE_APP_API_URL + '/api' : import.meta.env.VITE_APP_JSON_URL || 'http://localhost:5000';
 const base = simpleRestDataProvider(BASE_URL);
@@ -53,12 +54,18 @@ const dataProvider = {
 
     formData.append("_method", "PUT");
 
-    const response = await fetch(`${BASE_URL}/${resource?.resource}/${resource.id}`, {
-      method: "POST",
-      body: formData,
-    });
+    const response = await axiosInstance.post(
+        `/api/${resource?.resource}/${resource.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+    );
 
-    const data = await response.json();
+    const data = response.data;
+
 
     return {
       data: data.data ?? data,

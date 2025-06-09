@@ -31,7 +31,7 @@ export const ProductsShow = () => {
         { key: "4", label: "Giá", value: record?.price ? `${record.price} VNĐ` : "0.00 VNĐ" },
         { key: "5", label: "Giá khuyến mãi", value: record?.sale_price ? `${record.sale_price} VNĐ` : "Không có" },
         { key: "6", label: "Ngày kết thúc khuyến mãi", value: record?.sale_end || "Không có" },
-        { key: "7", label: "Trạng thái", value: record?.status === "1" ? "Hoạt động" : "Ngừng hoạt động" },
+        { key: "7", label: "Trạng thái", value: record?.status == "1" ? "Hoạt động" : "Ngừng hoạt động" },
     ];
 
     const variantColumns = [
@@ -63,7 +63,7 @@ export const ProductsShow = () => {
             title: <Text strong style={{ color: "#444" }}>Trạng thái</Text>,
             dataIndex: "status",
             key: "status",
-            render: (value: any) => <TextField value={value === "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
+            render: (value: any) => <TextField value={value == "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
         },
         {
             title: <Text strong style={{ color: "#444" }}>Ảnh biến thể</Text>,

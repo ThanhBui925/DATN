@@ -56,8 +56,8 @@ import {
 } from "./pages/banners";
 import {
     BgColorsOutlined,
-    DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined, ShoppingCartOutlined,
-    ShoppingOutlined, SolutionOutlined,
+    DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined,
+    ShoppingOutlined,
     UnorderedListOutlined,
     UserOutlined
 } from "@ant-design/icons";
@@ -65,7 +65,6 @@ import {
     CustomerList, CustomerShow
 } from "./pages/customers";
 import Dashboard from "./pages/dashboard/list";
-import {OrdersList, OrdersShow} from "./pages/orders";
 
 function App() {
     return (
@@ -88,17 +87,6 @@ function App() {
                                         meta: {
                                             label: "Bảng điều khiển",
                                             icon: <DashboardOutlined/>,
-                                            canDelete: true,
-                                        },
-                                    },
-                                    {
-                                        name: "orders",
-                                        list: "/orders",
-                                        edit: "/orders/edit/:id",
-                                        show: "/orders/show/:id",
-                                        meta: {
-                                            label: "Quản lý đơn hàng",
-                                            icon: <ShoppingCartOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -173,7 +161,6 @@ function App() {
                                         show: "/vouchers/show/:id",
                                         meta: {
                                             label: "Quản lý voucher",
-                                            icon: <GiftOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -186,7 +173,7 @@ function App() {
                                         show: "/banners/show/:id",
                                         meta: {
                                             label: "Quản lý banner",
-                                            icon: <PictureOutlined />,
+                                            icon: <GiftOutlined/>,
                                             canDelete: true,
                                         },
                                     },
@@ -228,12 +215,6 @@ function App() {
 
                                         <Route path="/dashboard">
                                             <Route index element={<Dashboard/>}/>
-                                        </Route>
-
-                                        <Route path="/orders">
-                                            <Route index element={<OrdersList/>}/>
-                                            <Route path="edit/:id" element={<CategoryEdit/>}/>
-                                            <Route path="show/:id" element={<OrdersShow/>}/>
                                         </Route>
 
                                         <Route
