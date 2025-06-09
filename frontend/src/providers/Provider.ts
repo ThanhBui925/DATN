@@ -36,11 +36,18 @@ const dataProvider = {
     // @ts-ignore
 
     // debugger
-    const formData = resource.variables instanceof FormData ? resource.variables : new FormData();
+    let formData: FormData;
 
-    if (!(formData instanceof FormData)) {
-      for (const key in formData) {
-        formData.append(key, formData[key]);
+    if (resource.variables instanceof FormData) {
+      formData = resource.variables;
+    } else {
+      formData = new FormData();
+      if (typeof resource.variables === "object" && resource.variables !== null) {
+        for (const key in resource.variables) {
+          if (Object.prototype.hasOwnProperty.call(resource.variables, key)) {
+            formData.append(key, resource.variables[key]);
+          }
+        }
       }
     }
 
