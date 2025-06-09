@@ -1,4 +1,3 @@
-import {DeleteOutlined} from "@ant-design/icons";
 import {
     CreateButton,
     DeleteButton,
@@ -7,16 +6,38 @@ import {
     ShowButton,
     useTable,
 } from "@refinedev/antd";
-import type {BaseRecord} from "@refinedev/core";
-import {Breadcrumb, Button, Modal, Space, Table, Tag} from "antd";
-import {useForceDelete} from "../../hooks/useForceDelete";
+import type { BaseRecord } from "@refinedev/core";
+import { Breadcrumb, Modal, Space, Table, Tag, Form, Input, Select, Button, Row, Col } from "antd";
+import { useForceDelete } from "../../hooks/useForceDelete";
 
 export const CategoryList = () => {
-    const {tableProps} = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                { field: "name", operator: "contains", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
+            ],
+        },
     });
 
-    const {forceDelete} = useForceDelete();
+    const { forceDelete } = useForceDelete();
+    const [form] = Form.useForm();
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "name", operator: "contains", value: values.name || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "name", operator: "contains", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
+        ]);
+    };
 
     return (
         <List
@@ -31,6 +52,43 @@ export const CategoryList = () => {
                 <CreateButton>Thêm danh mục</CreateButton>
             )}
         >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFilter}
+                style={{ marginBottom: 16 }}
+            >
+                <Row gutter={16}>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Tên danh mục" name="name">
+                            <Input placeholder="Nhập tên danh mục" />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Trạng thái" name="status">
+                            <Select
+                                placeholder="Chọn trạng thái"
+                                allowClear
+                                options={[
+                                    { label: "Hoạt động", value: "1" },
+                                    { label: "Không hoạt động", value: "0" },
+                                ]}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label=" ">
+                            <Space>
+                                <Button type="primary" htmlType="submit">
+                                    Lọc
+                                </Button>
+                                <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                            </Space>
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Form>
+
             <Table {...tableProps} rowKey="id">
                 <Table.Column
                     title="STT"
@@ -61,7 +119,6 @@ export const CategoryList = () => {
                             {value == 0 ? "Không hoạt động" : "Hoạt động"}
                         </Tag>
                     )}
-
                 />
                 <Table.Column
                     title="Hành động"
@@ -86,7 +143,7 @@ export const CategoryList = () => {
                                     hideText
                                     size="large"
                                     recordItemId={record.id}
-                                    confirmTitle="Bạn có muốn xoá mềm danh mục này?"
+                                    confirmTitle="Bạn có muốn xoá danh mục này?"
                                     confirmOkText="Xoá"
                                     confirmCancelText="Huỷ"
                                 />

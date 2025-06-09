@@ -86,6 +86,7 @@ export const ProductsEdit = () => {
 
         if (values.variants && Array.isArray(values.variants)) {
             values.variants.forEach((variant: any, index: number) => {
+                formData.append(`variants[${index}][id]`, variant.id || "");
                 formData.append(`variants[${index}][name]`, variant.name || "");
                 formData.append(`variants[${index}][size_id]`, variant.size_id || "");
                 formData.append(`variants[${index}][color_id]`, variant.color_id || "");
@@ -309,6 +310,12 @@ export const ProductsEdit = () => {
                                             <Row gutter={16}>
                                                 <Col sm={12} xs={24}>
                                                     <Form.Item
+                                                        hidden={true}
+                                                        name={[index, "id"]}
+                                                    >
+                                                        <Input />
+                                                    </Form.Item>
+                                                    <Form.Item
                                                         label="Tên biến thể"
                                                         name={[index, "name"]}
                                                         rules={[
@@ -337,13 +344,6 @@ export const ProductsEdit = () => {
                                                         <Select
                                                             placeholder="Chọn kích thước"
                                                             {...sizeSelectProps}
-                                                            options={[
-                                                                { label: "39", value: "39" },
-                                                                { label: "40", value: "40" },
-                                                                { label: "41", value: "41" },
-                                                                { label: "42", value: "42" },
-                                                                { label: "43", value: "43" }
-                                                            ]}
                                                             loading={sizeSelectProps.loading}
                                                         />
                                                     </Form.Item>
@@ -360,13 +360,6 @@ export const ProductsEdit = () => {
                                                         <Select
                                                             placeholder="Chọn màu sắc"
                                                             {...colorSelectProps}
-                                                            options={[
-                                                                { label: "Đỏ", value: "1" },
-                                                                { label: "Xanh", value: "2" },
-                                                                { label: "Vàng", value: "3" },
-                                                                { label: "Trắng", value: "4" },
-                                                                { label: "Đen", value: "5" }
-                                                            ]}
                                                             loading={colorSelectProps.loading}
                                                         />
                                                     </Form.Item>
@@ -380,11 +373,6 @@ export const ProductsEdit = () => {
                                                                 required: true,
                                                                 message: "Vui lòng nhập số lượng!",
                                                             },
-                                                            {
-                                                                type: "number",
-                                                                min: 0,
-                                                                message: "Số lượng phải lớn hơn hoặc bằng 0!",
-                                                            },
                                                         ]}
                                                     >
                                                         <Input type="number" min="0" />
@@ -392,7 +380,6 @@ export const ProductsEdit = () => {
                                                     <Form.Item
                                                         label="Trạng thái"
                                                         name={[index, "status"]}
-                                                        initialValue="active"
                                                         rules={[
                                                             {
                                                                 required: true,
@@ -401,10 +388,9 @@ export const ProductsEdit = () => {
                                                         ]}
                                                     >
                                                         <Select
-                                                            defaultValue="active"
                                                             options={[
-                                                                { value: "active", label: "Hoạt động" },
-                                                                { value: "inactive", label: "Ngừng hoạt động" },
+                                                                { value: 1, label: "Hoạt động" },
+                                                                { value: 0, label: "Ngừng hoạt động" },
                                                             ]}
                                                         />
                                                     </Form.Item>

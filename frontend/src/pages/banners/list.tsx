@@ -58,12 +58,12 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
                 <Table.Column
                     dataIndex="start_date"
                     title="Ngày bắt đầu"
-                    render={(value) => <DateField value={value} format="LLL" />}
+                    render={(value) => <DateField value={value} />}
                 />
                 <Table.Column
                     dataIndex="end_date"
                     title="Ngày kết thúc"
-                    render={(value) => <DateField value={value} format="LLL" />}
+                    render={(value) => <DateField value={value} />}
                 />
                 <Table.Column
                     title="Hành động"

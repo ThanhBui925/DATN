@@ -1,4 +1,5 @@
 import simpleRestDataProvider from "@refinedev/simple-rest";
+import {axiosInstance} from "../utils/axios";
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL ? import.meta.env.VITE_APP_API_URL + '/api' : import.meta.env.VITE_APP_JSON_URL || 'http://localhost:5000';
 const base = simpleRestDataProvider(BASE_URL);
@@ -31,26 +32,40 @@ const dataProvider = {
   getOne: unwrapData(base.getOne),
   create: unwrapData(base.create),
 
-  update: async (resource: string, params: { id: number }) => {
+  update: async (resource: any) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const { id, variables } = params;
-    const formData = variables instanceof FormData ? variables : new FormData();
 
-    if (!(variables instanceof FormData)) {
-      for (const key in variables) {
-        formData.append(key, variables[key]);
+    // debugger
+    let formData: FormData;
+
+    if (resource.variables instanceof FormData) {
+      formData = resource.variables;
+    } else {
+      formData = new FormData();
+      if (typeof resource.variables === "object" && resource.variables !== null) {
+        for (const key in resource.variables) {
+          if (Object.prototype.hasOwnProperty.call(resource.variables, key)) {
+            formData.append(key, resource.variables[key]);
+          }
+        }
       }
     }
 
     formData.append("_method", "PUT");
 
-    const response = await fetch(`${BASE_URL}/${resource}/${id}`, {
-      method: "POST",
-      body: formData,
-    });
+    const response = await axiosInstance.post(
+        `/api/${resource?.resource}/${resource.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+    );
 
-    const data = await response.json();
+    const data = response.data;
+
 
     return {
       data: data.data ?? data,
