@@ -31,21 +31,22 @@ const dataProvider = {
   getOne: unwrapData(base.getOne),
   create: unwrapData(base.create),
 
-  update: async (resource: string, params: { id: number }) => {
+  update: async (resource: any) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const { id, variables } = params;
-    const formData = variables instanceof FormData ? variables : new FormData();
 
-    if (!(variables instanceof FormData)) {
-      for (const key in variables) {
-        formData.append(key, variables[key]);
+    // debugger
+    const formData = resource.variables instanceof FormData ? resource.variables : new FormData();
+
+    if (!(formData instanceof FormData)) {
+      for (const key in formData) {
+        formData.append(key, formData[key]);
       }
     }
 
     formData.append("_method", "PUT");
 
-    const response = await fetch(`${BASE_URL}/${resource}/${id}`, {
+    const response = await fetch(`${BASE_URL}/${resource?.resource}/${resource.id}`, {
       method: "POST",
       body: formData,
     });
