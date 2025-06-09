@@ -179,30 +179,6 @@
       "updated_at": "2025-06-05 22:57:00"
     }
   ],
-  "reviews": [
-    {
-      "id": "1",
-      "slug": "danh-gia-1",
-      "product_id": 1,
-      "user_id": 1,
-      "comment": "Sản phẩm rất tốt!",
-      "rating": 5,
-      "is_visible": 1,
-      "created_at": "2025-06-05 11:00:00",
-      "updated_at": "2025-06-05 11:00:00"
-    },
-    {
-      "id": "2",
-      "slug": "danh-gia-2",
-      "product_id": 2,
-      "user_id": 2,
-      "comment": "Chất lượng ổn",
-      "rating": 4,
-      "is_visible": 1,
-      "created_at": "2025-06-05 11:05:00",
-      "updated_at": "2025-06-05 11:05:00"
-    }
-  ],
   "shipping": [
     {
       "id": "1",
@@ -545,8 +521,7 @@
           "status": "1",
           "created_at": "2025-06-05 12:25:00",
           "updated_at": "2025-06-05 12:25:00",
-          "color":
-          {
+          "color": {
             "id": "0e39",
             "name": "担当 太郎 lequyhieu"
           },
@@ -809,6 +784,218 @@
           "price": 500000
         }
       ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": "1",
+      "user": {
+        "name": "nguoi dung 1"
+      },
+      "product": {
+        "id": "1",
+        "slug": "dien-thoai-iphone-14",
+        "category_id": 1,
+        "name": "iPhone 14 (data UI edit)",
+        "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+        "price": 20000000,
+        "sale_price": 18000000,
+        "sale_end": "2025-06-30 23:59:59",
+        "status": 1,
+        "deleted_at": null,
+        "created_at": "2025-06-05 22:57:00",
+        "updated_at": "2025-06-05 22:57:00",
+        "category": {
+          "id": "1",
+          "slug": "dien-thoai",
+          "name": "Điện thoại",
+          "description": "Các loại điện thoại",
+          "image": "https://picsum.photos/200/300?grayscale",
+          "status": "1",
+          "deleted_at": "2025-06-02 15:48:06",
+          "created_at": "2025-06-02 14:12:16",
+          "updated_at": "2025-06-02 15:48:06"
+        }
+      },
+      "variant": {
+        "id": "1",
+        "slug": "bien-the-1",
+        "product_id": 1,
+        "name": "Biến thể Đen S",
+        "quantity": 50,
+        "size_id": 1,
+        "color_id": 1,
+        "status": "1",
+        "created_at": "2025-06-05 12:20:00",
+        "updated_at": "2025-06-05 12:20:00",
+        "color": {
+          "id": "1",
+          "slug": "mau-den",
+          "name": "Đen",
+          "created_at": "2025-06-05 10:30:00",
+          "updated_at": "2025-06-05 10:30:00"
+        },
+        "size": {
+          "id": "1",
+          "slug": "size-s",
+          "name": "S",
+          "created_at": "2025-06-05 12:00:00",
+          "updated_at": "2025-06-05 12:00:00"
+        }
+      },
+      "rating": 4,
+      "image": "https://picsum.photos/200/300?grayscale",
+      "content": "Sản phẩm rất tốt, chất lượng vượt mong đợi!",
+      "created_at": "2025-06-01T10:00:00Z",
+      "updated_at": "2025-06-01T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "user": {
+        "name": "nguoi dung 2"
+      },
+      "product": {
+        "id": "1",
+        "slug": "dien-thoai-iphone-14",
+        "category_id": 1,
+        "name": "iPhone 14 (data UI edit)",
+        "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+        "price": 20000000,
+        "sale_price": 18000000,
+        "sale_end": "2025-06-30 23:59:59",
+        "status": 1,
+        "deleted_at": null,
+        "created_at": "2025-06-05 22:57:00",
+        "updated_at": "2025-06-05 22:57:00",
+        "category": {
+          "id": "1",
+          "slug": "dien-thoai",
+          "name": "Điện thoại",
+          "description": "Các loại điện thoại",
+          "image": "https://picsum.photos/200/300?grayscale",
+          "status": "1",
+          "deleted_at": "2025-06-02 15:48:06",
+          "created_at": "2025-06-02 14:12:16",
+          "updated_at": "2025-06-02 15:48:06"
+        }
+      },
+      "variant": {},
+      "rating": 3,
+      "image": "",
+      "content": "Sản phẩm tạm ổn, nhưng giao hàng hơi chậm.",
+      "created_at": "2025-06-02T14:30:00Z",
+      "updated_at": "2025-06-03T09:15:00Z"
+    },
+    {
+      "id": "3",
+      "user": {
+        "name": "nguoi dung 3"
+      },
+      "product": {
+        "id": "1",
+        "slug": "dien-thoai-iphone-14",
+        "category_id": 1,
+        "name": "iPhone 14 (data UI edit)",
+        "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+        "price": 20000000,
+        "sale_price": 18000000,
+        "sale_end": "2025-06-30 23:59:59",
+        "status": 1,
+        "deleted_at": null,
+        "created_at": "2025-06-05 22:57:00",
+        "updated_at": "2025-06-05 22:57:00",
+        "category": {
+          "id": "1",
+          "slug": "dien-thoai",
+          "name": "Điện thoại",
+          "description": "Các loại điện thoại",
+          "image": "https://picsum.photos/200/300?grayscale",
+          "status": "1",
+          "deleted_at": "2025-06-02 15:48:06",
+          "created_at": "2025-06-02 14:12:16",
+          "updated_at": "2025-06-02 15:48:06"
+        }
+      },
+      "variant": {},
+      "rating": 5,
+      "image": "https://picsum.photos/200/300?grayscale",
+      "content": "Tuyệt vời! Sẽ mua lại lần nữa.",
+      "created_at": "2025-06-04T08:45:00Z",
+      "updated_at": "2025-06-04T08:45:00Z"
+    },
+    {
+      "id": "4",
+      "user": {
+        "name": "nguoi dung 4"
+      },
+      "product": {
+        "id": "1",
+        "slug": "dien-thoai-iphone-14",
+        "category_id": 1,
+        "name": "iPhone 14 (data UI edit)",
+        "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+        "price": 20000000,
+        "sale_price": 18000000,
+        "sale_end": "2025-06-30 23:59:59",
+        "status": 1,
+        "deleted_at": null,
+        "created_at": "2025-06-05 22:57:00",
+        "updated_at": "2025-06-05 22:57:00",
+        "category": {
+          "id": "1",
+          "slug": "dien-thoai",
+          "name": "Điện thoại",
+          "description": "Các loại điện thoại",
+          "image": "https://picsum.photos/200/300?grayscale",
+          "status": "1",
+          "deleted_at": "2025-06-02 15:48:06",
+          "created_at": "2025-06-02 14:12:16",
+          "updated_at": "2025-06-02 15:48:06"
+        }
+      },
+      "variant": {},
+      "rating": 2,
+      "image": "",
+      "content": "Chất lượng không như kỳ vọng, hơi thất vọng.",
+      "created_at": "2025-06-05T16:20:00Z",
+      "updated_at": "2025-06-06T11:10:00Z"
+    },
+    {
+      "id": "5",
+      "user": {
+        "name": "nguoi dung 5"
+      },
+      "product": {
+        "id": "1",
+        "slug": "dien-thoai-iphone-14",
+        "category_id": 1,
+        "name": "iPhone 14 (data UI edit)",
+        "description": "Điện thoại iPhone 14 mới nhất với hiệu năng vượt trội",
+        "price": 20000000,
+        "sale_price": 18000000,
+        "sale_end": "2025-06-30 23:59:59",
+        "status": 1,
+        "deleted_at": null,
+        "created_at": "2025-06-05 22:57:00",
+        "updated_at": "2025-06-05 22:57:00",
+        "category": {
+          "id": "1",
+          "slug": "dien-thoai",
+          "name": "Điện thoại",
+          "description": "Các loại điện thoại",
+          "image": "https://picsum.photos/200/300?grayscale",
+          "status": "1",
+          "deleted_at": "2025-06-02 15:48:06",
+          "created_at": "2025-06-02 14:12:16",
+          "updated_at": "2025-06-02 15:48:06"
+        }
+      },
+      "variant": {},
+      "rating": 4,
+      "image": "https://picsum.photos/200/300?grayscale",
+      "content": "Sản phẩm đẹp, nhưng kích thước hơi nhỏ.",
+      "created_at": "2025-06-07T12:00:00Z",
+      "updated_at": "2025-06-07T12:00:00Z"
     }
   ]
 }

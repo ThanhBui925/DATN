@@ -57,7 +57,7 @@ import {
 import {
     BgColorsOutlined,
     DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined, ShoppingCartOutlined,
-    ShoppingOutlined, SolutionOutlined,
+    ShoppingOutlined, StarOutlined,
     UnorderedListOutlined,
     UserOutlined
 } from "@ant-design/icons";
@@ -66,6 +66,7 @@ import {
 } from "./pages/customers";
 import Dashboard from "./pages/dashboard/list";
 import {OrdersList, OrdersShow} from "./pages/orders";
+import {ReviewList, ReviewShow} from "./pages/reviews";
 
 function App() {
     return (
@@ -201,6 +202,17 @@ function App() {
                                             canDelete: true,
                                         },
                                     },
+
+                                    {
+                                        name: "reviews",
+                                        list: "/reviews",
+                                        show: "/reviews/show/:id",
+                                        meta: {
+                                            label: "Quản lý đánh giá",
+                                            icon: <StarOutlined />,
+                                            canDelete: true,
+                                        },
+                                    },
                                 ]}
                                 options={{
                                     syncWithLocation: true,
@@ -287,6 +299,11 @@ function App() {
                                         <Route path="/customers">
                                             <Route index element={<CustomerList/>}/>
                                             <Route path="show/:id" element={<CustomerShow/>}/>
+                                        </Route>
+
+                                        <Route path="/reviews">
+                                            <Route index element={<ReviewList/>}/>
+                                            <Route path="show/:id" element={<ReviewShow/>}/>
                                         </Route>
 
                                         <Route path="*" element={<ErrorComponent/>}/>
