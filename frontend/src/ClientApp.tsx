@@ -5,6 +5,7 @@ import {Login} from "./pages/admin/login";
 import {Register} from "./pages/admin/register";
 import {ForgotPassword} from "./pages/admin/forgotPassword";
 import React from "react";
+import {DetailProductPage} from "./pages/detailProduct";
 
 export const ClientApp = () => {
     return (
@@ -15,6 +16,9 @@ export const ClientApp = () => {
                 <Route path="dang-nhap" element={<Login />} />
                 <Route path="dang-ky" element={<Register />} />
                 <Route path="quen-mat-khau" element={<ForgotPassword />} />
+
+                <Route path="chi-tiet-san-pham/:id" element={<DetailProductPage />} />
+
             </Route>
         </Routes>
     )
