@@ -1,4 +1,4 @@
-import {Route, Routes} from "react-router";
+import {Navigate, Route, Routes} from "react-router";
 import ClientLayout from "./layout/ClientLayout";
 import {Home} from "./pages/home";
 import {Login} from "./pages/admin/login";
@@ -9,19 +9,12 @@ import React from "react";
 export const ClientApp = () => {
     return (
         <Routes>
-            <Route
-                path={`/`}
-                element={
-                    <ClientLayout />
-                }
-            >
-                <Route path="home" element={<Home/>}/>
-                <Route path="login" element={<Login/>}/>
-                <Route path="register" element={<Register/>}/>
-                <Route
-                    path="forgot-password"
-                    element={<ForgotPassword/>}
-                />
+            <Route path="/" element={<ClientLayout />}>
+                <Route index element={<Navigate to="/trang-chu" replace />} />
+                <Route path="trang-chu" element={<Home />} />
+                <Route path="dang-nhap" element={<Login />} />
+                <Route path="dang-ky" element={<Register />} />
+                <Route path="quen-mat-khau" element={<ForgotPassword />} />
             </Route>
         </Routes>
     )
