@@ -8,7 +8,7 @@ import {
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Modal, Space, Table, Tag, Form, Input, Select, Button, Row, Col } from "antd";
-import { useForceDelete } from "../../hooks/useForceDelete";
+import { useForceDelete } from "../../../hooks/useForceDelete";
 
 export const CategoryList = () => {
     const { tableProps, setFilters } = useTable({

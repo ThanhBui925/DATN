@@ -9,7 +9,7 @@ import {
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Button, Modal, Space, Table, Tag } from "antd";
-import { useForceDelete } from "../../hooks/useForceDelete";
+import { useForceDelete } from "../../../hooks/useForceDelete";
 
 export const VoucherList = () => {
     const { tableProps } = useTable({

@@ -28,32 +28,32 @@ import {
     BlogPostEdit,
     BlogPostList,
     BlogPostShow,
-} from "./pages/blogs";
+} from "./pages/admin/blogs";
 import {
     CategoryCreate,
     CategoryEdit,
     CategoryList,
     CategoryShow,
-} from "./pages/categories";
-import {ForgotPassword} from "./pages/forgotPassword";
-import {Login} from "./pages/login";
-import {Register} from "./pages/register";
-import {ProductsCreate, ProductsEdit, ProductsList, ProductsShow} from "./pages/products";
-import {ColorList} from "./pages/colors/list";
+} from "./pages/admin/categories";
+import {ForgotPassword} from "./pages/admin/forgotPassword";
+import {Login} from "./pages/admin/login";
+import {Register} from "./pages/admin/register";
+import {ProductsCreate, ProductsEdit, ProductsList, ProductsShow} from "./pages/admin/products";
+import {ColorList} from "./pages/admin/colors/list";
 import React from "react";
-import {SizeList} from "./pages/sizes/list";
+import {SizeList} from "./pages/admin/sizes/list";
 import {
     VoucherList,
     VoucherCreate,
     VoucherEdit,
     VoucherShow
-} from "./pages/vouchers";
+} from "./pages/admin/vouchers";
 import {
     BannerCreate,
     BannerEdit,
     BannerList,
     BannerShow,
-} from "./pages/banners";
+} from "./pages/admin/banners";
 import {
     BgColorsOutlined,
     DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined, ShoppingCartOutlined,
@@ -63,10 +63,10 @@ import {
 } from "@ant-design/icons";
 import {
     CustomerList, CustomerShow
-} from "./pages/customers";
-import Dashboard from "./pages/dashboard/list";
-import {OrdersList, OrdersShow} from "./pages/orders";
-import {ReviewList, ReviewShow} from "./pages/reviews";
+} from "./pages/admin/customers";
+import Dashboard from "./pages/admin/dashboard/list";
+import {OrdersList, OrdersShow} from "./pages/admin/orders";
+import {ReviewList, ReviewShow} from "./pages/admin/reviews";
 
 function App() {
     return (
@@ -85,7 +85,7 @@ function App() {
                                 resources={[
                                     {
                                         name: "dashboard",
-                                        list: "/dashboard",
+                                        list: "/admin/dashboard",
                                         meta: {
                                             label: "Bảng điều khiển",
                                             icon: <DashboardOutlined/>,
@@ -94,9 +94,9 @@ function App() {
                                     },
                                     {
                                         name: "orders",
-                                        list: "/orders",
-                                        edit: "/orders/edit/:id",
-                                        show: "/orders/show/:id",
+                                        list: "/admin/orders",
+                                        edit: "/admin/orders/edit/:id",
+                                        show: "/admin/orders/show/:id",
                                         meta: {
                                             label: "Quản lý đơn hàng",
                                             icon: <ShoppingCartOutlined/>,
@@ -105,10 +105,10 @@ function App() {
                                     },
                                     {
                                         name: "categories",
-                                        list: "/categories",
-                                        create: "/categories/create",
-                                        edit: "/categories/edit/:id",
-                                        show: "/categories/show/:id",
+                                        list: "/admin/categories",
+                                        create: "/admin/categories/create",
+                                        edit: "/admin/categories/edit/:id",
+                                        show: "/admin/categories/show/:id",
                                         meta: {
                                             label: "Danh mục",
                                             icon: <UnorderedListOutlined/>,
@@ -117,10 +117,10 @@ function App() {
                                     },
                                     {
                                         name: "products",
-                                        list: "/products",
-                                        create: "/products/create",
-                                        edit: "/products/edit/:id",
-                                        show: "/products/show/:id",
+                                        list: "/admin/products",
+                                        create: "/admin/products/create",
+                                        edit: "/admin/products/edit/:id",
+                                        show: "/admin/products/show/:id",
                                         meta: {
                                             label: "Sản phẩm",
                                             icon: <ShoppingOutlined/>,
@@ -129,10 +129,10 @@ function App() {
                                     },
                                     {
                                         name: "colors",
-                                        list: "/colors",
-                                        create: "/colors/create",
-                                        edit: "/colors/edit/:id",
-                                        show: "/colors/show/:id",
+                                        list: "/admin/colors",
+                                        create: "/admin/colors/create",
+                                        edit: "/admin/colors/edit/:id",
+                                        show: "/admin/colors/show/:id",
                                         meta: {
                                             label: "Quản lý màu sắc",
                                             icon: <BgColorsOutlined/>,
@@ -142,10 +142,10 @@ function App() {
                                     // màu sắc
                                     {
                                         name: "sizes",
-                                        list: "/sizes",
-                                        create: "/sizes/create",
-                                        edit: "/sizes/edit/:id",
-                                        show: "/sizes/show/:id",
+                                        list: "/admin/sizes",
+                                        create: "/admin/sizes/create",
+                                        edit: "/admin/sizes/edit/:id",
+                                        show: "/admin/sizes/show/:id",
                                         meta: {
                                             label: "Quản lý kích cỡ",
                                             icon: <ExpandOutlined/>,
@@ -155,10 +155,10 @@ function App() {
 
                                     {
                                         name: "blogs",
-                                        list: "/blogs",
-                                        create: "/blogs/create",
-                                        edit: "/blogs/edit/:id",
-                                        show: "/blogs/show/:id",
+                                        list: "/admin/blogs",
+                                        create: "/admin/blogs/create",
+                                        edit: "/admin/blogs/edit/:id",
+                                        show: "/admin/blogs/show/:id",
                                         meta: {
                                             label: "Quản lý bài viết",
                                             icon: <FileTextOutlined/>,
@@ -168,10 +168,10 @@ function App() {
 
                                     {
                                         name: "vouchers",
-                                        list: "/vouchers",
-                                        create: "/vouchers/create",
-                                        edit: "/vouchers/edit/:id",
-                                        show: "/vouchers/show/:id",
+                                        list: "/admin/vouchers",
+                                        create: "/admin/vouchers/create",
+                                        edit: "/admin/vouchers/edit/:id",
+                                        show: "/admin/vouchers/show/:id",
                                         meta: {
                                             label: "Quản lý voucher",
                                             icon: <GiftOutlined/>,
@@ -181,10 +181,10 @@ function App() {
 
                                     {
                                         name: "banners",
-                                        list: "/banners",
-                                        create: "/banners/create",
-                                        edit: "/banners/edit/:id",
-                                        show: "/banners/show/:id",
+                                        list: "/admin/banners",
+                                        create: "/admin/banners/create",
+                                        edit: "/admin/banners/edit/:id",
+                                        show: "/admin/banners/show/:id",
                                         meta: {
                                             label: "Quản lý banner",
                                             icon: <PictureOutlined />,
@@ -194,8 +194,8 @@ function App() {
 
                                     {
                                         name: "customers",
-                                        list: "/customers",
-                                        show: "/customers/show/:id",
+                                        list: "/admin/customers",
+                                        show: "/admin/customers/show/:id",
                                         meta: {
                                             label: "Quản lý khách hàng",
                                             icon: <UserOutlined />,
@@ -205,8 +205,8 @@ function App() {
 
                                     {
                                         name: "reviews",
-                                        list: "/reviews",
-                                        show: "/reviews/show/:id",
+                                        list: "/admin/reviews",
+                                        show: "/admin/reviews/show/:id",
                                         meta: {
                                             label: "Quản lý đánh giá",
                                             icon: <StarOutlined />,
@@ -238,11 +238,11 @@ function App() {
                                         }
                                     >
 
-                                        <Route path="/dashboard">
+                                        <Route path="/admin/dashboard">
                                             <Route index element={<Dashboard/>}/>
                                         </Route>
 
-                                        <Route path="/orders">
+                                        <Route path="/admin/orders">
                                             <Route index element={<OrdersList/>}/>
                                             <Route path="edit/:id" element={<CategoryEdit/>}/>
                                             <Route path="show/:id" element={<OrdersShow/>}/>
@@ -253,55 +253,55 @@ function App() {
                                             element={<NavigateToResource resource="blog_posts"/>}
                                         />
 
-                                        <Route path="/blogs">
+                                        <Route path="/admin/blogs">
                                             <Route index element={<BlogPostList/>}/>
                                             <Route path="create" element={<BlogPostCreate/>}/>
                                             <Route path="edit/:id" element={<BlogPostEdit/>}/>
                                             <Route path="show/:id" element={<BlogPostShow/>}/>
                                         </Route>
 
-                                        <Route path="/categories">
+                                        <Route path="/admin/categories">
                                             <Route index element={<CategoryList/>}/>
                                             <Route path="create" element={<CategoryCreate/>}/>
                                             <Route path="edit/:id" element={<CategoryEdit/>}/>
                                             <Route path="show/:id" element={<CategoryShow/>}/>
                                         </Route>
 
-                                        <Route path="/products">
+                                        <Route path="/admin/products">
                                             <Route index element={<ProductsList/>}/>
                                             <Route path="create" element={<ProductsCreate/>}/>
                                             <Route path="edit/:id" element={<ProductsEdit/>}/>
                                             <Route path="show/:id" element={<ProductsShow/>}/>
                                         </Route>
 
-                                        <Route path="/colors">
+                                        <Route path="/admin/colors">
                                             <Route index element={<ColorList/>}/>
                                         </Route>
                                         {/* Màu sắc */}
-                                        <Route path="/sizes">
+                                        <Route path="/admin/sizes">
                                             <Route index element={<SizeList/>}/>
                                         </Route>
 
-                                        <Route path="/vouchers">
+                                        <Route path="/admin/vouchers">
                                             <Route index element={<VoucherList/>}/>
                                             <Route path="create" element={<VoucherCreate/>}/>
                                             <Route path="edit/:id" element={<VoucherEdit/>}/>
                                             <Route path="show/:id" element={<VoucherShow/>}/>
                                         </Route>
 
-                                        <Route path="/banners">
+                                        <Route path="/admin/banners">
                                             <Route index element={<BannerList/>}/>
                                             <Route path="create" element={<BannerCreate/>}/>
                                             <Route path="edit/:id" element={<BannerEdit/>}/>
                                             <Route path="show/:id" element={<BannerShow/>}/>
                                         </Route>
 
-                                        <Route path="/customers">
+                                        <Route path="/admin/customers">
                                             <Route index element={<CustomerList/>}/>
                                             <Route path="show/:id" element={<CustomerShow/>}/>
                                         </Route>
 
-                                        <Route path="/reviews">
+                                        <Route path="/admin/reviews">
                                             <Route index element={<ReviewList/>}/>
                                             <Route path="show/:id" element={<ReviewShow/>}/>
                                         </Route>
