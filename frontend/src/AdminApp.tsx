@@ -1,0 +1,288 @@
+import {ColorModeContextProvider} from "./contexts/color-mode";
+import {App as AntdApp} from "antd";
+import {DevtoolsPanel, DevtoolsProvider} from "@refinedev/devtools";
+import {Authenticated, Refine} from "@refinedev/core";
+import dataProvider from "./providers/Provider";
+import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2, useNotificationProvider} from "@refinedev/antd";
+import routerBindings, {
+    CatchAllNavigate,
+    DocumentTitleHandler,
+    NavigateToResource,
+    UnsavedChangesNotifier
+} from "@refinedev/react-router";
+import {authProvider} from "./authProvider";
+import {
+    BgColorsOutlined,
+    DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined,
+    ShoppingCartOutlined,
+    ShoppingOutlined, StarOutlined,
+    UnorderedListOutlined, UserOutlined
+} from "@ant-design/icons";
+import {Outlet, Route, Routes} from "react-router";
+import {Header} from "./components/admin";
+import Dashboard from "./pages/admin/dashboard/list";
+import {OrdersList, OrdersShow} from "./pages/admin/orders";
+import {CategoryCreate, CategoryEdit, CategoryList, CategoryShow} from "./pages/admin/categories";
+import {BlogPostCreate, BlogPostEdit, BlogPostList, BlogPostShow} from "./pages/admin/blogs";
+import {ProductsCreate, ProductsEdit, ProductsList, ProductsShow} from "./pages/admin/products";
+import {ColorList} from "./pages/admin/colors/list";
+import {SizeList} from "./pages/admin/sizes/list";
+import {VoucherCreate, VoucherEdit, VoucherList, VoucherShow} from "./pages/admin/vouchers";
+import {BannerCreate, BannerEdit, BannerList, BannerShow} from "./pages/admin/banners";
+import {CustomerList, CustomerShow} from "./pages/admin/customers";
+import {ReviewList, ReviewShow} from "./pages/admin/reviews";
+import {RefineKbar, RefineKbarProvider} from "@refinedev/kbar";
+import React from "react";
+
+export const AdminApp = () => {
+    return (
+        <RefineKbarProvider>
+            <ColorModeContextProvider>
+                <AntdApp>
+                    <DevtoolsProvider>
+                        <Refine
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            dataProvider={dataProvider}
+                            notificationProvider={useNotificationProvider}
+                            routerProvider={routerBindings}
+                            authProvider={authProvider}
+                            resources={[
+                                {
+                                    name: "dashboard",
+                                    list: "/admin/dashboard",
+                                    meta: {
+                                        label: "Bảng điều khiển",
+                                        icon: <DashboardOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+                                {
+                                    name: "orders",
+                                    list: "/admin/orders",
+                                    edit: "/admin/orders/edit/:id",
+                                    show: "/admin/orders/show/:id",
+                                    meta: {
+                                        label: "Quản lý đơn hàng",
+                                        icon: <ShoppingCartOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+                                {
+                                    name: "categories",
+                                    list: "/admin/categories",
+                                    create: "/admin/categories/create",
+                                    edit: "/admin/categories/edit/:id",
+                                    show: "/admin/categories/show/:id",
+                                    meta: {
+                                        label: "Danh mục",
+                                        icon: <UnorderedListOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+                                {
+                                    name: "products",
+                                    list: "/admin/products",
+                                    create: "/admin/products/create",
+                                    edit: "/admin/products/edit/:id",
+                                    show: "/admin/products/show/:id",
+                                    meta: {
+                                        label: "Sản phẩm",
+                                        icon: <ShoppingOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+                                {
+                                    name: "colors",
+                                    list: "/admin/colors",
+                                    create: "/admin/colors/create",
+                                    edit: "/admin/colors/edit/:id",
+                                    show: "/admin/colors/show/:id",
+                                    meta: {
+                                        label: "Quản lý màu sắc",
+                                        icon: <BgColorsOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+                                // màu sắc
+                                {
+                                    name: "sizes",
+                                    list: "/admin/sizes",
+                                    create: "/admin/sizes/create",
+                                    edit: "/admin/sizes/edit/:id",
+                                    show: "/admin/sizes/show/:id",
+                                    meta: {
+                                        label: "Quản lý kích cỡ",
+                                        icon: <ExpandOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+
+                                {
+                                    name: "blogs",
+                                    list: "/admin/blogs",
+                                    create: "/admin/blogs/create",
+                                    edit: "/admin/blogs/edit/:id",
+                                    show: "/admin/blogs/show/:id",
+                                    meta: {
+                                        label: "Quản lý bài viết",
+                                        icon: <FileTextOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+
+                                {
+                                    name: "vouchers",
+                                    list: "/admin/vouchers",
+                                    create: "/admin/vouchers/create",
+                                    edit: "/admin/vouchers/edit/:id",
+                                    show: "/admin/vouchers/show/:id",
+                                    meta: {
+                                        label: "Quản lý voucher",
+                                        icon: <GiftOutlined/>,
+                                        canDelete: true,
+                                    },
+                                },
+
+                                {
+                                    name: "banners",
+                                    list: "/admin/banners",
+                                    create: "/admin/banners/create",
+                                    edit: "/admin/banners/edit/:id",
+                                    show: "/admin/banners/show/:id",
+                                    meta: {
+                                        label: "Quản lý banner",
+                                        icon: <PictureOutlined />,
+                                        canDelete: true,
+                                    },
+                                },
+
+                                {
+                                    name: "customers",
+                                    list: "/admin/customers",
+                                    show: "/admin/customers/show/:id",
+                                    meta: {
+                                        label: "Quản lý khách hàng",
+                                        icon: <UserOutlined />,
+                                        canDelete: true,
+                                    },
+                                },
+
+                                {
+                                    name: "reviews",
+                                    list: "/admin/reviews",
+                                    show: "/admin/reviews/show/:id",
+                                    meta: {
+                                        label: "Quản lý đánh giá",
+                                        icon: <StarOutlined />,
+                                        canDelete: true,
+                                    },
+                                },
+                            ]}
+                            options={{
+                                syncWithLocation: true,
+                                warnWhenUnsavedChanges: true,
+                                useNewQueryKeys: true,
+                                projectId: "nOHMEU-KEmr3X-YmSY47",
+                            }}
+                        >
+                            <Routes>
+                                <Route
+                                    path={'/admin'}
+                                    element={
+                                        <Authenticated
+                                            key="authenticated-inner"
+                                            fallback={<CatchAllNavigate to="/login"/>}
+                                        >
+                                            <ThemedLayoutV2
+                                                Header={Header}
+                                                Sider={(props) => <ThemedSiderV2 {...props} fixed/>}
+                                            >
+                                                <Outlet/>
+                                            </ThemedLayoutV2>
+                                        </Authenticated>
+                                    }
+                                >
+
+                                    <Route path="/admin/dashboard">
+                                        <Route index element={<Dashboard/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/orders">
+                                        <Route index element={<OrdersList/>}/>
+                                        <Route path="edit/:id" element={<CategoryEdit/>}/>
+                                        <Route path="show/:id" element={<OrdersShow/>}/>
+                                    </Route>
+
+                                    <Route
+                                        index
+                                        element={<NavigateToResource resource="blog_posts"/>}
+                                    />
+
+                                    <Route path="/admin/blogs">
+                                        <Route index element={<BlogPostList/>}/>
+                                        <Route path="create" element={<BlogPostCreate/>}/>
+                                        <Route path="edit/:id" element={<BlogPostEdit/>}/>
+                                        <Route path="show/:id" element={<BlogPostShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/categories">
+                                        <Route index element={<CategoryList/>}/>
+                                        <Route path="create" element={<CategoryCreate/>}/>
+                                        <Route path="edit/:id" element={<CategoryEdit/>}/>
+                                        <Route path="show/:id" element={<CategoryShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/products">
+                                        <Route index element={<ProductsList/>}/>
+                                        <Route path="create" element={<ProductsCreate/>}/>
+                                        <Route path="edit/:id" element={<ProductsEdit/>}/>
+                                        <Route path="show/:id" element={<ProductsShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/colors">
+                                        <Route index element={<ColorList/>}/>
+                                    </Route>
+                                    {/* Màu sắc */}
+                                    <Route path="/admin/sizes">
+                                        <Route index element={<SizeList/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/vouchers">
+                                        <Route index element={<VoucherList/>}/>
+                                        <Route path="create" element={<VoucherCreate/>}/>
+                                        <Route path="edit/:id" element={<VoucherEdit/>}/>
+                                        <Route path="show/:id" element={<VoucherShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/banners">
+                                        <Route index element={<BannerList/>}/>
+                                        <Route path="create" element={<BannerCreate/>}/>
+                                        <Route path="edit/:id" element={<BannerEdit/>}/>
+                                        <Route path="show/:id" element={<BannerShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/customers">
+                                        <Route index element={<CustomerList/>}/>
+                                        <Route path="show/:id" element={<CustomerShow/>}/>
+                                    </Route>
+
+                                    <Route path="/admin/reviews">
+                                        <Route index element={<ReviewList/>}/>
+                                        <Route path="show/:id" element={<ReviewShow/>}/>
+                                    </Route>
+
+                                    <Route path="*" element={<ErrorComponent/>}/>
+                                </Route>
+                            </Routes>
+                            <RefineKbar/>
+                            <UnsavedChangesNotifier/>
+                            <DocumentTitleHandler/>
+                        </Refine>
+                        <DevtoolsPanel/>
+                    </DevtoolsProvider>
+                </AntdApp>
+            </ColorModeContextProvider>
+        </RefineKbarProvider>
+    )
+}
