@@ -14,13 +14,13 @@ export const authProvider: AuthProvider = {
         if (response.data.user.role === 'admin') {
           return {
             success: true,
-            redirectTo: "/dashboard",
+            redirectTo: "/admin/dashboard",
             mesage: response.data.mesage || "Đăng nhập trị viên thành công",
           };
         } else {
           return {
             success: true,
-            redirectTo: "/",
+            redirectTo: "/trang-chu",
             mesage: response.data.mesage || "Đăng nhập thành công",
           };
         }
@@ -41,7 +41,7 @@ export const authProvider: AuthProvider = {
     localStorage.removeItem(TOKEN_KEY);
     return {
       success: true,
-      redirectTo: "/login",
+      redirectTo: "/dang-nhap",
     };
   },
   check: async () => {
@@ -54,7 +54,7 @@ export const authProvider: AuthProvider = {
 
     return {
       authenticated: false,
-      redirectTo: "/login",
+      redirectTo: "/dang-nhap",
     };
   },
   getPermissions: async () => null,

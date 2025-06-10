@@ -1,6 +1,8 @@
 import React from 'react';
 import {Outlet} from 'react-router-dom';
 import {Header} from "../components/header/Header";
+import {Footer} from "../components/footer/Footer";
+import {Modal} from "../components/modal/Modal";
 
 const ClientLayout = () => {
     return (
@@ -24,12 +26,21 @@ const ClientLayout = () => {
                 <script src="/js/vendor/modernizr-2.8.3.min.js"></script>
             </head>
             <div className="wrapper">
-                <Header />
+                <Header/>
                 <main>
                     <Outlet/>
                 </main>
 
-                <h1>Footer</h1>
+                <Footer />
+                <Modal />
+                <script src="/js/vendor/jquery-3.5.1.min.js"></script>
+                <script src="/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+                <script src="/js/bootstrap.min.js"></script>
+                <script src="/js/owl.carousel.min.js"></script>
+                <script src="/js/jquery.mainmenu.js"></script>
+                <script src="/js/ajax-email.js"></script>
+                <script src="/js/plugins.js"></script>
+                <script src="/js/main.js"></script>
             </div>
         </>
     );
