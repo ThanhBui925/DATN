@@ -3,8 +3,8 @@ export const SingleProduct = () => {
         <div className="single-product-wrap">
             <div className="product-image">
                 <a href="single-product.html">
-                    <img className="primary-image" src="img/product/15.jpg" alt=""/>
-                    <img className="secondary-image" src="img/product/16.jpg" alt=""/>
+                    <img className="primary-image" src="/img/product/15.jpg" alt=""/>
+                    <img className="secondary-image" src="/img/product/16.jpg" alt=""/>
                 </a>
                 <div className="label-product">-10% off</div>
             </div>

@@ -6,6 +6,8 @@ import {Register} from "./pages/admin/register";
 import {ForgotPassword} from "./pages/admin/forgotPassword";
 import React from "react";
 import {DetailProductPage} from "./pages/detailProduct";
+import {ListBlogPage} from "./pages/listBlog";
+import {DetailBlogPage} from "./pages/detailBlog";
 
 export const ClientApp = () => {
     return (
@@ -18,6 +20,8 @@ export const ClientApp = () => {
                 <Route path="quen-mat-khau" element={<ForgotPassword />} />
 
                 <Route path="chi-tiet-san-pham/:id" element={<DetailProductPage />} />
+                <Route path="bai-viet" element={<ListBlogPage />} />
+                <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
 
             </Route>
         </Routes>
