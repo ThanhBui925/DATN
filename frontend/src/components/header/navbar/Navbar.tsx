@@ -35,6 +35,7 @@ export const Navbar = () => {
                                                 <li><a href="single-product.html">Mizuno</a></li>
                                             </ul>
                                         </li>
+                                        <li><Link to="danh-muc-san-pham">Xem tất cả</Link></li>
                                     </ul>
                                 </li>
                                 <li><a href="#">Giới thiệu<i className="ion-ios-arrow-down"></i></a>

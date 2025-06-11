@@ -14,13 +14,13 @@ export const HeaderMid = () => {
                         <div className="shopping-cart-box">
                             <ul>
                                 <li>
-                                    <a href="#">
+                                    <Link to="/gio-hang">
                                                 <span className="item-cart-inner">
                                                     <span className="item-cont">2</span>
                                                     Giỏ hàng
                                                 </span>
                                         <div className="item-total">$237.00</div>
-                                    </a>
+                                    </Link>
                                     <ul className="shopping-cart-wrapper">
                                         <li>
                                             <div className="shoping-cart-image">
@@ -75,7 +75,7 @@ export const HeaderMid = () => {
                                             </div>
                                         </li>
                                         <li className="shoping-cart-btn">
-                                            <a className="checkout-btn" href="checkout.html">Thanh toán</a>
+                                            <a className="checkout-btn" href="/thanh-toan">Thanh toán</a>
                                         </li>
                                     </ul>
                                 </li>
