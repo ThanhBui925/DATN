@@ -11,6 +11,8 @@ import {DetailBlogPage} from "./pages/detailBlog";
 import {ContactPage} from "./pages/contact";
 import {AboutUsPage} from "./pages/aboutUs";
 import {Shop} from "./pages/shop";
+import {Cart} from "./pages/cart";
+import {Checkout} from "./pages/checkout";
 
 export const ClientApp = () => {
     return (
@@ -31,6 +33,9 @@ export const ClientApp = () => {
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />
 
                 <Route path="danh-muc-san-pham" element={<Shop />} />
+
+                <Route path="gio-hang" element={<Cart />} />
+                <Route path="thanh-toan" element={<Checkout />} />
 
             </Route>
         </Routes>
