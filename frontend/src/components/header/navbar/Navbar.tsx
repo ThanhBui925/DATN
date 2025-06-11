@@ -1,3 +1,5 @@
+import {Link} from "react-router-dom";
+
 export const Navbar = () => {
     return (
         <>
@@ -6,82 +8,59 @@ export const Navbar = () => {
                     <div className="main-menu-area">
                         <nav>
                             <ul>
-                                <li className="active"><a href="index.html">Home <i
-                                    className="ion-ios-arrow-down"></i></a>
-                                    <ul className="dropdown_menu">
-                                        <li><a href="index.html">Home Page 1</a></li>
-                                        <li><a href="index-2.html">Home Page 2</a></li>
-                                        <li><a href="index-3.html">Home Page 3</a></li>
-                                        <li><a href="index-4.html">Home Page 4</a></li>
-                                    </ul>
-                                </li>
-                                <li><a href="#">Features<i className="ion-ios-arrow-down"></i></a>
+                                <li className="active"><Link to="/trang-chu">Trang chủ</Link></li>
+                                <li><a href="#">Danh mục sản phẩm<i className="ion-ios-arrow-down"></i></a>
                                     <ul className="mega-menu">
-                                        <li><a href="#">Shop Page</a>
+                                        <li><a href="#">Giày thể thao</a>
                                             <ul>
-                                                <li><a href="shop.html">Shop Left</a></li>
-                                                <li><a href="shop-right.html">Shop Right</a></li>
-                                                <li><a href="shop-fullwidth.html">Shop Full Width</a></li>
-                                                <li><a href="single-product.html">Single Product</a></li>
+                                                <li><a href="shop.html">Nike</a></li>
+                                                <li><a href="shop-right.html">Adidas</a></li>
+                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
+                                                <li><a href="single-product.html">Mizuno</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Blog Page</a>
+                                        <li><a href="#">Giày sneaker</a>
                                             <ul>
-                                                <li><a href="blog.html">Blog Left</a></li>
-                                                <li><a href="blog-right.html">Blog Right</a></li>
-                                                <li><a href="blog-fullwidth.html">Blog Full Width</a></li>
-                                                <li><a href="blog-details.html">Blog Details</a></li>
+                                                <li><a href="shop.html">Nike</a></li>
+                                                <li><a href="shop-right.html">Adidas</a></li>
+                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
+                                                <li><a href="single-product.html">Mizuno</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Pages</a>
+                                        <li><a href="#">Giày thời trang</a>
                                             <ul>
-                                                <li><a href="my-account.html">My Account</a></li>
-                                                <li><a href="frequently-question.html">FAQ</a></li>
-                                                <li><a href="login-register.html">Login & Register</a></li>
-                                                <li><a href="error404.html">Error 404</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="#">Column</a>
-                                            <ul>
-                                                <li><a href="about-us.html">About Us</a></li>
-                                                <li><a href="checkout.html">Checkout</a></li>
-                                                <li><a href="cart.html">Cart Page</a></li>
-                                                <li><a href="wishlist.html">Wish List</a></li>
+                                                <li><a href="shop.html">Nike</a></li>
+                                                <li><a href="shop-right.html">Adidas</a></li>
+                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
+                                                <li><a href="single-product.html">Mizuno</a></li>
                                             </ul>
                                         </li>
                                     </ul>
                                 </li>
-                                <li><a href="shop.html">For women <i className="ion-ios-arrow-down"></i></a>
-                                    <ul className="mega-menu mega-menu-2">
-                                        <li><a href="#">Jackets</a>
+                                <li><a href="#">Giới thiệu<i className="ion-ios-arrow-down"></i></a>
+                                    <ul className="mega-menu">
+                                        <li><a href="#">Giới thiệu</a>
                                             <ul>
-                                                <li><a href="#">Florals</a></li>
-                                                <li><a href="#">Shirts</a></li>
-                                                <li><a href="#">Shorts</a></li>
-                                                <li><a href="#">Stripes</a></li>
+                                            <li><a href="shop.html">Về chúng tôi</a></li>
+                                                <li><a href="shop-right.html">Thương hiệu đồng hành</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Jeans</a>
+                                        <li><a href="#">Chính sách</a>
                                             <ul>
-                                                <li><a href="#">Hoodies</a></li>
-                                                <li><a href="#">Sweaters</a></li>
-                                                <li><a href="#">Vests</a></li>
-                                                <li><a href="#">Wedges</a></li>
+                                                <li><a href="blog.html">Chính sách bán hàng</a></li>
+                                                <li><a href="blog-right.html">Chính sách hoàn hàng</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Men</a>
+                                        <li><a href="#">Hướng dẫn</a>
                                             <ul>
-                                                <li><a href="#">Crochet</a></li>
-                                                <li><a href="#">Dresses</a></li>
-                                                <li><a href="#">Jeans</a></li>
-                                                <li><a href="#">Trousers</a></li>
+                                                <li><a href="blog.html">Hưỡng dẫn mua hàng</a></li>
+                                                <li><a href="blog-right.html">Hướng dẫn hoàn hàng</a></li>
                                             </ul>
                                         </li>
                                     </ul>
                                 </li>
-                                <li><a href="shop.html">Shop</a></li>
-                                <li><a href="blog.html">Blog</a></li>
-                                <li><a href="contact.html">Contact</a></li>
+                                <li><Link to="/bai-viet">Bài viết</Link></li>
+                                <li><a href="contact.html">Liên hệ</a></li>
                             </ul>
                         </nav>
                     </div>
