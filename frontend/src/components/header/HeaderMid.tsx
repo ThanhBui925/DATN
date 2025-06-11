@@ -1,3 +1,5 @@
+import {Link} from "react-router-dom";
+
 export const HeaderMid = () => {
     return (
         <div className="header-mid-area">
@@ -5,7 +7,7 @@ export const HeaderMid = () => {
                 <div className="row">
                     <div className="col-lg-3 col md-custom-12">
                         <div className="logo">
-                            <a href="index.html"><img src="img/logo/logo.png" alt=""/></a>
+                            <Link to="/trang-chu"><img src="/img/logo/logo.png" alt=""/></Link>
                         </div>
                     </div>
                     <div className="col-lg-9 md-custom-12">
@@ -15,7 +17,7 @@ export const HeaderMid = () => {
                                     <a href="#">
                                                 <span className="item-cart-inner">
                                                     <span className="item-cont">2</span>
-                                                    My Cart
+                                                    Giỏ hàng
                                                 </span>
                                         <div className="item-total">$237.00</div>
                                     </a>
@@ -66,14 +68,14 @@ export const HeaderMid = () => {
                                         </li>
                                         <li>
                                             <div className="cart-subtotals">
-                                                <h5>Subtotal<span className="float-right">$698.00</span></h5>
-                                                <h5>Shipping<span className="float-right"> $7.00 </span></h5>
-                                                <h5>Taxes<span className="float-right">$0.00</span></h5>
-                                                <h5> Total<span className="float-right">$705.00</span></h5>
+                                                <h5>Tổng tiền sản phẩm<span className="float-right">$698.00</span></h5>
+                                                <h5>Phí ship<span className="float-right"> $7.00 </span></h5>
+                                                <h5>VAT<span className="float-right">$0.00</span></h5>
+                                                <h5>Tổng thanh toán<span className="float-right">$705.00</span></h5>
                                             </div>
                                         </li>
                                         <li className="shoping-cart-btn">
-                                            <a className="checkout-btn" href="checkout.html">checkout</a>
+                                            <a className="checkout-btn" href="checkout.html">Thanh toán</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -84,7 +86,7 @@ export const HeaderMid = () => {
                             <form action="#">
                                 <div className="search-form-input">
                                     <select id="select" name="select" className="nice-select">
-                                        <option value="">All Categories</option>
+                                        <option value="">Tất cả danh mục</option>
                                         <option value="12">Uncategorized</option>
                                         <option value="22">Electronics</option>
                                         <option value="26">Accessories</option>
@@ -107,8 +109,8 @@ export const HeaderMid = () => {
                                         <option value="25">Rings</option>
                                         <option value="38">Watches</option>
                                     </select>
-                                    <input type="text" placeholder="Enter your search key ... "/>
-                                    <button className="top-search-btn" type="submit">Search</button>
+                                    <input type="text" placeholder="Nhập từ khóa sản phẩm ... "/>
+                                    <button className="top-search-btn" type="submit">Tìm kiếm</button>
                                 </div>
                             </form>
                         </div>

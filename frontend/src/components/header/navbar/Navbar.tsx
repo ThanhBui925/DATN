@@ -41,7 +41,7 @@ export const Navbar = () => {
                                     <ul className="mega-menu">
                                         <li><a href="#">Giới thiệu</a>
                                             <ul>
-                                            <li><a href="shop.html">Về chúng tôi</a></li>
+                                            <li><Link to="/ve-chung-toi">Về chúng tôi</Link></li>
                                                 <li><a href="shop-right.html">Thương hiệu đồng hành</a></li>
                                             </ul>
                                         </li>
@@ -60,7 +60,7 @@ export const Navbar = () => {
                                     </ul>
                                 </li>
                                 <li><Link to="/bai-viet">Bài viết</Link></li>
-                                <li><a href="contact.html">Liên hệ</a></li>
+                                <li><Link to="/lien-he">Liên hệ</Link></li>
                             </ul>
                         </nav>
                     </div>
@@ -68,7 +68,7 @@ export const Navbar = () => {
                 <div className="col-lg-4">
                     <div className="social-follow-box">
                         <div className="follow-title">
-                            <h2>Follow us:</h2>
+                            <h2>Theo dõi chúng tôi:</h2>
                         </div>
                         <ul className="social-follow-list">
                             <li><a href="#"><i className="fa fa-facebook"></i></a></li>
