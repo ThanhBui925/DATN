@@ -6,55 +6,55 @@ export const OurService = () => {
                     <div className="col-custom">
                         <div className="single-service">
                             <div className="service-icon">
-                                <img src="img/icon/1.png" alt=""/>
+                                <img src="/img/icon/1.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>Free delivery</h3>
-                                <p>Free shipping on all order</p>
+                                <h3>Giao hàng miễn phí</h3>
+                                <p>Miễn phí giao hàng tất cả đơn hàng</p>
                             </div>
                         </div>
                     </div>
                     <div className="col-custom">
                         <div className="single-service">
                             <div className="service-icon">
-                                <img src="img/icon/2.png" alt=""/>
+                                <img src="/img/icon/2.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>Online Support 24/7</h3>
-                                <p>Support online 24 hours</p>
+                                <h3>Hỗ trợ online 24/7</h3>
+                                <p>Hỗ trợ online 24 giờ</p>
                             </div>
                         </div>
                     </div>
                     <div className="col-custom">
                         <div className="single-service">
                             <div className="service-icon">
-                                <img src="img/icon/3.png" alt=""/>
+                                <img src="/img/icon/3.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>Money Return</h3>
-                                <p>Back guarantee 7 days</p>
+                                <h3>Hoàn tiền</h3>
+                                <p>Đảm bảo nhận tiền trong 7 ngày</p>
                             </div>
                         </div>
                     </div>
                     <div className="col-custom">
                         <div className="single-service">
                             <div className="service-icon">
-                                <img src="img/icon/4.png" alt=""/>
+                                <img src="/img/icon/4.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>Member Discount</h3>
-                                <p>Onevery order over $130</p>
+                                <h3>Mã giảm giá</h3>
+                                <p>Đơn hàng trên 100k</p>
                             </div>
                         </div>
                     </div>
                     <div className="col-custom">
                         <div className="single-service">
                             <div className="service-icon">
-                                <img src="img/icon/5.png" alt=""/>
+                                <img src="/img/icon/5.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>SECURE PAYMENT</h3>
-                                <p>All cards accepted</p>
+                                <h3>Thanh toán</h3>
+                                <p>Chấp nhận mọi loại thẻ</p>
                             </div>
                         </div>
                     </div>
