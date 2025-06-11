@@ -10,6 +10,7 @@ import {ListBlogPage} from "./pages/listBlog";
 import {DetailBlogPage} from "./pages/detailBlog";
 import {ContactPage} from "./pages/contact";
 import {AboutUsPage} from "./pages/aboutUs";
+import {Shop} from "./pages/shop";
 
 export const ClientApp = () => {
     return (
@@ -28,6 +29,8 @@ export const ClientApp = () => {
 
                 <Route path="lien-he" element={<ContactPage />} />
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />
+
+                <Route path="danh-muc-san-pham" element={<Shop />} />
 
             </Route>
         </Routes>
