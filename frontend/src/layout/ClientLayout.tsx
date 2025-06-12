@@ -1,10 +1,49 @@
-import React from 'react';
-import {Outlet} from 'react-router-dom';
+import React, {useEffect} from 'react';
+import {Outlet, useLocation} from 'react-router-dom';
 import {Header} from "../components/header/Header";
 import {Footer} from "../components/footer/Footer";
 import {Modal} from "../components/modal/Modal";
 
 const ClientLayout = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+        const scripts = [
+            "/js/vendor/jquery-3.5.1.min.js",
+            "/js/vendor/jquery-migrate-3.3.0.min.js",
+            "/js/bootstrap.min.js",
+            "/js/owl.carousel.min.js",
+            "/js/jquery.mainmenu.js",
+            "/js/ajax-email.js",
+            "/js/plugins.js",
+            "/js/main.js",
+            "/js/vendor/modernizr-2.8.3.min.js"
+        ];
+
+        scripts.forEach(src => {
+            const existingScript = document.querySelector(`script[src="${src}"]`);
+            if (existingScript) {
+                existingScript.remove();
+            }
+        });
+
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            document.body.appendChild(script);
+        });
+
+        return () => {
+            scripts.forEach(src => {
+                const existingScript = document.querySelector(`script[src="${src}"]`);
+                if (existingScript) {
+                    existingScript.remove();
+                }
+            });
+        };
+    }, [location]);
+
     return (
         <>
             <head>
@@ -23,7 +62,6 @@ const ClientLayout = () => {
                 <link rel="stylesheet" href="/css/mainmenu.css"/>
                 <link rel="stylesheet" href="/style.css"/>
                 <link rel="stylesheet" href="/css/responsive.css"/>
-                <script src="/js/vendor/modernizr-2.8.3.min.js"></script>
             </head>
             <div className="wrapper">
                 <Header/>
@@ -33,14 +71,6 @@ const ClientLayout = () => {
 
                 <Footer />
                 <Modal />
-                <script src="/js/vendor/jquery-3.5.1.min.js"></script>
-                <script src="/js/vendor/jquery-migrate-3.3.0.min.js"></script>
-                <script src="/js/bootstrap.min.js"></script>
-                <script src="/js/owl.carousel.min.js"></script>
-                <script src="/js/jquery.mainmenu.js"></script>
-                <script src="/js/ajax-email.js"></script>
-                <script src="/js/plugins.js"></script>
-                <script src="/js/main.js"></script>
             </div>
         </>
     );
