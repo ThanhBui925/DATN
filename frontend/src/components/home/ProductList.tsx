@@ -1,12 +1,6 @@
 import {SingleProduct} from "../SingleProduct";
-import {useState} from "react";
 
 export const ProductList = () => {
-    const [recentTab, setRecentTab] = useState<'tab1' | 'tab2' | 'tab3'>('tab1');
-
-    const changeTab = (tab: 'tab1' | 'tab2' | 'tab3') => {
-        setRecentTab(tab);
-    }
     return (
         <div className="product-area pb-95">
             <div className="container-fluid">
@@ -18,15 +12,9 @@ export const ProductList = () => {
                                     <h2>For men</h2>
                                     <div className="product-tabs-list-2">
                                         <ul className="nav" role="tablist">
-                                            <li role="presentation" className="active">
-                                                <a onClick={() => {changeTab('tab1')}} className={`${recentTab == 'tab1' && 'active show'}`}>For men</a>
-                                            </li>
-                                            <li role="presentation">
-                                                <a onClick={() => {changeTab('tab2')}} className={`${recentTab == 'tab2' && 'active show'}`}>For women</a>
-                                            </li>
-                                            <li role="presentation">
-                                                <a onClick={() => {changeTab('tab3')}} className={`${recentTab == 'tab3' && 'active show'}`}>For kids </a>
-                                            </li>
+                                            <li role="presentation" className="active"><a aria-selected="true" className="active show" href="#for-men" aria-controls="for-men" role="tab" data-bs-toggle="tab">For men</a></li>
+                                            <li role="presentation"><a href="#for-women" aria-controls="for-women" role="tab" data-bs-toggle="tab">For women</a></li>
+                                            <li role="presentation"><a href="#for-kids" aria-controls="for-kids" role="tab" data-bs-toggle="tab">For kids </a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -35,106 +23,94 @@ export const ProductList = () => {
                         <div className="row">
                             <div className="col">
                                 <div className="tab-content">
-                                    {
-                                        recentTab == 'tab1' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                    </div>
+                                    <div id="for-men" className="tab-pane active show" role="tabpanel">
+                                        <div className="row">
+                                            <div className="product-active-3 owl-carousel">
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
                                                 </div>
                                             </div>
-                                        )
-                                    }
-                                    {
-                                        recentTab == 'tab2' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                    </div>
+                                        </div>
+                                    </div>
+                                    <div id="for-women" className="tab-pane" role="tabpanel">
+                                        <div className="row">
+                                            <div className="product-active-3 owl-carousel">
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
                                                 </div>
                                             </div>
-                                        )
-                                    }
-                                    {
-                                        recentTab == 'tab3' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                    </div>
+                                        </div>
+                                    </div>
+                                    <div id="for-kids" className="tab-pane" role="tabpanel">
+                                        <div className="row">
+                                            <div className="product-active-3 owl-carousel">
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
+                                                </div>
+                                                <div className="col">
+                                                    <SingleProduct />
                                                 </div>
                                             </div>
-                                        )
-                                    }
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="col-lg-3">
                         <div className="single-banner-box">
-                            <a href="#"><img src="/img/banner/8.jpg" alt=""/></a>
+                            <a href="#"><img src="/img/banner/8.jpg" alt="" /></a>
                         </div>
                     </div>
                 </div>
