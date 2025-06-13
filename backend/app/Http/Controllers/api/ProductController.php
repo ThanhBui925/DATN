@@ -19,17 +19,43 @@ class ProductController extends Controller
 {
     use ApiResponseTrait;
 
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with([
+        $query = Product::with([
             'category',
             'variants.size',
             'variants.color',
             'variants.images'
-        ])->orderBy('created_at', 'desc')->get();
+        ])->withSum('variants', 'quantity');
+
+
+        // Tìm theo tên (LIKE)
+        if ($request->filled('name_like')) {
+            $query->where('name', 'like', '%' . trim($request->name_like) . '%');
+        } elseif ($request->filled('name')) {
+            $query->where('name', 'like', '%' . trim($request->name) . '%');
+        }
+
+        // Tìm theo trạng thái (0 hoặc 1)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Tìm theo nhiều danh mục
+        if ($request->has('category_id')) {
+            $categoryIds = is_array($request->category_id)
+                ? $request->category_id
+                : [$request->category_id];
+
+            $query->whereIn('category_id', $categoryIds);
+        }
+
+        $products = $query->orderBy('created_at', 'desc')->get();
 
         return $this->successResponse($products);
     }
+
+
 
     public function show($id)
     {
