@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Image;
 
 class ProductController extends Controller
 {
@@ -36,7 +37,8 @@ class ProductController extends Controller
             'category',
             'variants.size',
             'variants.color',
-            'variants.images'
+            'variants.images',
+            'images' // Thêm quan hệ ảnh mô tả sản phẩm
         ])->find($id);
 
         if (!$product) {
@@ -45,6 +47,7 @@ class ProductController extends Controller
 
         return $this->successResponse($product);
     }
+
 
     public function store(StoreProductRequest $request)
     {
@@ -64,18 +67,35 @@ class ProductController extends Controller
 
             // Handle product image upload
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('products', 'public'); // vd: products/abc.jpg
+                $path = $request->file('image')->store('products', 'public');
                 $productData['image'] = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
             }
 
             // Create product
             $product = Product::create($productData);
 
-            // Xử lý variants: giả sử client gửi dạng mảng 'variants' trong request (không phải keys như variants[0][name])
-            $variantsInput = $request->input('variants', []);
+            // ✅ Xử lý ảnh mô tả sản phẩm (imageDesc)
+            if ($request->hasFile('imageDesc')) {
+                $images = [];
 
+                foreach ($request->file('imageDesc') as $file) {
+                    $path = $file->store('products/descriptions', 'public');
+                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+
+                    $images[] = [
+                        'product_id' => $product->id,
+                        'url' => $fullUrl,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                DB::table('images')->insert($images);
+            }
+
+            // Xử lý variants
+            $variantsInput = $request->input('variants', []);
             foreach ($variantsInput as $index => $variantInput) {
-                // Tạo variant
                 $variant = VariantProduct::create([
                     'product_id' => $product->id,
                     'name' => $variantInput['name'] ?? '',
@@ -86,16 +106,11 @@ class ProductController extends Controller
                 ]);
 
                 // Xử lý ảnh variant nếu có
-                // Ảnh variant nên được gửi lên dạng file input với key: variants.0.images, variants.1.images, ...
                 $variantImagesKey = "variants.$index.images";
-
                 if ($request->hasFile($variantImagesKey)) {
                     $images = [];
                     foreach ($request->file($variantImagesKey) as $file) {
-                        // Lưu file lên storage public và lấy đường dẫn lưu trữ
                         $path = $file->store('products/variants', 'public');
-
-                        // Chuyển thành URL đầy đủ (ví dụ: http://localhost/storage/...)
                         $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
 
                         $images[] = [
@@ -107,7 +122,6 @@ class ProductController extends Controller
                     }
                     VariantImage::insert($images);
                 }
-
             }
 
             DB::commit();
@@ -125,6 +139,7 @@ class ProductController extends Controller
     }
 
 
+
     public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::with('variants.images')->find($id);
@@ -137,15 +152,40 @@ class ProductController extends Controller
             $data = $request->only([
                 'name', 'category_id', 'description', 'price', 'sale_price', 'sale_end', 'status', 'image'
             ]);
-            // Xử lý ảnh chính: nếu có file upload thì lưu file + tạo URL đầy đủ
+
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store('products', 'public');
                 $imageUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
                 $data['image'] = $imageUrl;
             }
 
-
             $product->update($data);
+
+            // Xử lý ảnh mô tả sản phẩm
+            if ($request->hasFile('image_desc')) {
+                $product->images()->delete();
+                $descImages = [];
+                foreach ($request->file('image_desc') as $file) {
+                    $path = $file->store('products/descriptions', 'public');
+                    $url = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                    $descImages[] = [
+                        'product_id' => $product->id,
+                        'url' => $url,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                Image::insert($descImages);
+            } elseif ($request->has('image_desc') && is_array($request->image_desc)) {
+                $product->images()->delete();
+                $descImages = array_map(fn ($url) => [
+                    'product_id' => $product->id,
+                    'url' => $url,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ], $request->image_desc);
+                Image::insert($descImages);
+            }
 
             foreach ($request->variants as $index => $variantInput) {
                 if (isset($variantInput['id'])) {
@@ -159,12 +199,9 @@ class ProductController extends Controller
                             'status' => $variantInput['status'],
                         ]);
 
-                        // Xử lý ảnh variant khi upload file
                         $variantImagesKey = "variants.$index.images";
                         if ($request->hasFile($variantImagesKey)) {
-                            // Xóa ảnh cũ
                             $variant->images()->delete();
-
                             $images = [];
                             foreach ($request->file($variantImagesKey) as $file) {
                                 $path = $file->store('products/variants', 'public');
@@ -178,9 +215,7 @@ class ProductController extends Controller
                                 ];
                             }
                             VariantImage::insert($images);
-                        }
-                        // Nếu không upload file mà gửi ảnh dạng URL mảng thì cập nhật như cũ
-                        elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                        } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
                             $variant->images()->delete();
                             $newImages = array_map(fn ($url) => [
                                 'variant_product_id' => $variant->id,
@@ -192,7 +227,6 @@ class ProductController extends Controller
                         }
                     }
                 } else {
-                    // Tạo variant mới
                     $newVariant = VariantProduct::create([
                         'product_id' => $product->id,
                         'name' => $variantInput['name'],
@@ -202,7 +236,6 @@ class ProductController extends Controller
                         'status' => $variantInput['status'],
                     ]);
 
-                    // Xử lý ảnh variant mới
                     $variantImagesKey = "variants.$index.images";
                     if ($request->hasFile($variantImagesKey)) {
                         $images = [];
@@ -232,7 +265,7 @@ class ProductController extends Controller
 
             DB::commit();
             return $this->successResponse(
-                $product->load(['variants.size', 'variants.color', 'variants.images']),
+                $product->load(['variants.size', 'variants.color', 'variants.images', 'images']),
                 'Cập nhật sản phẩm thành công'
             );
         } catch (\Exception $e) {
@@ -241,6 +274,7 @@ class ProductController extends Controller
             return $this->errorResponse('Cập nhật sản phẩm thất bại');
         }
     }
+
 
 
     public function destroy($id)

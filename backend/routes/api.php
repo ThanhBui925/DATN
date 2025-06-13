@@ -20,9 +20,7 @@ Route::controller(AuthController::class)->group(function () {
 
 // Route::middleware('auth:sanctum')->group(function () {ss
 
-    Route::apiResource('banners', BannerController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
+    Route::apiResource('banners', BannerController::class);
 
     Route::prefix('categories')->controller(CategoryController::class)->group(function () {
         Route::get('/trashed', 'trashed');
