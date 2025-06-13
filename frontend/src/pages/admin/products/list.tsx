@@ -122,7 +122,7 @@ export const ProductsList = () => {
                 />
                 <Table.Column dataIndex="name" title={"Tên sản phẩm"} />
                 <Table.Column dataIndex="price" title={"Giá sản phẩm"} />
-                <Table.Column dataIndex="stock" title={"Tồn kho"} />
+                <Table.Column dataIndex="variants_sum_quantity" title={"Tồn kho"} />
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
