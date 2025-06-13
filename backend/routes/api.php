@@ -18,8 +18,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
 
-// Route::middleware('auth:sanctum')->group(function () {ss
-
+Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('banners', BannerController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
@@ -40,18 +39,20 @@ Route::controller(AuthController::class)->group(function () {
 
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
+        Route::post('/', 'store');
         Route::get('/search', 'searchByProduct');
         Route::put('/{id}/status', 'updateStatus');
         Route::get('/{id}/detail', 'showDetail');
         Route::get('/{id}/pdf', 'generatePDF');
     });
 
-    Route::prefix('customers')->controller(UserController::class)->group(function () {
+    Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
+        Route::put('/{id}/role', 'updateRole');
     });
 
     Route::apiResource('colors', ColorController::class);
     Route::apiResource('sizes', SizeController::class);
-
+});

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -14,19 +14,13 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        // if (!$currentUser || !$currentUser->isAdmin()) { 
-        //     return response()->json([
-        //         'message' => 'Bạn không có quyền thực hiện hành động này.'
-        //     ], 403);
-        // }
-
-        $query = User::with(['roles', 'customer']);
+        $query = User::with(['customer']);
 
         if ($request->filled('search')) {
             $searchTerm = $request->input('search');
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
+                    ->orWhere('email', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -94,7 +88,7 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser || !$currentUser->isAdmin()) { 
+        if (!$currentUser || !$currentUser->isAdmin()) {
             return response()->json([
                 'message' => 'Bạn không có quyền thực hiện hành động này.'
             ], 403);
@@ -133,5 +127,30 @@ class UserController extends Controller
                 'email' => $user->email,
             ]
         ], 200);
+    }
+
+    public function updateRole(Request $request, $id)
+    {
+        \Log::info('UpdateRole Request:', [
+            'data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+        $user = User::findOrFail($id);
+
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (!auth()->user()->isAdmin()) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $request->validate([
+            'role' => 'required|in:admin,client'
+        ]);
+
+        $user->role = $request->role;
+        $user->save();
+        return response()->json(['message' => 'Role updated successfully', 'user' => $user]);
     }
 }
