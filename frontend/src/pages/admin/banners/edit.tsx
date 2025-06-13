@@ -21,7 +21,6 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
     const onFinish = async (values: any) => {
         const formData = new FormData();
         formData.append("title", values.title || "");
-        formData.append("slug", values.slug || "");
         formData.append("description", values.description || "");
         formData.append("link_url", values.link_url || "");
         formData.append("start_date", values.start_date ? dayjs(values.start_date).format("YYYY-MM-DD HH:mm:ss") : "");
@@ -97,15 +96,6 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
                             rules={[{ type: "url", message: "Vui lòng nhập URL hợp lệ" }]}
                         >
                             <Input placeholder="Nhập URL (ví dụ: https://example.com)" size="large" />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item
-                            label="Slug"
-                            name="slug"
-                            rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
-                        >
-                            <Input placeholder="Nhập slug" size="large" />
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>

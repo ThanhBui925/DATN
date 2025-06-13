@@ -32,7 +32,7 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
             <Table {...tableProps} rowKey="id">
                 <Table.Column dataIndex="id" title="Mã số" />
                 <Table.Column dataIndex="title" title="Tiêu đề" />
-                <Table.Column dataIndex="slug" title="Đường dẫn" />
+                <Table.Column dataIndex="link_url" title="Đường dẫn" />
                 <Table.Column
                     dataIndex="image_url"
                     title="Hình ảnh"
