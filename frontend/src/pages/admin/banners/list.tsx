@@ -22,11 +22,11 @@ export const BannerList: React.FC<IResourceComponentsProps> = () => {
             breadcrumb={
                 <Breadcrumb>
                     <Breadcrumb.Item>Trang chủ</Breadcrumb.Item>
-                    <Breadcrumb.Item>Danh mục</Breadcrumb.Item>
+                    <Breadcrumb.Item>Banner</Breadcrumb.Item>
                 </Breadcrumb>
             }
             headerButtons={() => (
-                <CreateButton>Thêm danh mục</CreateButton>
+                <CreateButton>Thêm Banner</CreateButton>
             )}
         >
             <Table {...tableProps} rowKey="id">
