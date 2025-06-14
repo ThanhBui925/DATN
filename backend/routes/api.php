@@ -9,7 +9,8 @@ use App\Http\Controllers\Api\{
     OrderController,
     UserController,
     ColorController,
-    SizeController
+    SizeController,
+    DashboardController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -19,6 +20,14 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 // Route::middleware('auth:sanctum')->group(function () {ss
+    Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
+    Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
+    Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
+    Route::get('/dashboard/average-order-value', [DashboardController::class, 'getAverageOrderValue']);
+    Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverageRating']);
+    Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
+    Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
 
     Route::apiResource('banners', BannerController::class);
 
