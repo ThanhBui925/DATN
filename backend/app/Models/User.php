@@ -33,10 +33,10 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class);
-    }
+    // public function roles(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(Role::class);
+    // }
 
     public function customer(): HasOne
     {
@@ -47,9 +47,4 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
-
-    // public function hasRole(string $role): bool
-    // {
-    //     return $this->role === $role;
-    // }
 }
