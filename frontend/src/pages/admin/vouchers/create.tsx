@@ -80,7 +80,7 @@ export const VoucherCreate = () => {
               >
                 <Select>
                   <Select.Option value="1">Hoạt động</Select.Option>
-                  <Select.Option value="2">Không hoạt động</Select.Option>
+                  <Select.Option value="0">Không hoạt động</Select.Option>
                 </Select>
               </Form.Item>
             </Col>

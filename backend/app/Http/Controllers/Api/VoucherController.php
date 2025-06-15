@@ -15,11 +15,7 @@ class VoucherController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Voucher::query()->where('status', 'active')
-            ->where(function ($query) {
-                $query->whereNull('expiry_date')
-                    ->orWhere('expiry_date', '>=', Carbon::now());
-            });
+        $query = Voucher::query(); // Bỏ hết điều kiện mặc định
 
         if ($request->has('product_id')) {
             $query->where('product_id', $request->input('product_id'));
@@ -44,7 +40,7 @@ class VoucherController extends Controller
             'discount' => 'required|numeric|min:0',
             'discount_type' => 'required|in:fixed,percentage',
             'expiry_date' => 'nullable|date|after:now',
-            'status' => 'required|in:active,inactive',
+            'status' => 'nullable|in:0,1',
             'description' => 'required|string',
             'usage_limit' => 'nullable|integer|min:1',
             'product_id' => 'nullable|exists:products,id',
@@ -83,7 +79,7 @@ class VoucherController extends Controller
             'discount' => 'required|numeric|min:0',
             'discount_type' => 'required|in:fixed,percentage',
             'expiry_date' => 'nullable|date|after:now',
-            'status' => 'required|in:active,inactive',
+            'status' => 'nullable|in:0,1',
             'description' => 'required|string',
             'usage_limit' => 'nullable|integer|min:1',
             'product_id' => 'nullable|exists:products,id',
