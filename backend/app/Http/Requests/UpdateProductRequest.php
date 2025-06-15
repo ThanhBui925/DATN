@@ -23,15 +23,12 @@ class UpdateProductRequest extends FormRequest
             'image' => 'nullable|file|image|max:2048',
             'status' => 'nullable|in:0,1',
 
-            'variants' => 'required|array|min:1',
-            'variants.*.name' => 'required|string|max:255',
-            'variants.*.size_id' => 'required|exists:sizes,id',
-            'variants.*.color_id' => 'required|exists:colors,id',
-            'variants.*.quantity' => 'required|integer|min:0',
+            'variants' => 'nullable|array',
+            'variants.*.name' => 'required_with:variants.*.size_id,variants.*.color_id|string|max:255',
+            'variants.*.size_id' => 'nullable|exists:sizes,id',
+            'variants.*.color_id' => 'nullable|exists:colors,id',
+            'variants.*.quantity' => 'nullable|integer|min:0',
             'variants.*.status' => 'nullable|in:0,1',
-            'variants.*.images' => 'sometimes|array',
-            'variants.*.images.*' => 'nullable', // ← quan trọng!
         ];
-
     }
 }
