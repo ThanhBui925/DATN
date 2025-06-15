@@ -25,7 +25,7 @@ export const HeaderMid = () => {
                                         <li>
                                             <div className="shoping-cart-image">
                                                 <a href="#">
-                                                    <img src="img/small-product/1.jpg" alt=""/>
+                                                    <img src="/img/small-product/1.jpg" alt=""/>
                                                     <span className="product-quantity">1x</span>
                                                 </a>
                                             </div>
@@ -47,7 +47,7 @@ export const HeaderMid = () => {
                                         <li>
                                             <div className="shoping-cart-image">
                                                 <a href="#">
-                                                    <img src="img/small-product/2.jpg" alt=""/>
+                                                    <img src="/img/small-product/2.jpg" alt=""/>
                                                     <span className="product-quantity">1x</span>
                                                 </a>
                                             </div>
@@ -75,7 +75,7 @@ export const HeaderMid = () => {
                                             </div>
                                         </li>
                                         <li className="shoping-cart-btn">
-                                            <a className="checkout-btn" href="/thanh-toan">Thanh toán</a>
+                                            <Link className="checkout-btn" to="/thanh-toan">Thanh toán</Link>
                                         </li>
                                     </ul>
                                 </li>

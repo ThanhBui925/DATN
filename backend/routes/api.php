@@ -9,7 +9,8 @@ use App\Http\Controllers\Api\{
     OrderController,
     UserController,
     ColorController,
-    SizeController
+    SizeController,
+    DashboardController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -19,10 +20,21 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('banners', BannerController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
 
+    // Dashboard routes
+    Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
+    Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
+    Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
+    Route::get('/dashboard/average-order-value', [DashboardController::class, 'getAverageOrderValue']);
+    Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverageRating']);
+    Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
+    Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+
+    // Banners
+    Route::apiResource('banners', BannerController::class);
+
+    // Categories
     Route::prefix('categories')->controller(CategoryController::class)->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
@@ -30,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/', CategoryController::class)->parameter('', 'category');
     });
 
+    // Products
     Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
@@ -37,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('/', ProductController::class)->parameter('', 'product');
     });
 
+    // Orders
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
@@ -46,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/pdf', 'generatePDF');
     });
 
+    // Users
     Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
@@ -53,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/role', 'updateRole');
     });
 
+    // Colors & Sizes
     Route::apiResource('colors', ColorController::class);
     Route::apiResource('sizes', SizeController::class);
 });

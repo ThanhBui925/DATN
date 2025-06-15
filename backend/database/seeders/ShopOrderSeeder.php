@@ -42,11 +42,11 @@ class ShopOrderSeeder extends Seeder
             for ($j = 1; $j <= $numberOfItems; $j++) {
                 $quantity = rand(1, 3);
                 $price = rand(10000, 100000); // giả sử giá sản phẩm trong khoảng này
-                $variantId = 7; // giả sử variant_id từ 1 đến 10
+                $variantId = 1; // giả sử variant_id từ 1 đến 10
 
                 DB::table('shop_order_items')->insert([
                     'order_id' => $orderId,
-                    'product_id' => rand(1, 20), // giả sử product_id từ 1 đến 20
+                    'product_id' => 3, // giả sử product_id từ 1 đến 20
                     'quantity' => $quantity,
                     'price' => $price,
                     'variant_id' => $variantId,
