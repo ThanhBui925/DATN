@@ -2,7 +2,7 @@ import simpleRestDataProvider from "@refinedev/simple-rest";
 import {axiosInstance} from "../utils/axios";
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL ? import.meta.env.VITE_APP_API_URL + '/api' : import.meta.env.VITE_APP_JSON_URL || 'http://localhost:5000';
-const base = simpleRestDataProvider(BASE_URL);
+const base = simpleRestDataProvider(BASE_URL, axiosInstance);
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function unwrapData(fn: Function) {
