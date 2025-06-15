@@ -13,7 +13,7 @@ return [
             'provider' => 'users',
         ],
         'sanctum' => [
-            'driver Delft', 'sanctum',
+            'driver', 'sanctum',
             'provider' => 'users',
         ],
     ],
