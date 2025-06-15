@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuthController,
@@ -9,25 +10,30 @@ use App\Http\Controllers\Api\{
     UserController,
     ColorController,
     SizeController,
-    VoucherController
+    VoucherController,
+    DashboardController
 };
 
-// Route công khai (không cần middleware)
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/register', 'register');
 });
 
-// Route yêu cầu xác thực
 Route::middleware('auth:sanctum')->group(function () {
-    // User info
     Route::get('/user', [AuthController::class, 'user']);
 
-    // Banners (admin chỉ được store, update, destroy)
+    Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
+    Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
+    Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
+    Route::get('/dashboard/average-order-value', [DashboardController::class, 'getAverageOrderValue']);
+    Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverageRating']);
+    Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
+    Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+
     Route::apiResource('banners', BannerController::class)->only(['index']);
     Route::middleware('is_admin')->apiResource('banners', BannerController::class)->only(['store', 'update', 'destroy']);
 
-    // Categories
     Route::prefix('categories')->controller(CategoryController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/{category}', 'show');
@@ -41,7 +47,6 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    // Products
     Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/{product}', 'show');
@@ -55,31 +60,28 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    // Orders
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
+        Route::post('/', 'store');
         Route::get('/search', 'searchByProduct');
         Route::get('/{id}/detail', 'showDetail');
         Route::get('/{id}/pdf', 'generatePDF');
         Route::middleware('is_admin')->put('/{id}/status', 'updateStatus');
     });
 
-    // Customers (admin only)
-    Route::prefix('customers')->controller(UserController::class)->middleware('is_admin')->group(function () {
+    Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
+        Route::put('/{id}/role', 'updateRole');
     });
 
-    // Colors (admin quản lý, khách hàng xem)
     Route::apiResource('colors', ColorController::class)->only(['index']);
     Route::middleware('is_admin')->apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
 
-    // Sizes (admin quản lý, khách hàng xem)
     Route::apiResource('sizes', SizeController::class)->only(['index']);
     Route::middleware('is_admin')->apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
 
-    // Vouchers
     Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/apply', 'apply');

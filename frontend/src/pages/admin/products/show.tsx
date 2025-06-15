@@ -131,10 +131,10 @@ export const ProductsShow = () => {
                     <Card
                         title={<Title level={4} style={{ margin: 0 }}>Ảnh mô tả sản phẩm</Title>}
                     >
-                        {record?.imageDesc && record.imageDesc.length > 0 ? (
+                        {record?.images && record.images.length > 0 ? (
                             <Image.PreviewGroup>
                                 <Row gutter={[8, 8]}>
-                                    {record.imageDesc.map((url: any, index: number) => (
+                                    {record.images.map((url: any, index: number) => (
                                         <Col key={index} xs={12} sm={8} md={6} lg={4}>
                                             <Image src={url.url} width="100%" />
                                         </Col>

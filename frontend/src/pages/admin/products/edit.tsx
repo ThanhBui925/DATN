@@ -243,7 +243,7 @@ export const ProductsEdit = () => {
                         </Form.Item>
                         <Form.Item
                             label="Ảnh mô tả sản phẩm"
-                            name="imageDesc"
+                            name="images"
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
                                 if (Array.isArray(e)) {
@@ -389,8 +389,8 @@ export const ProductsEdit = () => {
                                                     >
                                                         <Select
                                                             options={[
-                                                                { value: 1, label: "Hoạt động" },
-                                                                { value: 0, label: "Ngừng hoạt động" },
+                                                                { value: "1", label: "Hoạt động" },
+                                                                { value: "0", label: "Ngừng hoạt động" },
                                                             ]}
                                                         />
                                                     </Form.Item>

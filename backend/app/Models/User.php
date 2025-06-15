@@ -21,6 +21,8 @@ class User extends Authenticatable
         'email',
         'password',
         'status',
+        'role',
+        'status', 
     ];
 
     protected $hidden = [
@@ -50,6 +52,6 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->roles()->whereIn('slug', ['admin', 'administrator'])->exists();
+        return $this->role === 'admin';
     }
 }
