@@ -50,23 +50,23 @@ Route::controller(AuthController::class)->group(function () {
     Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/{product}', 'show');
-        Route::middleware('is_admin')->group(function () {
+        // Route::middleware('is_admin')->group(function () {
             Route::post('/', 'store');
             Route::put('/{product}', 'update');
             Route::delete('/{product}', 'destroy');
             Route::get('/trashed', 'trashed');
             Route::post('/{id}/restore', 'restore');
             Route::delete('/{id}/force-delete', 'forceDelete');
-        });
+        // });
     });
 
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::get('/search', 'searchByProduct');
-        Route::get('/{id}/detail', 'showDetail');
+        Route::get('/{id}', 'show');
         Route::get('/{id}/pdf', 'generatePDF');
-        Route::middleware('is_admin')->put('/{id}/status', 'updateStatus');
+        Route::put('/{id}', 'updateStatus');
     });
 
     Route::prefix('users')->controller(UserController::class)->group(function () {

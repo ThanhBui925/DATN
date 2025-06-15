@@ -7,7 +7,6 @@ use App\Models\Voucher;
 use App\Models\VoucherUser;
 use App\Models\Product;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\VariantProduct;
 
 use Illuminate\Http\Request;
@@ -15,9 +14,15 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use App\Traits\ApiResponseTrait;
+use App\Models\Size;
+use App\Models\Color;
+
+
 
 class OrderController extends Controller
 {
+    use ApiResponseTrait;
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -146,69 +151,78 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
-    public function store(Request $request)
+    public function show($id)
     {
-        $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'shipping_id' => 'required|exists:shipping,id',
-            'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|in:cash,card,paypal,vnpay',
-            'recipient_name' => 'required|string|max:255',
-            'recipient_phone' => 'required|string|regex:/^0[0-9]{9}$/',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.variant_id' => 'required|exists:variant_products,id',
-        ]);
+        $order = Order::with([
+            'customer',
+            'shipping',
+            'user',
+            'voucher',
+            'orderItems.product',
+            'orderItems.variant.size',
+            'orderItems.variant.color',
+        ])->find($id);
 
-        $slug = 'order-' . time() . '-' . rand(1000, 9999);
-
-        $order = Order::create([
-            'slug' => $slug,
-            'date_order' => Carbon::now(),
-            'total_price' => 0,
-            'order_status' => 'pending',
-            'payment_status' => 'unpaid',
-            'shipping_address' => $request->input('shipping_address'),
-            'payment_method' => $request->input('payment_method'),
-            'user_id' => auth()->user()->id,
-            'customer_id' => $request->input('customer_id'),
-            'shipping_id' => $request->input('shipping_id'),
-            'recipient_name' => $request->input('recipient_name'),
-            'recipient_phone' => $request->input('recipient_phone'),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        $totalPrice = 0;
-        foreach ($request->input('items') as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            $variant = VariantProduct::findOrFail($item['variant_id']);
-            
-            $price = $product->sale_price && $product->sale_end > Carbon::now() ? $product->sale_price : $product->price;
-            
-            OrderItem::create([
-                'slug' => 'item-' . time() . '-' . rand(1000, 9999),
-                'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $price,
-                'variant_id' => $item['variant_id'],
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-
-            $totalPrice += $price * $item['quantity'];
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
         }
 
-        $order->total_price = $totalPrice;
-        $order->save();
+        $result = [
+            'id' => $order->id,
+            'date_order' => $order->created_at,
+            'total_price' => $order->total_price,
+            'order_status' => $order->order_status,
+            'cancel_reason' => $order->cancel_reason,
+            'payment_status' => $order->payment_status,
+            'shipping_address' => $order->shipping_address,
+            'payment_method' => $order->payment_method,
+            'shipped_at' => $order->shipped_at,
+            'delivered_at' => $order->delivered_at,
+            'user_id' => $order->user_id,
+            'customer_id' => $order->customer_id,
+            'shipping_id' => $order->shipping_id,
+            'recipient_name' => $order->recipient_name,
+            'recipient_phone' => $order->recipient_phone,
+            'created_at' => $order->created_at,
+            'updated_at' => $order->updated_at,
+            'voucher' => $order->voucher, // có thể là null
+            'items' => $order->orderItems->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product' => [
+                        'id' => $item->product->id,
+                        'slug' => $item->product->slug,
+                        'category_id' => $item->product->category_id,
+                        'name' => $item->product->name,
+                        'description' => $item->product->description,
+                        'price' => $item->product->price,
+                        'sale_price' => $item->product->sale_price,
+                        'sale_end' => $item->product->sale_end,
+                        'status' => $item->product->status,
+                        'deleted_at' => $item->product->deleted_at,
+                        'created_at' => $item->product->created_at,
+                        'updated_at' => $item->product->updated_at,
+                    ],
+                    'variant' => $item->variant ? [
+                        'id' => $item->variant->id,
+                        'size' => [
+                            'name' => optional($item->variant->size)->name,
+                        ],
+                        'color' => [
+                            'name' => optional($item->variant->color)->name,
+                        ],
+                        'status' => $item->variant->status,
+                    ] : null,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                ];
+            }),
+        ];
 
-        return response()->json([
-            'message' => 'Order created successfully',
-            'order' => $order->load(['customer', 'shipping', 'user', 'orderItems.product', 'orderItems.variant'])
-        ], 201);
+        return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
+
+
 
     public function updateStatus(Request $request, $id)
     {
@@ -260,20 +274,6 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
-    public function showDetail($id)
-    {
-        $order = Order::with(['customer', 'shipping', 'user', 'orderItems.product', 'orderItems.variant'])
-                      ->find($id);
-
-        if (!$order) {
-            return response()->json(['error' => 'Order not found'], 404);
-        }
-
-        return response()->json([
-            'message' => 'Order details retrieved successfully',
-            'order' => $order
-        ], 200);
-    }
 
     public function generatePDF($id)
     {

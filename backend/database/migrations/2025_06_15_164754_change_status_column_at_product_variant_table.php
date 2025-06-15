@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('images', function (Blueprint $table) {
-            $table->dropColumn('slug');
+        Schema::table('variant_products', function (Blueprint $table) {
+            $table->tinyInteger('status')->default(1)->change();        
         });
     }
 
@@ -21,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('variant_products', function (Blueprint $table) {
+            //
+        });
     }
 };

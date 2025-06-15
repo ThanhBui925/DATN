@@ -72,10 +72,18 @@ export const ProductsShow = () => {
             render: (value: any) => (
                 value && value.length > 0 ? (
                     <Image.PreviewGroup>
-                        <Row gutter={[8, 8]}>
+                        <Row gutter={[4, 8]}>
                             {value.map((image: any, index: string) => (
-                                <Col key={index} span={8}>
-                                    <Image src={image.image_url} width="100%" />
+                                <Col key={index} span={3}>
+                                    <Image
+                                        src={image.image_url}
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            objectFit: "cover",
+                                            borderRadius: 4,
+                                        }}
+                                    />
                                 </Col>
                             ))}
                         </Row>
@@ -135,8 +143,15 @@ export const ProductsShow = () => {
                             <Image.PreviewGroup>
                                 <Row gutter={[8, 8]}>
                                     {record.images.map((url: any, index: number) => (
-                                        <Col key={index} xs={12} sm={8} md={6} lg={4}>
-                                            <Image src={url.url} width="100%" />
+                                        <Col >
+                                            <Image src={url.url} 
+                                                style={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    objectFit: "cover",
+                                                    borderRadius: 4,
+                                                }} 
+                                            />
                                         </Col>
                                     ))}
                                 </Row>
