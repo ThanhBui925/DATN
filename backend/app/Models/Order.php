@@ -14,7 +14,14 @@ class Order extends Model
         'slug', 'date_order', 'total_price', 'order_status', 'cancel_reason',
         'payment_status', 'shipping_address', 'payment_method', 'shipped_at',
         'delivered_at', 'user_id', 'customer_id', 'shipping_id',
-        'recipient_name', 'recipient_phone'
+        'recipient_name', 'recipient_phone', 'voucher_id'
+    ];
+
+    protected $casts = [
+        'date_order' => 'datetime',
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'total_price' => 'decimal:2',
     ];
 
     public function customer()
@@ -35,5 +42,10 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
     }
 }

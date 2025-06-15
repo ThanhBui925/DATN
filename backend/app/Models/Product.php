@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Image; // ✅ Thêm dòng này
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory, SoftDeletes;
+    
     protected $table = 'products';
+
     protected $fillable = [
         'name',
         'category_id',
@@ -21,10 +23,12 @@ class Product extends Model
         'status',
         'image',
     ];
+
     protected $casts = [
         'status' => 'string',
         'price' => 'decimal:2',
     ];
+
     protected $dates = [
         'created_at',
         'updated_at',
@@ -51,7 +55,8 @@ class Product extends Model
         return $this->belongsToMany(Color::class);
     }
 
-    
-
-
+    public function images()
+    {
+        return $this->hasMany(Image::class);
+    }
 }

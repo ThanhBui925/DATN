@@ -143,7 +143,15 @@ export const ProductsEdit = () => {
                         status: 'done',
                         url,
                     })) || [],
-                    variants: queryResult?.data?.data?.variants || [],
+                    variants: queryResult?.data?.data?.variants?.map((variant: any, index: any) => ({
+                        ...variant,
+                        images: variant.images?.map((imageUrl: any, imgIndex: any) => ({
+                            uid: `${index}-${imgIndex}`,
+                            name: `variant-image-${imgIndex}`,
+                            status: "done",
+                            url: imageUrl.image_url,
+                        })) || [],
+                    })) || [],
                 }}
             >
                 <Row gutter={16}>
@@ -243,7 +251,7 @@ export const ProductsEdit = () => {
                         </Form.Item>
                         <Form.Item
                             label="Ảnh mô tả sản phẩm"
-                            name="imageDesc"
+                            name="images"
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
                                 if (Array.isArray(e)) {
@@ -284,16 +292,6 @@ export const ProductsEdit = () => {
                         <h3>Biến thể sản phẩm</h3>
                         <Form.List
                             name="variants"
-                            rules={[
-                                {
-                                    validator: async (_, values) => {
-                                        if (!values || values.length < 1) {
-                                            return Promise.reject(new Error("Vui lòng thêm ít nhất 1 biến thể!"));
-                                        }
-                                        return Promise.resolve();
-                                    },
-                                },
-                            ]}
                         >
                             {(fields, { add, remove }) => (
                                 <>

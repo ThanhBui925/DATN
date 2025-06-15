@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @method bool isAdmin()
+ */
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -10,7 +12,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -19,7 +20,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'status', // Thêm 'status' nếu bạn cho phép gán hàng loạt
+        'status',
+        'role',
+        'status', 
     ];
 
     protected $hidden = [
@@ -29,7 +32,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Laravel 9+ tự động hash mật khẩu khi gán
+        'password' => 'hashed',
     ];
 
     public function roles(): BelongsToMany
@@ -42,13 +45,13 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    /**
+     * Check if the user has an admin role.
+     *
+     * @return bool
+     */
     public function isAdmin(): bool
     {
-        return $this->roles()->whereIn('slug', ['admin', 'administrator'])->exists();
-    }
-
-    public function hasRole(string $roleSlug): bool
-    {
-        return $this->roles()->where('slug', $roleSlug)->exists();
+        return $this->role === 'admin';
     }
 }

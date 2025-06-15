@@ -30,7 +30,8 @@ class UpdateProductRequest extends FormRequest
             'variants.*.quantity' => 'required|integer|min:0',
             'variants.*.status' => 'nullable|in:0,1',
             'variants.*.images' => 'sometimes|array',
-            'variants.*.images.*' => 'file|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'variants.*.images.*' => 'nullable', // ← quan trọng!
         ];
+
     }
 }

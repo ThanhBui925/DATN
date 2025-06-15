@@ -69,8 +69,8 @@ export const VoucherList = () => {
                     dataIndex="status"
                     title="Trạng thái"
                     render={(value: string) => (
-                        <Tag color={value === "1" ? "green" : "red"}>
-                            {value === "1" ? "Hoạt động" : "Không hoạt động"}
+                        <Tag color={Number(value) === 1 ? "green" : "red"}>
+                            {Number(value) === 1 ? "Hoạt động" : "Không hoạt động"}
                         </Tag>
                     )}
                 />
