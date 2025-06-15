@@ -19,7 +19,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'status', // Thêm 'status' nếu bạn cho phép gán hàng loạt
+        'role',
+        'status', 
     ];
 
     protected $hidden = [
@@ -29,7 +30,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Laravel 9+ tự động hash mật khẩu khi gán
+        'password' => 'hashed',
     ];
 
     public function roles(): BelongsToMany
@@ -44,11 +45,11 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->roles()->whereIn('slug', ['admin', 'administrator'])->exists();
+        return $this->role === 'admin';
     }
 
-    public function hasRole(string $roleSlug): bool
-    {
-        return $this->roles()->where('slug', $roleSlug)->exists();
-    }
+    // public function hasRole(string $role): bool
+    // {
+    //     return $this->role === $role;
+    // }
 }

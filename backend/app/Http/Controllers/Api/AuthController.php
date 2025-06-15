@@ -38,7 +38,7 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => 'admin', // Đặt vai trò mặc định là admin
+            // 'role' => 'admin', // Đặt vai trò mặc định là admin
             'status' => 'active', // Đặt status mặc định
         ]);
 
