@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuthController,
@@ -10,7 +9,9 @@ use App\Http\Controllers\Api\{
     UserController,
     ColorController,
     SizeController,
-    DashboardController
+    VoucherController,
+    DashboardController,
+    ReviewController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -20,6 +21,8 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+
     Route::middleware('is_admin')->group(function () {
         Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
         Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
@@ -63,6 +66,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/role', 'updateRole');
     });
 
-    Route::middleware('is_admin')->apiResource('colors', ColorController::class);
-    Route::middleware('is_admin')->apiResource('sizes', SizeController::class);
+    Route::apiResource('colors', ColorController::class)->only(['index']);
+    Route::middleware('is_admin')->apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+
+    Route::apiResource('sizes', SizeController::class)->only(['index']);
+    Route::middleware('is_admin')->apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+
+    Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/apply', 'apply');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+    });
+
+    Route::prefix('reviews')->controller(ReviewController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::middleware('is_admin')->group(function () {
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+            Route::post('/{id}/reply', 'reply');
+        });
+    });
 });
