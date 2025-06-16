@@ -82,8 +82,13 @@ class VoucherController extends Controller
     public function update(Request $request, $id)
     {
         $voucher = Voucher::findOrFail($id);
-        Log::info($request->all());
-        $validator = Validator::make($request->all(), [
+        $data = $request->all();
+
+        if (isset($data['usage_limit']) && $data['usage_limit'] === 'null') {
+            $data['usage_limit'] = null;
+        }
+
+        $validator = Validator::make($data, [
             'code' => 'required|string|max:50|unique:vouchers,code,' . $id,
             'discount' => 'required|numeric|min:0',
             'discount_type' => 'required|in:fixed,percentage',
@@ -99,23 +104,14 @@ class VoucherController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $voucher->update([
-            'code' => $request->code,
-            'discount' => $request->discount,
-            'discount_type' => $request->discount_type,
-            'expiry_date' => $request->expiry_date,
-            'status' => $request->status,
-            'description' => $request->description,
-            'usage_limit' => $request->usage_limit,
-            'product_id' => $request->product_id,
-            'category_id' => $request->category_id,
-        ]);
+        $voucher->update($data);
 
         return response()->json([
             'message' => 'Voucher updated successfully',
             'data' => $voucher,
         ], 200);
     }
+
 
     public function destroy($id)
     {

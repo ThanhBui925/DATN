@@ -25,6 +25,18 @@ class ReviewController extends Controller
         ], 200);
     }
 
+    
+    public function show($id)
+    {
+        $review = Review::with(['product', 'user', 'variant'])->findOrFail($id);
+
+        return response()->json([
+            'message' => 'Review retrieved successfully',
+            'data' => $review,
+        ], 200);
+    }
+
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

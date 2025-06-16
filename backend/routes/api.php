@@ -20,10 +20,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::get('/user', [AuthController::class, 'user']);
 
-    Route::middleware('is_admin')->group(function () {
+    // Route::middleware('is_admin')->group(function () {
         Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
         Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
         Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
@@ -32,34 +32,34 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
         Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
         Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
-    });
+    // });
 
-    Route::middleware('is_admin')->apiResource('banners', BannerController::class);
+    Route::apiResource('banners', BannerController::class);
 
-    Route::prefix('categories')->controller(CategoryController::class)->middleware('is_admin')->group(function () {
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
         Route::apiResource('/', CategoryController::class)->parameter('', 'category');
     });
 
-    Route::prefix('products')->controller(ProductController::class)->middleware('is_admin')->group(function () {
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
         Route::apiResource('/', ProductController::class)->parameter('', 'product');
     });
 
-    Route::prefix('orders')->controller(OrderController::class)->middleware('is_admin')->group(function () {
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::get('/search', 'searchByProduct');
-        Route::put('/{id}/status', 'updateStatus');
-        Route::get('/{id}/detail', 'showDetail');
+        Route::put('/{id}', 'updateStatus');
+        Route::get('/{id}', 'show');
         Route::get('/{id}/pdf', 'generatePDF');
     });
 
-    Route::prefix('users')->controller(UserController::class)->middleware('is_admin')->group(function () {
+    Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
@@ -67,10 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('colors', ColorController::class)->only(['index']);
-    Route::middleware('is_admin')->apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
 
     Route::apiResource('sizes', SizeController::class)->only(['index']);
-    Route::middleware('is_admin')->apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
 
     Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
         Route::get('/', 'index');
@@ -84,10 +84,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('reviews')->controller(ReviewController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::middleware('is_admin')->group(function () {
-            Route::put('/{id}', 'update');
-            Route::delete('/{id}', 'destroy');
-            Route::post('/{id}/reply', 'reply');
-        });
+        Route::get('/{id}', 'show');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/{id}/reply', 'reply');
     });
-});
+
+// });

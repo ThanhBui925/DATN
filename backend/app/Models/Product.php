@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Image; // ✅ Thêm dòng này
+use App\Models\Image;
 
 class Product extends Model
 {
@@ -47,7 +47,7 @@ class Product extends Model
 
     public function variants()
     {
-        return $this->hasMany(VariantProduct::class); // ✅ chỉ lấy variant chưa bị xóa mềm
+        return $this->hasMany(VariantProduct::class);
     }
 
     public function colors()

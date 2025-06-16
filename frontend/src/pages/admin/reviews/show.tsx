@@ -104,7 +104,7 @@ export const ReviewShow = () => {
                         <Paragraph style={{ marginBottom: 24 }}>
                             <Text strong style={{ color: "#666" }}>Nội dung: </Text>
                             <TextField
-                                value={record?.content || "Không có nội dung"}
+                                value={record?.comment || "Không có nội dung"}
                                 style={{ fontSize: 16, color: "#333", lineHeight: 1.8 }}
                             />
                         </Paragraph>
@@ -142,13 +142,13 @@ export const ReviewShow = () => {
                                 style={{ fontSize: 14, color: "#333" }}
                             />
                         </Paragraph>
-                        <Paragraph style={{ marginBottom: 16 }}>
+                        {/* <Paragraph style={{ marginBottom: 16 }}>
                             <Text strong style={{ color: "#666" }}>Biến thể sản phẩm: </Text>
                             <TextField
                                 value={ record?.variant.name ?? "Không có dữ liệu"}
                                 style={{ fontSize: 14, color: "#333" }}
                             />
-                        </Paragraph>
+                        </Paragraph> */}
                         <Paragraph style={{ marginBottom: 16 }}>
                             <Text strong style={{ color: "#666" }}>Xếp hạng: </Text>
                             <TextField

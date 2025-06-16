@@ -26,4 +26,8 @@ class Review extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function variant()
+    {
+        return $this->belongsTo(VariantProduct::class, 'variant_id');
+    }
 }
