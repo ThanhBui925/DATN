@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuthController,
@@ -11,7 +10,8 @@ use App\Http\Controllers\Api\{
     ColorController,
     SizeController,
     VoucherController,
-    DashboardController
+    DashboardController,
+    ReviewController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -19,8 +19,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
 });
 
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::get('/user', [AuthController::class, 'user']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
 
     Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
     Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
@@ -83,12 +83,21 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('is_admin')->apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
 
     Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
-        Route::get('/', 'index');                  // GET /api/vouchers
-        Route::get('/{id}', 'show');               // ✅ Thêm dòng này
-        Route::post('/apply', 'apply');            // POST /api/vouchers/apply
-        Route::post('/', 'store');                 // POST /api/vouchers
-        Route::put('/{id}', 'update');             // PUT /api/vouchers/{id}
-        Route::delete('/{id}', 'destroy');         // DELETE /api/vouchers/{id}
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/apply', 'apply');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
     });
 
-// });
+    Route::prefix('reviews')->controller(ReviewController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::middleware('is_admin')->group(function () {
+            Route::put('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+            Route::post('/{id}/reply', 'reply');
+        });
+    });
+});
