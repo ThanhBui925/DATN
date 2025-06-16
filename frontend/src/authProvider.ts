@@ -10,6 +10,7 @@ export const authProvider: AuthProvider = {
         await axiosInstance.get("/sanctum/csrf-cookie");
         const response: any = await axiosInstance.post("/api/login", { email, password });
         localStorage.setItem(TOKEN_KEY, response.data.token);
+        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
         localStorage.setItem("role", response.data.user.role);
         if (response.data.user.role === 'admin') {
           return {

@@ -20,7 +20,7 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::middleware('check.admin')->group(function () {
+    Route::middleware('is_admin')->group(function () {
         Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
         Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
         Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
@@ -31,23 +31,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
     });
 
-    Route::middleware('check.admin')->apiResource('banners', BannerController::class);
+    Route::middleware('is_admin')->apiResource('banners', BannerController::class);
 
-    Route::prefix('categories')->controller(CategoryController::class)->middleware('check.admin')->group(function () {
+    Route::prefix('categories')->controller(CategoryController::class)->middleware('is_admin')->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
         Route::apiResource('/', CategoryController::class)->parameter('', 'category');
     });
 
-    Route::prefix('products')->controller(ProductController::class)->middleware('check.admin')->group(function () {
+    Route::prefix('products')->controller(ProductController::class)->middleware('is_admin')->group(function () {
         Route::get('/trashed', 'trashed');
         Route::post('{id}/restore', 'restore');
         Route::delete('{id}/force-delete', 'forceDelete');
         Route::apiResource('/', ProductController::class)->parameter('', 'product');
     });
 
-    Route::prefix('orders')->controller(OrderController::class)->middleware('check.admin')->group(function () {
+    Route::prefix('orders')->controller(OrderController::class)->middleware('is_admin')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::get('/search', 'searchByProduct');
@@ -56,13 +56,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/pdf', 'generatePDF');
     });
 
-    Route::prefix('users')->controller(UserController::class)->middleware('check.admin')->group(function () {
+    Route::prefix('users')->controller(UserController::class)->middleware('is_admin')->group(function () {
         Route::get('/', 'index');
         Route::put('/{id}/toggle-status', 'toggleStatus');
         Route::put('/{id}/reset-password', 'resetPassword');
         Route::put('/{id}/role', 'updateRole');
     });
 
-    Route::middleware('check.admin')->apiResource('colors', ColorController::class);
-    Route::middleware('check.admin')->apiResource('sizes', SizeController::class);
+    Route::middleware('is_admin')->apiResource('colors', ColorController::class);
+    Route::middleware('is_admin')->apiResource('sizes', SizeController::class);
 });
