@@ -1,17 +1,18 @@
 import { List } from "@refinedev/antd";
 import { Breadcrumb, Row, Col, Card, Statistic, Typography } from "antd";
 import { Column, Line, Pie, Bar, Area } from "@ant-design/charts";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {ArrowUpOutlined} from "@ant-design/icons";
+import {axiosInstance} from "../../../utils/axios";
 
 interface MonthlySales {
     month: string;
-    sales: number;
+    total: number;
 }
 
 interface UserGrowth {
     month: string;
-    users: number;
+    total_users: number;
 }
 
 interface OrderStatus {
@@ -20,8 +21,8 @@ interface OrderStatus {
 }
 
 interface CategorySales {
-    category: string;
-    sales: number;
+    category_name: string;
+    total_revenue: number;
 }
 
 interface PaymentMethod {
@@ -85,27 +86,57 @@ interface Stats {
     totalCustomers: number;
     averageOrderValue: number;
     voucherUsageCount: number;
-    averageRating: string;
+    averageRating: number;
 }
 
 const Dashboard = () => {
+    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [totalOrders, setTotalOrders] = useState(0);
+    const [totalCustomers, setTotalCustomers] = useState(0);
+    const [averageOrderValue, setAverageOrderValue] = useState(0);
+    const [averageRating, setRatingAvg] = useState(0);
+    const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+    const [voucherUsageCount, setVoucherUsageCount] = useState(0);
+    const [userGrowth, setUserGrowth] = useState([]);
+    const [revenusByCate, setRevenusByCate] = useState([]);
+    
+    useEffect(() => {
+        Promise.all([
+            axiosInstance.get('/api/dashboard/total-revenue'),
+            axiosInstance.get('/api/dashboard/total-orders'),
+            axiosInstance.get('/api/dashboard/total-customers'),
+            axiosInstance.get('/api/dashboard/average-order-value'),
+            axiosInstance.get('/api/dashboard/average-rating'),
+            axiosInstance.get('/api/dashboard/monthly-revenue'),
+            axiosInstance.get('/api/dashboard/user-growth'),
+            axiosInstance.get('/api/dashboard/revenue-by-category'),
+        ])
+            .then(([revenueRes, orderRes, cusRes, avgRes, ratingRes, monthlyRevenueRes, userGrowthRes, revByCatRes]) => {
+                setTotalRevenue(revenueRes.data.total_revenue ?? 0);
+                setTotalOrders(orderRes.data.total_orders ?? 0);
+                setTotalCustomers(cusRes.data.total_customers ?? 0);
+                setAverageOrderValue(avgRes.data.average_order_value ?? 0);
+                setRatingAvg(ratingRes.data.average_rating ?? 0);
+                setVoucherUsageCount(0);
+                setMonthlyRevenue(monthlyRevenueRes.data.monthly_revenue ?? []);
+                setUserGrowth(userGrowthRes.data.user_growth ?? []);
+                setRevenusByCate(revByCatRes.data.revenue_by_category ?? []);
+            })
+            .catch(console.error);
+    }, []);
+
+    const stats: Stats = {
+        totalRevenue,
+        totalOrders,
+        totalCustomers,
+        averageOrderValue,
+        voucherUsageCount,
+        averageRating,
+    };
+
     const fakeData: FakeData = {
-        monthlySales: [
-            { month: "Jan", sales: 12000000 },
-            { month: "Feb", sales: 19000000 },
-            { month: "Mar", sales: 15000000 },
-            { month: "Apr", sales: 22000000 },
-            { month: "May", sales: 30000000 },
-            { month: "Jun", sales: 28000000 },
-        ],
-        userGrowth: [
-            { month: "Jan", users: 50 },
-            { month: "Feb", users: 80 },
-            { month: "Mar", users: 120 },
-            { month: "Apr", users: 150 },
-            { month: "May", users: 200 },
-            { month: "Jun", users: 250 },
-        ],
+        monthlySales: monthlyRevenue,
+        userGrowth: userGrowth,
         orderStatus: [
             { status: "Pending", count: 10 },
             { status: "Confirmed", count: 20 },
@@ -115,12 +146,7 @@ const Dashboard = () => {
             { status: "Completed", count: 40 },
             { status: "Canceled", count: 5 },
         ],
-        categorySales: [
-            { category: "Điện thoại", sales: 45000000 },
-            { category: "Phụ kiện", sales: 15000000 },
-            { category: "Laptop", sales: 30000000 },
-            { category: "Laptop1", sales: 20000000 },
-        ],
+        categorySales: revenusByCate,
         paymentMethods: [
             { method: "Cash", count: 30 },
             { method: "Card", count: 50 },
@@ -174,11 +200,11 @@ const Dashboard = () => {
     const salesConfig = {
         data: fakeData.monthlySales,
         xField: "month",
-        yField: "sales",
+        yField: "total",
         title: { visible: true, text: "Doanh Thu Hàng Tháng (VNĐ)" },
         label: {
             position: "middle",
-            formatter: (datum: MonthlySales) => datum.sales.toLocaleString(),
+            formatter: (datum: MonthlySales) => datum.total.toLocaleString('vi-VI'),
         },
         yAxis: {
             label: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
@@ -188,7 +214,7 @@ const Dashboard = () => {
     const userGrowthConfig = {
         data: fakeData.userGrowth,
         xField: "month",
-        yField: "users",
+        yField: "total_users",
         title: { visible: true, text: "Tăng Trưởng Người Dùng" },
         areaStyle: { fill: "#1890ff" },
         line: { color: "#1890ff" },
@@ -217,12 +243,12 @@ const Dashboard = () => {
 
     const categorySalesConfig = {
         data: fakeData.categorySales,
-        xField: "category",
-        yField: "sales",
+        xField: "category_name",
+        yField: "total_revenue",
         title: { visible: true, text: "Doanh Thu Theo Danh Mục (VNĐ)" },
         label: {
             position: "middle",
-            formatter: (datum: CategorySales) => datum.sales.toLocaleString(),
+            formatter: (datum: CategorySales) => datum.total_revenue.toLocaleString(),
         },
         yAxis: {
             label: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
@@ -308,15 +334,6 @@ const Dashboard = () => {
         label: { position: "right", formatter: (datum: TopProduct) => datum.quantity },
     };
 
-    const stats: Stats = {
-        totalRevenue: fakeData.monthlySales.reduce((sum: number, item: MonthlySales) => sum + item.sales, 0),
-        totalOrders: fakeData.orderStatus.reduce((sum: number, item: OrderStatus) => sum + item.count, 0),
-        totalCustomers: fakeData.userGrowth[fakeData.userGrowth.length - 1].users,
-        averageOrderValue: fakeData.monthlySales.reduce((sum: number, item: MonthlySales) => sum + item.sales, 0) / fakeData.orderStatus.reduce((sum: number, item: OrderStatus) => sum + item.count, 0),
-        voucherUsageCount: fakeData.voucherUsage.reduce((sum: number, item: VoucherUsage) => sum + item.used, 0),
-        averageRating: (fakeData.productRatings.reduce((sum: number, item: ProductRating) => sum + item.rating * item.count, 0) / fakeData.productRatings.reduce((sum: number, item: ProductRating) => sum + item.count, 0)).toFixed(1),
-    };
-
     return (
         <List
             title="Thống Kê Tổng Quan"
@@ -334,9 +351,6 @@ const Dashboard = () => {
                             title="Tổng Doanh Thu"
                             value={stats.totalRevenue}
                             precision={0}
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            formatter={(value: number) => `${(value / 1000000).toFixed(1)}M VNĐ`}
                             valueStyle={{ color: "#3f8600" }}
                             prefix={<ArrowUpOutlined />}
                         />
@@ -366,9 +380,6 @@ const Dashboard = () => {
                             title="Giá Trị Đơn Hàng Trung Bình"
                             value={stats.averageOrderValue}
                             precision={0}
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            formatter={(value: number) => `${(value / 1000000).toFixed(1)}M VNĐ`}
                             valueStyle={{ color: "#faad14" }}
                         />
                     </Card>

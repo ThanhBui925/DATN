@@ -1,18 +1,47 @@
 import {
-    CreateButton,
     DateField,
-    DeleteButton,
-    EditButton,
     List,
-    ShowButton,
+    ShowButton, useSelect,
     useTable,
 } from "@refinedev/antd";
 import { type BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table } from "antd";
+import { Breadcrumb, Button, Col, Form, Input, Row, Select, Space, Table } from "antd";
 
 export const ReviewList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                { field: "name", operator: "contains", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
+            ],
+        },
+    });
+
+    const [form] = Form.useForm();
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "name", operator: "contains", value: values.name || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "name", operator: "contains", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
+        ]);
+    };
+
+    const { selectProps: productSelectProps } = useSelect({
+        resource: "products",
+        optionLabel: "name",
+        optionValue: "id",
+        queryOptions: {
+            cacheTime: 5 * 60 * 1000,
+        },
     });
 
     return (
@@ -26,6 +55,50 @@ export const ReviewList = () => {
             }
             headerButtons={ false }
         >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFilter}
+                style={{ marginBottom: 16 }}
+            >
+                <Row gutter={16}>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Sản phẩm" name="product_name">
+                            <Select
+                                placeholder="Chọn sản phẩm"
+                                allowClear
+                                {...productSelectProps}
+                                loading={productSelectProps.loading}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Xếp hạng" name="ranking">
+                            <Select
+                                placeholder="Chọn xếp hạng"
+                                allowClear
+                                options={[
+                                    { label: "1 sao", value: 1 },
+                                    { label: "2 sao", value: 2 },
+                                    { label: "3 sao", value: 3 },
+                                    { label: "4 sao", value: 4 },
+                                    { label: "5 sao", value: 5 },
+                                ]}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label=" ">
+                            <Space>
+                                <Button type="primary" htmlType="submit">
+                                    Lọc
+                                </Button>
+                                <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                            </Space>
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Form>
             <Table {...tableProps} rowKey="id">
                 <Table.Column
                     dataIndex="id"
