@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -15,7 +14,7 @@ class VoucherController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Voucher::query(); // Bỏ hết điều kiện mặc định
+        $query = Voucher::query();
 
         if ($request->has('product_id')) {
             $query->where('product_id', $request->input('product_id'));
@@ -30,6 +29,16 @@ class VoucherController extends Controller
         return response()->json([
             'message' => 'Vouchers retrieved successfully',
             'data' => $vouchers,
+        ], 200);
+    }
+
+    public function show($id)
+    {
+        $voucher = Voucher::findOrFail($id);
+
+        return response()->json([
+            'message' => 'Voucher retrieved successfully',
+            'data' => $voucher,
         ], 200);
     }
 
