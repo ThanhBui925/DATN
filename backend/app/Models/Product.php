@@ -47,7 +47,7 @@ class Product extends Model
 
     public function variants()
     {
-        return $this->hasMany(VariantProduct::class)->withTrashed();
+        return $this->hasMany(VariantProduct::class); // ✅ chỉ lấy variant chưa bị xóa mềm
     }
 
     public function colors()
@@ -56,7 +56,7 @@ class Product extends Model
     }
 
     public function images()
-    {
-        return $this->hasMany(Image::class);
-    }
+{
+    return $this->hasMany(Image::class)->whereNull('deleted_at');
+}
 }

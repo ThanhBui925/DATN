@@ -39,7 +39,7 @@ export const OrdersList = () => {
     const handleModalOk = () => {
         form.validateFields().then((values) => {
             mutate({
-                resource: "shop_order",
+                resource: "orders",
                 id: selectedOrderId!,
                 values: { order_status: values.order_status },
             });
