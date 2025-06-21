@@ -9,6 +9,7 @@ import {Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select, Row, Col, In
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
+import {convertToInt} from "../../../helpers/common";
 
 export const OrdersList = () => {
     const { tableProps, setFilters } = useTable({
@@ -164,7 +165,7 @@ export const OrdersList = () => {
                         title="Tổng tiền"
                         dataIndex="total_price"
                         render={(value: number) =>
-                            value ? `${value.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ"
+                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
                         }
                     />
                     <Table.Column

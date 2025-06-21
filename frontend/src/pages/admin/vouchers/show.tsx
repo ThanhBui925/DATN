@@ -1,6 +1,7 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Row, Col, Skeleton, Tag, Breadcrumb, Card, Divider } from "antd";
+import {convertDate, convertToInt} from "../../../helpers/common";
 
 const { Title, Text } = Typography;
 
@@ -20,18 +21,12 @@ export const VoucherShow = () => {
 
     // Định dạng ngày hết hạn
     const formattedExpiryDate = record?.expiry_date
-        ? new Date(record.expiry_date).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        })
+        ? convertDate(record?.expiry_date)
         : "Không có ngày hết hạn";
 
     // Định dạng giá trị giảm giá
     const formattedDiscount = record?.discount
-        ? `${record.discount}${record.discount_type === "percentage" ? "%" : " VNĐ"}`
+        ? `${convertToInt(record.discount)}${record.discount_type === "percentage" ? "%" : " VNĐ"}`
         : "Không có giá trị giảm giá";
 
     return (
