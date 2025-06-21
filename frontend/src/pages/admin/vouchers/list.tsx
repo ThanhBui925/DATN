@@ -10,6 +10,7 @@ import {
 import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Button, Modal, Space, Table, Tag } from "antd";
 import { useForceDelete } from "../../../hooks/useForceDelete";
+import {convertToInt} from "../../../helpers/common";
 
 export const VoucherList = () => {
     const { tableProps } = useTable({
@@ -46,7 +47,7 @@ export const VoucherList = () => {
                         <span>
                             {record.discount_type === "percentage"
                                 ? `${value}%`
-                                : `${value.toLocaleString()} VNĐ`}
+                                : `${convertToInt(value)} VNĐ`}
                         </span>
                     )}
                 />
@@ -63,7 +64,7 @@ export const VoucherList = () => {
                 <Table.Column
                     dataIndex={["expiry_date"]}
                     title={"Ngày tạo"}
-                    render={(value: any) => <DateField value={value}/>}
+                    render={(value: any) => <DateField value={value} format={'hh:mm DD/MM/YYYY'} />}
                 />
                 <Table.Column
                     dataIndex="status"

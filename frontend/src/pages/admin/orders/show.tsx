@@ -2,6 +2,7 @@ import { DateField, Show, TextField, EditButton } from "@refinedev/antd";
 import { useShow, useUpdate } from "@refinedev/core";
 import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card} from "antd";
 import { useState } from "react";
+import {convertToInt} from "../../../helpers/common";
 
 const { Title, Text } = Typography;
 
@@ -102,7 +103,7 @@ export const OrdersShow = () => {
                                     <TextField
                                         value={
                                             record?.total_price
-                                                ? `${record.total_price.toLocaleString("vi-VN")} VNĐ`
+                                                ? `${ convertToInt(record.total_price) } VNĐ`
                                                 : "0.00 VNĐ"
                                         }
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
@@ -297,7 +298,7 @@ export const OrdersShow = () => {
                                         dataIndex="price"
                                         render={(value) => (
                                             <TextField
-                                                value={value ? `${value.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ"}
+                                                value={value ? `${ convertToInt(value) } VNĐ` : "0 VNĐ"}
                                                 style={{ fontSize: 14, color: "#262626" }}
                                             />
                                         )}
@@ -308,7 +309,7 @@ export const OrdersShow = () => {
                                             <TextField
                                                 value={
                                                     item.price && item.quantity
-                                                        ? `${(item.price * item.quantity).toLocaleString("vi-VN")} VNĐ`
+                                                        ? `${convertToInt(item.price * item.quantity)} VNĐ`
                                                         : "0 VNĐ"
                                                 }
                                                 style={{ fontSize: 14, color: "#262626" }}
