@@ -15,7 +15,7 @@ export const BlogPostCreate = () => {
         formData.append("title", values.title || "");
         formData.append("description", values.description || "");
         formData.append("content", values.content || "");
-        formData.append("status", values.status || "published");
+        formData.append("status", values.status || "1");
 
         if (
             values.image &&
@@ -69,23 +69,20 @@ export const BlogPostCreate = () => {
                             <TextArea />
                         </Form.Item>
                         <Form.Item
-                            label={"Trạng thái"}
-                            name={["status"]}
-                            initialValue={"draft"}
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
-                        >
+                            label="Trạng thái"
+                            name="status"
+                            initialValue={0}
+                            rules={[{ required: true }]}
+                            >
                             <Select
                                 options={[
-                                    { value: "draft", label: "Nháp" },
-                                    { value: "published", label: "Công khai" },
-                                    { value: "private", label: "Riêng tư" },
+                                    { value: 0, label: "Nháp" },
+                                    { value: 1, label: "Công khai" },
+                                    { value: 2, label: "Riêng tư" },
                                 ]}
                             />
                         </Form.Item>
+
                         <Form.Item
                             label="Ảnh"
                             name="image"
