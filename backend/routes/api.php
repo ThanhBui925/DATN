@@ -92,16 +92,18 @@ Route::prefix('reviews')->controller(ReviewController::class)->group(function ()
 });
 
 Route::prefix('blogs')->controller(BlogController::class)->group(function () {
-    Route::get('/', 'index'); // Lấy danh sách blog (có phân trang)
-    Route::post('/', 'store'); // Thêm blog mới
-    Route::put('/{id}', 'update'); // Cập nhật blog
-    Route::put('/{id}/hide', 'hide'); // Ẩn blog (status = 0)
+    Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::put('/{id}', 'update');
+    Route::put('/{id}/hide', 'hide');
+    Route::get('/{id}', 'show');
+    Route::delete('/{id}', 'destroy');
 
     // Bình luận blog
-    Route::get('/{blogId}/comments', 'comments'); // Lấy danh sách bình luận blog
-    Route::post('/{blogId}/comments', 'storeComment'); // Thêm bình luận
-    Route::delete('/comments/{commentId}', 'softDeleteComment'); // Xóa mềm bình luận
-    Route::put('/comments/{commentId}/restore', 'restoreComment'); // Khôi phục bình luận
+    Route::get('/{blogId}/comments', 'comments');
+    Route::post('/{blogId}/comments', 'storeComment');
+    Route::delete('/comments/{commentId}', 'softDeleteComment');
+    Route::put('/comments/{commentId}/restore', 'restoreComment');
 });
 
 // });

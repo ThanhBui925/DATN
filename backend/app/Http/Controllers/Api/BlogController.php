@@ -12,49 +12,39 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $blogs = Blog::withCount('comments')
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->get('limit', 10));
+        $blogs = Blog::orderBy('created_at', 'desc')->get();
 
-        return response()->json([
-            'message' => 'Danh sách bài viết',
-            'data' => $blogs
-        ]);
+        return response()->json(
+            $blogs->map(function ($blog) {
+                return [
+                    'id'          => (string) $blog->id,
+                    'title'       => $blog->title,
+                    'description' => $blog->description,
+                    'content'     => $blog->content,
+                    'image'       => $blog->image ? asset('storage/' . $blog->image) : null,
+                    'status'      => (int) $blog->status, // 👈 Trả về dạng số
+                    'deleted_at'  => $blog->deleted_at,
+                    'created_at'  => optional($blog->created_at)->format('Y-m-d H:i:s'),
+                    'updated_at'  => optional($blog->updated_at)->format('Y-m-d H:i:s'),
+                ];
+            })
+        );
     }
+
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'content' => 'required',
-            'image' => 'required|image|max:2048',
-            'status' => 'boolean'
+        // Ép kiểu status về số nguyên nếu FE gửi về dạng chuỗi
+        $request->merge([
+            'status' => (int) $request->status,
         ]);
-
-        $imagePath = $request->file('image')->store('blogs', 'public');
-
-        $blog = Blog::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'content' => $request->content,
-            'image' => $imagePath,
-            'status' => $request->status ?? 1
-        ]);
-
-        return response()->json(['message' => 'Thêm bài viết thành công', 'data' => $blog], 201);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $blog = Blog::findOrFail($id);
 
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'content' => 'required',
             'image' => 'image|max:2048',
-            'status' => 'boolean'
+            'status' => 'required|integer|in:0,1,2',
         ]);
 
         $data = $request->only(['title', 'description', 'content', 'status']);
@@ -63,10 +53,75 @@ class BlogController extends Controller
             $data['image'] = $request->file('image')->store('blogs', 'public');
         }
 
+        $blog = Blog::create($data);
+
+        return response()->json([
+            'message' => 'Thêm bài viết thành công',
+            'data' => $blog,
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $blog = Blog::findOrFail($id);
+
+        return response()->json([
+            'id'          => (string) $blog->id,
+            'title'       => $blog->title,
+            'description' => $blog->description,
+            'content'     => $blog->content,
+            'image'       => $blog->image ? asset('storage/' . $blog->image) : null,
+            'status'      => $blog->status,
+            'deleted_at'  => $blog->deleted_at,
+            'created_at'  => optional($blog->created_at)->format('Y-m-d H:i:s'),
+            'updated_at'  => optional($blog->updated_at)->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $blog = Blog::findOrFail($id);
+        $blog->delete(); // Soft delete
+
+        return response()->json(['message' => 'Xóa bài viết thành công']);
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        $blog = Blog::findOrFail($id);
+
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'content' => 'sometimes|required',
+            'image' => 'nullable|image|max:2048',
+            'status' => 'sometimes|required|integer|in:0,1,2',
+        ]);
+
+        $data = [
+            'title' => $request->input('title', $blog->title),
+            'description' => $request->input('description', $blog->description),
+            'content' => $request->input('content', $blog->content),
+            'status' => $request->has('status') ? (int) $request->status : $blog->status, // ✅ sửa ở đây
+        ];
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('blogs', 'public');
+        } else {
+            $data['image'] = $blog->image;
+        }
+
         $blog->update($data);
 
-        return response()->json(['message' => 'Cập nhật bài viết thành công', 'data' => $blog]);
+        return response()->json([
+            'message' => 'Cập nhật bài viết thành công',
+            'data' => $blog
+        ]);
     }
+
+
+
 
     public function hide($id)
     {
