@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -7,8 +8,8 @@ use App\Models\VoucherUser;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class VoucherController extends Controller
 {
@@ -46,8 +47,14 @@ class VoucherController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'code' => 'required|string|max:50|unique:vouchers',
-            'discount' => 'required|numeric|min:0',
-            'discount_type' => 'required|in:fixed,percentage',
+            'discount_type' => ['required', Rule::in(['fixed', 'percentage'])],
+            'discount' => [
+                'required',
+                'numeric',
+                'min:0.01',
+                Rule::when($request->discount_type === 'percentage', 'max:100'),
+                Rule::when($request->discount_type === 'fixed', 'max:1000000'),
+            ],
             'expiry_date' => 'nullable|date|after:now',
             'status' => 'nullable|in:0,1',
             'description' => 'required|string',
@@ -90,8 +97,14 @@ class VoucherController extends Controller
 
         $validator = Validator::make($data, [
             'code' => 'required|string|max:50|unique:vouchers,code,' . $id,
-            'discount' => 'required|numeric|min:0',
-            'discount_type' => 'required|in:fixed,percentage',
+            'discount_type' => ['required', Rule::in(['fixed', 'percentage'])],
+            'discount' => [
+                'required',
+                'numeric',
+                'min:0.01',
+                Rule::when($data['discount_type'] === 'percentage', 'max:100'),
+                Rule::when($data['discount_type'] === 'fixed', 'max:1000000'),
+            ],
             'expiry_date' => 'nullable|date|after:now',
             'status' => 'nullable|in:0,1',
             'description' => 'required|string',
@@ -111,7 +124,6 @@ class VoucherController extends Controller
             'data' => $voucher,
         ], 200);
     }
-
 
     public function destroy($id)
     {
@@ -170,6 +182,12 @@ class VoucherController extends Controller
             return response()->json(['message' => 'Voucher not applicable to any items in cart'], 400);
         }
 
+        if ($voucher->discount_type === 'fixed' && $voucher->discount > $applicable_total) {
+            return response()->json([
+                'message' => 'Discount amount cannot exceed the applicable order total.'
+            ], 400);
+        }
+
         $discount = $voucher->discount_type === 'percentage'
             ? $applicable_total * ($voucher->discount / 100)
             : min($voucher->discount, $applicable_total);
@@ -186,7 +204,7 @@ class VoucherController extends Controller
             'message' => 'Voucher applied successfully',
             'data' => [
                 'voucher' => $voucher,
-                'discount' => $discount,
+                'discount' => round($discount, 2),
             ],
         ], 200);
     }
