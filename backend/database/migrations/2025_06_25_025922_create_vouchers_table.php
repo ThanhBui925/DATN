@@ -30,7 +30,6 @@ return new class extends Migration
             $table->dateTime('start_date')->nullable(); // Ngày bắt đầu
             $table->dateTime('expiry_date')->nullable(); // Ngày hết hạn
             $table->tinyInteger('status')->default('1'); // Trạng thái
-            $table->enum('applies_to', ['all', 'product', 'category'])->default('all');
             $table->softDeletes();
             $table->timestamps();
         });

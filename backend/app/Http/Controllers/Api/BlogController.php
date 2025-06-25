@@ -22,7 +22,7 @@ class BlogController extends Controller
                     'description' => $blog->description,
                     'content'     => $blog->content,
                     'image'       => $blog->image ? asset('storage/' . $blog->image) : null,
-                    'status'      => (int) $blog->status, // 👈 Trả về dạng số
+                    'status'      => (int) $blog->status,
                     'deleted_at'  => $blog->deleted_at,
                     'created_at'  => optional($blog->created_at)->format('Y-m-d H:i:s'),
                     'updated_at'  => optional($blog->updated_at)->format('Y-m-d H:i:s'),
