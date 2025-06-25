@@ -11,6 +11,7 @@ class Voucher extends Model
 
     protected $table = 'vouchers';
 
+    
     protected $fillable = [
         'code',
         'discount_type',
@@ -25,20 +26,19 @@ class Voucher extends Model
         'start_date',
         'expiry_date',
         'status',
-        'applies_to',
     ];
 
     protected $casts = [
-        'discount' => 'float',
-        'max_discount_amount' => 'float',
-        'min_order_amount' => 'float',
+        'discount' => 'decimal:2',
+        'max_discount_amount' => 'decimal:2',
+        'min_order_amount' => 'decimal:2',
         'usage_limit' => 'integer',
         'usage_limit_per_user' => 'integer',
         'usage_count' => 'integer',
         'is_public' => 'boolean',
+        'status' => 'boolean',
         'start_date' => 'datetime',
         'expiry_date' => 'datetime',
-        'status' => 'boolean',
     ];
 
 
@@ -47,15 +47,4 @@ class Voucher extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Nhiều sản phẩm có thể sử dụng voucher này
-    public function products()
-    {
-        return $this->belongsToMany(Product::class, 'product_voucher')->withTimestamps();
-    }
-
-    // Nhiều danh mục có thể sử dụng voucher này
-    public function categories()
-    {
-        return $this->belongsToMany(Category::class, 'category_voucher')->withTimestamps();
-    }
 }

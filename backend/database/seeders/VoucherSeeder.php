@@ -10,7 +10,9 @@ class VoucherSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Giảm giá cố định cho tất cả sản phẩm
+        // Xoá dữ liệu cũ nếu cần
+        Voucher::truncate();
+
         Voucher::create([
             'code' => 'FIXED50K',
             'discount_type' => 'fixed',
@@ -22,46 +24,25 @@ class VoucherSeeder extends Seeder
             'usage_count' => 0,
             'is_public' => true,
             'user_id' => null,
-            'start_date' => now()->subDays(1),
-            'expiry_date' => now()->addDays(30),
-            'status' => true,
-            'applies_to' => 'all',
+            'start_date' => now()->subDay(),
+            'expiry_date' => now()->addMonth(),
+            'status' => 1,
         ]);
 
-        // 2. Giảm 20% tối đa 100K, áp dụng cho sản phẩm cụ thể (ví dụ sẽ gán sau)
         Voucher::create([
-            'code' => 'SALE20',
+            'code' => 'PERCENT15',
             'discount_type' => 'percentage',
-            'discount' => 20,
-            'max_discount_amount' => 100000,
-            'min_order_amount' => 300000,
+            'discount' => 15,
+            'max_discount_amount' => 30000,
+            'min_order_amount' => 150000,
             'usage_limit' => 50,
             'usage_limit_per_user' => 1,
             'usage_count' => 0,
-            'is_public' => true,
-            'user_id' => null,
-            'start_date' => now(),
-            'expiry_date' => now()->addDays(10),
-            'status' => true,
-            'applies_to' => 'product',
-        ]);
-
-        // 3. Giảm 10% cho danh mục (gán sau), chỉ dành cho user cụ thể
-        Voucher::create([
-            'code' => 'PRIVATE10',
-            'discount_type' => 'percentage',
-            'discount' => 10,
-            'max_discount_amount' => 50000,
-            'min_order_amount' => 150000,
-            'usage_limit' => 10,
-            'usage_limit_per_user' => 1,
-            'usage_count' => 0,
             'is_public' => false,
-            'user_id' => 1, // giả định user có ID = 1
+            'user_id' => 1, // Chỉ dành cho user_id = 1
             'start_date' => now(),
-            'expiry_date' => now()->addDays(5),
-            'status' => true,
-            'applies_to' => 'category',
+            'expiry_date' => now()->addWeeks(2),
+            'status' => 1,
         ]);
     }
 }
