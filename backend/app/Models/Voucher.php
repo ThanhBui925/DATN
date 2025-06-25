@@ -1,43 +1,61 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Voucher extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
+
+    protected $table = 'vouchers';
 
     protected $fillable = [
-        'slug', 'code', 'discount', 'discount_type', 'expiry_date', 'status',
-        'description', 'usage_limit', 'usage_count', 'product_id', 'category_id'
+        'code',
+        'discount_type',
+        'discount',
+        'max_discount_amount',
+        'min_order_amount',
+        'usage_limit',
+        'usage_limit_per_user',
+        'usage_count',
+        'is_public',
+        'user_id',
+        'start_date',
+        'expiry_date',
+        'status',
+        'applies_to',
     ];
 
     protected $casts = [
+        'discount' => 'float',
+        'max_discount_amount' => 'float',
+        'min_order_amount' => 'float',
+        'usage_limit' => 'integer',
+        'usage_limit_per_user' => 'integer',
+        'usage_count' => 'integer',
+        'is_public' => 'boolean',
+        'start_date' => 'datetime',
         'expiry_date' => 'datetime',
-        'discount' => 'decimal:2',
+        'status' => 'boolean',
     ];
 
-    public function product()
+
+    public function user()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function category()
+    // Nhiều sản phẩm có thể sử dụng voucher này
+    public function products()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Product::class, 'product_voucher')->withTimestamps();
     }
 
-    public function users()
+    // Nhiều danh mục có thể sử dụng voucher này
+    public function categories()
     {
-        return $this->belongsToMany(User::class, 'voucher_user', 'voucher_id', 'user_id')
-                    ->withPivot('order_id')
-                    ->withTimestamps();
-    }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
+        return $this->belongsToMany(Category::class, 'category_voucher')->withTimestamps();
     }
 }
