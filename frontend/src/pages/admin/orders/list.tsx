@@ -5,15 +5,23 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select } from "antd";
+import {Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select, Row, Col, Input, DatePicker} from "antd";
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
-import {SyncOutlined} from "@ant-design/icons";
+import {convertToInt} from "../../../helpers/common";
 
 export const OrdersList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                { field: "order_code", operator: "eq", value: undefined },
+                { field: "order_date", operator: "eq", value: undefined },
+                { field: "phone", operator: "eq", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
+            ],
+        },
     });
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -39,7 +47,7 @@ export const OrdersList = () => {
     const handleModalOk = () => {
         form.validateFields().then((values) => {
             mutate({
-                resource: "shop_order",
+                resource: "orders",
                 id: selectedOrderId!,
                 values: { order_status: values.order_status },
             });
@@ -51,6 +59,25 @@ export const OrdersList = () => {
     const handleModalCancel = () => {
         setIsModalVisible(false);
         form.resetFields();
+    };
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "order_code", operator: "eq", value: values.order_code || undefined },
+            { field: "order_date", operator: "eq", value: values.order_date.format("YYYY-MM-DD") || undefined },
+            { field: "phone", operator: "eq", value: values.phone || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "order_code", operator: "eq", value: undefined },
+            { field: "order_date", operator: "eq", value: undefined },
+            { field: "phone", operator: "eq", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
+        ]);
     };
 
     return (
@@ -65,6 +92,59 @@ export const OrdersList = () => {
                 }
                 headerButtons={false}
             >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleFilter}
+                    style={{ marginBottom: 16 }}
+                >
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Mã đơn hàng" name="order_code">
+                                <Input placeholder="Không nhập dấu #" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Số điện thoại" name="phone">
+                                <Input placeholder="Nhập số điện thoại người nhận" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Ngày đặt" name="order_date">
+                                <DatePicker
+                                    showTime
+                                    format="YYYY-MM-DD"
+                                    style={{ width: "100%" }}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Trạng thái" name="status">
+                                <Select
+                                    placeholder="Chọn trạng thái"
+                                    allowClear={true}
+                                    mode={'multiple'}
+                                >
+                                    {Object.entries(statusMap).map(([key, { label }]) => (
+                                        <Select.Option key={key} value={key}>
+                                            {label}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={8}>
+                            <Form.Item label=" ">
+                                <Space>
+                                    <Button type="primary" htmlType="submit">
+                                        Lọc
+                                    </Button>
+                                    <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                                </Space>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                </Form>
                 <Table {...tableProps} rowKey="id">
                     <Table.Column
                         title="STT"
@@ -85,7 +165,7 @@ export const OrdersList = () => {
                         title="Tổng tiền"
                         dataIndex="total_price"
                         render={(value: number) =>
-                            value ? `${value.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ"
+                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
                         }
                     />
                     <Table.Column

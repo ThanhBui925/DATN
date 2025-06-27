@@ -1,29 +1,33 @@
 <?php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model
 {
-    protected $table = 'reviews';
+    use HasFactory;
+
     protected $fillable = [
         'product_id',
         'user_id',
-        'rating',
         'comment',
-    ];
-    protected $casts = [
-        'rating' => 'integer',
+        'rating',
+        'is_visible',
+        'reply',
     ];
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Product::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
+    }
+    public function variant()
+    {
+        return $this->belongsTo(VariantProduct::class, 'variant_id');
     }
 }

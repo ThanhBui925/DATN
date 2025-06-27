@@ -8,12 +8,35 @@ import {
     useTable,
 } from "@refinedev/antd";
 import {type BaseRecord } from "@refinedev/core";
-import {Breadcrumb, Space, Table, Tag} from "antd";
+import {Breadcrumb, Button, Col, Form, Input, Row, Select, Space, Table, Tag} from "antd";
 
 export const BlogPostList = () => {
-    const {tableProps} = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                { field: "name", operator: "contains", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
+            ],
+        },
     });
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "name", operator: "contains", value: values.name || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
+        ]);
+    };
+
+    const [form] = Form.useForm();
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "name", operator: "contains", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
+        ]);
+    };
 
     return (
         <List
@@ -28,6 +51,44 @@ export const BlogPostList = () => {
                 <CreateButton>Thêm bài viết</CreateButton>
             )}
         >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFilter}
+                style={{ marginBottom: 16 }}
+            >
+                <Row gutter={16}>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Tên danh mục" name="title">
+                            <Input placeholder="Nhập tiêu đề" />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label="Trạng thái" name="status">
+                            <Select
+                                placeholder="Chọn trạng thái"
+                                allowClear
+                                defaultValue={'published'}
+                                options={[
+                                    { label: "Công khai", value: "published" },
+                                    { label: "Riêng tư", value: "private" },
+                                    { label: "Nháp", value: "draft" },
+                                ]}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label=" ">
+                            <Space>
+                                <Button type="primary" htmlType="submit">
+                                    Lọc
+                                </Button>
+                                <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                            </Space>
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Form>
             <Table {...tableProps} rowKey="id">
                 <Table.Column dataIndex="id" title={"STT"}/>
                 <Table.Column

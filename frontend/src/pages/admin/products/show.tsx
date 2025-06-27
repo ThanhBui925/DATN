@@ -1,6 +1,7 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Row, Col, Image, Breadcrumb, Card, Table } from "antd";
+import {convertDate, convertToInt} from "../../../helpers/common";
 
 const { Title, Text } = Typography;
 
@@ -28,9 +29,9 @@ export const ProductsShow = () => {
         { key: "1", label: "ID", value: record?.id },
         { key: "2", label: "Tên sản phẩm", value: record?.name },
         { key: "3", label: "Danh mục", value: record?.category?.name || "Chưa có danh mục" },
-        { key: "4", label: "Giá", value: record?.price ? `${record.price} VNĐ` : "0.00 VNĐ" },
-        { key: "5", label: "Giá khuyến mãi", value: record?.sale_price ? `${record.sale_price} VNĐ` : "Không có" },
-        { key: "6", label: "Ngày kết thúc khuyến mãi", value: record?.sale_end || "Không có" },
+        { key: "4", label: "Giá", value: record?.price ? `${convertToInt(record.price)} VNĐ` : "0.00 VNĐ" },
+        { key: "5", label: "Giá khuyến mãi", value: record?.sale_price ? `${convertToInt(record.sale_price)} VNĐ` : "Không có" },
+        { key: "6", label: "Ngày kết thúc khuyến mãi", value: record?.sale_end ? convertDate(record.sale_end) : "Không có" },
         { key: "7", label: "Trạng thái", value: record?.status == "1" ? "Hoạt động" : "Ngừng hoạt động" },
     ];
 
@@ -72,10 +73,18 @@ export const ProductsShow = () => {
             render: (value: any) => (
                 value && value.length > 0 ? (
                     <Image.PreviewGroup>
-                        <Row gutter={[8, 8]}>
+                        <Row gutter={[4, 8]}>
                             {value.map((image: any, index: string) => (
-                                <Col key={index} span={8}>
-                                    <Image src={image.image_url} width="100%" />
+                                <Col key={index} span={3}>
+                                    <Image
+                                        src={image.image_url}
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            objectFit: "cover",
+                                            borderRadius: 4,
+                                        }}
+                                    />
                                 </Col>
                             ))}
                         </Row>
@@ -135,8 +144,15 @@ export const ProductsShow = () => {
                             <Image.PreviewGroup>
                                 <Row gutter={[8, 8]}>
                                     {record.images.map((url: any, index: number) => (
-                                        <Col key={index} xs={12} sm={8} md={6} lg={4}>
-                                            <Image src={url.url} width="100%" />
+                                        <Col >
+                                            <Image src={url.url} 
+                                                style={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    objectFit: "cover",
+                                                    borderRadius: 4,
+                                                }} 
+                                            />
                                         </Col>
                                     ))}
                                 </Row>

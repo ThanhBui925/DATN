@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Customer;
 
 class AuthController extends Controller
 {
@@ -32,18 +33,26 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'phone' => 'required|string|regex:/^0[0-9]{9}$/',
+            'address' => 'required|string|max:255',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            // 'role' => 'admin', // Đặt vai trò mặc định là admin
-            'status' => 'active', // Đặt status mặc định
+            'status' => 'active',
+            'role' => 'client',
+        ]);
+
+        $customer = Customer::create([
+            'user_id' => $user->id,
+            'phone' => $data['phone'],
+            'address' => $data['address'],
         ]);
 
         $token = $user->createToken('API Token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $user], 201);
+        return response()->json(['token' => $token, 'user' => $user, 'customer' => $customer], 201);
     }
 }

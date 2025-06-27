@@ -8,114 +8,131 @@ use App\Models\VoucherUser;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Arr;
+use App\Http\Requests\StoreVoucherRequest;
+use App\Http\Requests\UpdateVoucherRequest;
+use App\Traits\ApiResponseTrait;
 class VoucherController extends Controller
 {
+    use ApiResponseTrait;
     public function index(Request $request)
     {
-        $query = Voucher::query(); // Bỏ hết điều kiện mặc định
+        $query = Voucher::query();
 
-        if ($request->has('product_id')) {
-            $query->where('product_id', $request->input('product_id'));
+        // Lọc theo trạng thái
+        if ($request->has('status')) {
+            $status = $request->input('status');
+            if (in_array($status, [0, 1])) {
+                $query->where('status', $status);
+            }
         }
-
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
+        // Lọc theo loại giảm giá
+        if ($request->has('discount_type')) {
+            $discountType = $request->input('discount_type');
+            if (in_array($discountType, ['fixed', 'percentage'])) {
+                $query->where('discount_type', $discountType);
+            }
         }
-
+        // Lọc theo mã voucher
+        if ($request->has('code')) {
+            $code = $request->input('code');
+            $query->where('code', 'like', '%' . $code . '%');
+        }
+        // Lọc theo ngày hết hạn
+        if ($request->has('expiry_date')) {
+            $expiryDate = $request->input('expiry_date');
+            $query->whereDate('expiry_date', $expiryDate);
+        }
+        // Lọc theo ngày tạo
+        if ($request->has('created_at')) {
+            $createdAt = $request->input('created_at');
+            $query->whereDate('created_at', $createdAt);
+        }
+        // Lọc theo người dùng
+        if ($request->has('user_id')) {
+            $userId = $request->input('user_id');
+            $query->where('user_id', $userId);
+        }
+        
         $vouchers = $query->get();
 
-        return response()->json([
-            'message' => 'Vouchers retrieved successfully',
-            'data' => $vouchers,
-        ], 200);
+        return $this->success($vouchers, 'Lấy danh sách voucher thành công');
     }
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'code' => 'required|string|max:50|unique:vouchers',
-            'discount' => 'required|numeric|min:0',
-            'discount_type' => 'required|in:fixed,percentage',
-            'expiry_date' => 'nullable|date|after:now',
-            'status' => 'nullable|in:0,1',
-            'description' => 'required|string',
-            'usage_limit' => 'nullable|integer|min:1',
-            'product_id' => 'nullable|exists:products,id',
-            'category_id' => 'nullable|exists:categories,id',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+    public function show($id)
+    {
+        $voucher = Voucher::with(['user'])->find($id);
+
+        if (!$voucher) {
+            return $this->error('Không tìm thấy voucher', null, 404);
         }
 
-        $voucher = Voucher::create([
-            'code' => $request->code,
-            'discount' => $request->discount,
-            'discount_type' => $request->discount_type,
-            'expiry_date' => $request->expiry_date,
-            'status' => $request->status,
-            'description' => $request->description,
-            'usage_limit' => $request->usage_limit,
-            'usage_count' => 0,
-            'product_id' => $request->product_id,
-            'category_id' => $request->category_id,
-        ]);
-
-        return response()->json([
-            'message' => 'Voucher created successfully',
-            'data' => $voucher,
-        ], 201);
+        return $this->success($voucher, 'Lấy voucher thành công');
     }
 
-    public function update(Request $request, $id)
+
+
+    public function store(StoreVoucherRequest $request)
+    {
+        $voucher = Voucher::create([
+        'code' => $request->code,
+        'discount_type' => $request->discount_type,
+        'discount' => $request->discount,
+        'max_discount_amount' => $request->max_discount_amount,
+        'min_order_amount' => $request->min_order_amount,
+        'expiry_date' => $request->expiry_date,
+        'status' => $request->status ?? 1,
+        'description' => $request->description,
+        'usage_limit' => $request->usage_limit,
+        'usage_limit_per_user' => $request->usage_limit_per_user,
+        'usage_count' => 0,
+        'is_public' => 1,
+        ]);
+
+        return $this->success($voucher, 'Tạo mới voucher thành công', 201);
+    }
+
+
+
+
+    public function update(UpdateVoucherRequest $request, $id)
     {
         $voucher = Voucher::findOrFail($id);
-        Log::info($request->all());
-        $validator = Validator::make($request->all(), [
-            'code' => 'required|string|max:50|unique:vouchers,code,' . $id,
-            'discount' => 'required|numeric|min:0',
-            'discount_type' => 'required|in:fixed,percentage',
-            'expiry_date' => 'nullable|date|after:now',
-            'status' => 'nullable|in:0,1',
-            'description' => 'required|string',
-            'usage_limit' => 'nullable|integer|min:1',
-            'product_id' => 'nullable|exists:products,id',
-            'category_id' => 'nullable|exists:categories,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
         $voucher->update([
             'code' => $request->code,
-            'discount' => $request->discount,
             'discount_type' => $request->discount_type,
+            'discount' => $request->discount,
+            'max_discount_amount' => $request->max_discount_amount,
+            'min_order_amount' => $request->min_order_amount,
             'expiry_date' => $request->expiry_date,
             'status' => $request->status,
             'description' => $request->description,
             'usage_limit' => $request->usage_limit,
-            'product_id' => $request->product_id,
-            'category_id' => $request->category_id,
+            'usage_limit_per_user' => $request->usage_limit_per_user,
+            'applies_to' => $request->applies_to,
         ]);
 
-        return response()->json([
-            'message' => 'Voucher updated successfully',
-            'data' => $voucher,
-        ], 200);
+        return $this->success($voucher, 'Cập nhật voucher thành công', 201);
     }
 
     public function destroy($id)
     {
-        $voucher = Voucher::findOrFail($id);
+        $voucher = Voucher::find($id);
+
+        if (!$voucher) {
+            return response()->json([
+                'message' => 'Voucher not found'
+            ], 404);
+        }
+
         $voucher->delete();
 
-        return response()->json([
-            'message' => 'Voucher deleted successfully',
-        ], 204);
+        return $this->success(null, 'Xóa voucher thành công', 204);
+
     }
 
     public function apply(Request $request)
@@ -165,6 +182,12 @@ class VoucherController extends Controller
             return response()->json(['message' => 'Voucher not applicable to any items in cart'], 400);
         }
 
+        if ($voucher->discount_type === 'fixed' && $voucher->discount > $applicable_total) {
+            return response()->json([
+                'message' => 'Discount amount cannot exceed the applicable order total.'
+            ], 400);
+        }
+
         $discount = $voucher->discount_type === 'percentage'
             ? $applicable_total * ($voucher->discount / 100)
             : min($voucher->discount, $applicable_total);
@@ -181,7 +204,7 @@ class VoucherController extends Controller
             'message' => 'Voucher applied successfully',
             'data' => [
                 'voucher' => $voucher,
-                'discount' => $discount,
+                'discount' => round($discount, 2),
             ],
         ], 200);
     }

@@ -1,43 +1,50 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Voucher extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
+    protected $table = 'vouchers';
+
+    
     protected $fillable = [
-        'slug', 'code', 'discount', 'discount_type', 'expiry_date', 'status',
-        'description', 'usage_limit', 'usage_count', 'product_id', 'category_id'
+        'code',
+        'discount_type',
+        'discount',
+        'max_discount_amount',
+        'min_order_amount',
+        'usage_limit',
+        'usage_limit_per_user',
+        'usage_count',
+        'is_public',
+        'user_id',
+        'start_date',
+        'expiry_date',
+        'status',
     ];
 
     protected $casts = [
-        'expiry_date' => 'datetime',
         'discount' => 'decimal:2',
+        'max_discount_amount' => 'decimal:2',
+        'min_order_amount' => 'decimal:2',
+        'usage_limit' => 'integer',
+        'usage_limit_per_user' => 'integer',
+        'usage_count' => 'integer',
+        'is_public' => 'boolean',
+        'status' => 'boolean',
+        'start_date' => 'datetime',
+        'expiry_date' => 'datetime',
     ];
 
-    public function product()
+
+    public function user()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'voucher_user', 'voucher_id', 'user_id')
-                    ->withPivot('order_id')
-                    ->withTimestamps();
-    }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
 }
