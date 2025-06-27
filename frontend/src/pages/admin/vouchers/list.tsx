@@ -145,6 +145,7 @@ export const VoucherList = () => {
                     title={"Ngày tạo"}
                     render={(value: any) => <DateField value={value} format={'hh:mm DD/MM/YYYY'} />}
                 />
+                
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
@@ -154,6 +155,7 @@ export const VoucherList = () => {
                         </Tag>
                     )}
                 />
+
                 <Table.Column
                     dataIndex="usage"
                     title="Sử dụng"
