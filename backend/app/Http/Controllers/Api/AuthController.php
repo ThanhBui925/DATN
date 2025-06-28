@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -17,14 +18,36 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        Log::info('Login attempt', [
+            'email' => $credentials['email'],
+            'password_length' => strlen($credentials['password'])
+        ]);
+
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user && Hash::check($credentials['password'], $user->password)) {
-            $token = $user->createToken('API Token')->plainTextToken;
-            return response()->json(['token' => $token, 'user' => $user], 200);
+        if (!$user) {
+            Log::warning('User not found', ['email' => $credentials['email']]);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        Log::info('User found', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_role' => $user->role,
+            'password_hash' => $user->password
+        ]);
+
+        if (Hash::check($credentials['password'], $user->password)) {
+            Log::info('Password check successful');
+            $token = $user->createToken('API Token')->plainTextToken;
+            return response()->json(['token' => $token, 'user' => $user], 200);
+        } else {
+            Log::warning('Password check failed', [
+                'provided_password' => $credentials['password'],
+                'stored_hash' => $user->password
+            ]);
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
     }
 
     public function register(Request $request)
