@@ -3,7 +3,7 @@ import {Link} from "react-router-dom";
 export const SingleProductList = () => {
     return (
         <div className="row product-layout-list">
-            <div className="col-lg-4 col-md-5 ">
+            {/* <div className="col-lg-4 col-md-5 ">
                 <div className="product-image">
                     <Link to="/chi-tiet-san-pham/1">
                         <img alt="" src="/img/product/7.jpg" className="primary-image"/>
@@ -44,7 +44,7 @@ export const SingleProductList = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

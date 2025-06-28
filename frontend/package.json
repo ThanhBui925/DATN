@@ -18,10 +18,16 @@
     "axios": "^1.9.0",
     "dayjs": "^1.11.13",
     "moment": "^2.30.1",
+    "owl.carousel": "^2.3.4",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-owl-carousel": "^2.3.3",
+    "react-owl-carousel2": "^0.3.0",
     "react-router": "^7.0.2",
-    "react-router-dom": "^7.6.2"
+    "react-router-dom": "^7.6.2",
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1",
+    "swiper": "^11.2.9"
   },
   "devDependencies": {
     "@types/moment": "^2.11.29",
