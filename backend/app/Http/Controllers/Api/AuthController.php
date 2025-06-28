@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
