@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -38,7 +39,7 @@ class AuthController extends Controller
             'password_hash' => $user->password
         ]);
 
-        if (Hash::check($credentials['password'], $user->password)) {
+        if (Hash::check((string)$credentials['password'], (string)$user->password)) {
             Log::info('Password check successful');
             $token = $user->createToken('API Token')->plainTextToken;
             return response()->json(['token' => $token, 'user' => $user], 200);
