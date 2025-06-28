@@ -373,8 +373,9 @@
 					"formdata": [
 						{
 							"key": "name",
-							"value": "spadmin",
-							"type": "text"
+							"value": "spadmingfdg",
+							"type": "text",
+							"disabled": true
 						},
 						{
 							"key": "email",
@@ -951,6 +952,685 @@
 						"api",
 						"products",
 						"24"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllColor",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/colors",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"colors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllBanners",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/banners",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"banners"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addBanner",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Cuối năm",
+							"type": "text"
+						},
+						{
+							"key": "image_url",
+							"type": "file",
+							"src": "/C:/Users/Admin/Desktop/download.jpg"
+						},
+						{
+							"key": "description",
+							"value": "dsadds",
+							"type": "text"
+						},
+						{
+							"key": "link_url",
+							"value": "http://localhost:8000/api/banners",
+							"type": "text"
+						},
+						{
+							"key": "start_date",
+							"value": "2025-06-07 00:00:00",
+							"type": "text"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-06-14 00:00:00",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/banners",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"banners"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateBanner",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Sale Cuối Năm - Rộn Ràng Quà Tặng",
+							"type": "text"
+						},
+						{
+							"key": "image_url",
+							"type": "file",
+							"src": "/Users/thanhbuia/Documents/image/images.jpeg"
+						},
+						{
+							"key": "description",
+							"value": "Sale Cuối Năm - Rộn Ràng Quà Tặng",
+							"type": "text"
+						},
+						{
+							"key": "link_url",
+							"value": "http://localhost:8000/api/banners/2",
+							"type": "text"
+						},
+						{
+							"key": "start_date",
+							"value": "2025-12-01",
+							"type": "text"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-12-03",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "inactive",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/banners/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"banners",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteBanner",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/banners/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"banners",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "total-revenue",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/total-revenue",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"total-revenue"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "total-orders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/total-orders",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"total-orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "total-customers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/total-customers",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"total-customers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "average-order-value",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/average-order-value",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"average-order-value"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "average-rating",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/average-rating",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"average-rating"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "monthly-revenue",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/monthly-revenue",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"monthly-revenue"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user-growth",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/user-growth",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"user-growth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "revenue-by-category",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/dashboard/revenue-by-category",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"dashboard",
+						"revenue-by-category"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllVouchers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/vouchers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"vouchers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ShowVoucher",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/vouchers/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"vouchers",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addVoucher",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "code",
+							"value": "SALE50k",
+							"type": "text"
+						},
+						{
+							"key": "discount_type",
+							"value": "percentage",
+							"type": "text"
+						},
+						{
+							"key": "discount",
+							"value": "1000",
+							"type": "text"
+						},
+						{
+							"key": "max_discount_amount",
+							"value": "100000",
+							"type": "text"
+						},
+						{
+							"key": "min_order_amount",
+							"value": "150000",
+							"type": "text"
+						},
+						{
+							"key": "expiry_date",
+							"value": "2025-07-30 23:59:59",
+							"type": "text"
+						},
+						{
+							"key": "usage_limit",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "usage_limit_per_user",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/vouchers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"vouchers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateVoucher",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "code",
+							"value": "SALE25",
+							"type": "text"
+						},
+						{
+							"key": "discount_type",
+							"value": "fixed",
+							"type": "text"
+						},
+						{
+							"key": "discount",
+							"value": "50000",
+							"type": "text"
+						},
+						{
+							"key": "usage_limit",
+							"value": "100",
+							"type": "text"
+						},
+						{
+							"key": "expiry_date",
+							"value": "2025-08-01 23:59:59\n",
+							"type": "text"
+						},
+						{
+							"key": "_method",
+							"value": "PUT",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "max_discount_amount",
+							"value": "10",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/vouchers/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"vouchers",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteVoucher",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/vouchers/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"vouchers",
+						"2"
 					]
 				}
 			},

@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMail;
 
 class AuthController extends Controller
 {
@@ -50,6 +52,8 @@ class AuthController extends Controller
             'phone' => $data['phone'],
             'address' => $data['address'],
         ]);
+        
+        Mail::to($user->email)->queue(new WelcomeMail($user));
 
         $token = $user->createToken('API Token')->plainTextToken;
 
