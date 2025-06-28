@@ -18,27 +18,42 @@ services:
       - DB_PORT=3306
       - DB_DATABASE=DATN
       - DB_USERNAME=root
-      - DB_PASSWORD=root
+      - DB_PASSWORD=x`
     networks:
       - app-network
+
+  # Queue Worker (auto run queue)
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel_queue
+    working_dir: /var/www/html
+    command: sh -c "php artisan config:clear && php artisan queue:work --verbose --tries=3 --timeout=90"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
+
 
   # Frontend ReactJS
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: dev  # <<< Build từ stage dev trong Dockerfile
+      target: dev
     container_name: react_frontend
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app          # <<< Mount mã nguồn từ local vào container
-      - /app/node_modules        # <<< Tránh xung đột thư viện node_modules
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:
       - app-network
-
 
   # MySQL Database
   db:

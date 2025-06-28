@@ -12,7 +12,8 @@ use App\Http\Controllers\Api\{
     VoucherController,
     DashboardController,
     ReviewController,
-    BlogController
+    BlogController,
+    CartController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -104,6 +105,13 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
     Route::put('/comments/{commentId}/restore', 'restoreComment');
+});
+
+Route::prefix('cart')->middleware('auth:sanctum')->controller(CartController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::put('/', 'update');
+    Route::delete('/', 'destroy');
 });
 
 // });
