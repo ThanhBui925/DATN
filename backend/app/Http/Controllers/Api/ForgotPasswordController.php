@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Mail\PasswordResetSuccessMail;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordLinkMail;
 
 class ForgotPasswordController extends Controller
 {
@@ -16,15 +19,16 @@ class ForgotPasswordController extends Controller
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = \App\Models\User::where('email', $request->email)->first();
+        $token = Password::createToken($user); // tạo token
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['status' => true, 'message' => 'Đã gửi link đặt lại mật khẩu qua email.']);
-        }
+        // Gửi mail qua queue với nội dung custom
+        Mail::to($user->email)->queue(new ResetPasswordLinkMail($user, $token));
 
-        return response()->json(['status' => false, 'message' => 'Không thể gửi email reset.'], 500);
+        return response()->json([
+            'status' => true,
+            'message' => 'Đã gửi link đặt lại mật khẩu qua email.'
+        ]);
     }
 
     // Đặt lại mật khẩu mới
@@ -43,6 +47,7 @@ class ForgotPasswordController extends Controller
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
+                Mail::to($user->email)->queue(new PasswordResetSuccessMail($user));
             }
         );
 
