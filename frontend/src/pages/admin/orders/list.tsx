@@ -210,9 +210,14 @@ export const OrdersList = () => {
                         }}
                     />
                     <Table.Column
-                        title="Tên người nhận"
-                        dataIndex="recipient_name"
-                        render={(value: string) => value || "-"}
+                        title="Người nhận"
+                        render={(record: any) => (
+                            <>
+                                <div style={{ fontWeight: 600 }}>{record.recipient_name}</div>
+                                <div>{record.recipient_phone}</div>
+                                <div>{record?.user?.email}</div>
+                            </>
+                        )}
                     />
                     <Table.Column
                         title="Hành động"
