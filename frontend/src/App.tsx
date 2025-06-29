@@ -4,9 +4,8 @@ import {BrowserRouter} from "react-router";
 import React from "react";
 import {AdminApp} from "./AdminApp";
 import {ClientApp} from "./ClientApp";
-import {useNotificationProvider} from "@refinedev/antd";
 import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier} from "@refinedev/react-router";
-import {authProvider} from "./authProvider";
+import {authProvider} from "./providers/authProvider";
 import {
     BgColorsOutlined,
     DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined,
@@ -20,6 +19,8 @@ import {App as AntdApp} from "antd";
 import {DevtoolsPanel, DevtoolsProvider} from "@refinedev/devtools";
 import dataProvider from "./providers/Provider";
 import {Refine} from "@refinedev/core";
+import {notificationProvider} from "./providers/notificationProvider";
+import {i18nProvider} from "./providers/i18nProvider";
 
 function App() {
     return (
@@ -32,9 +33,12 @@ function App() {
                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
                                 dataProvider={dataProvider}
-                                notificationProvider={useNotificationProvider}
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
+                                notificationProvider={notificationProvider}
                                 routerProvider={routerBindings}
                                 authProvider={authProvider}
+                                i18nProvider={i18nProvider}
                                 resources={[
                                     {
                                         name: "dashboard",

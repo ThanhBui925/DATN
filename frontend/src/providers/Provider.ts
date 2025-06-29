@@ -30,47 +30,61 @@ function unwrapData(fn: Function) {
 const dataProvider = {
   getList: unwrapData(base.getList),
   getOne: unwrapData(base.getOne),
-  create: unwrapData(base.create),
+
+  create: async (resource: any) => {
+    try {
+      const res = await base.create(resource);
+      const data = res.data.data ?? res.data;
+
+      return {
+        ...res,
+        data,
+      };
+    } catch (error) {
+      handleHttpError(error);
+    }
+  },
+
 
   update: async (resource: any) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    try {
+      let formData: FormData;
 
-    // debugger
-    let formData: FormData;
-
-    if (resource.variables instanceof FormData) {
-      formData = resource.variables;
-    } else {
-      formData = new FormData();
-      if (typeof resource.variables === "object" && resource.variables !== null) {
-        for (const key in resource.variables) {
-          if (Object.prototype.hasOwnProperty.call(resource.variables, key)) {
-            formData.append(key, resource.variables[key]);
+      if (resource.variables instanceof FormData) {
+        formData = resource.variables;
+      } else {
+        formData = new FormData();
+        if (typeof resource.variables === "object" && resource.variables !== null) {
+          for (const key in resource.variables) {
+            if (Object.prototype.hasOwnProperty.call(resource.variables, key)) {
+              formData.append(key, resource.variables[key]);
+            }
           }
         }
       }
+
+      formData.append("_method", "PUT");
+
+      const response = await axiosInstance.post(
+          `/api/${resource?.resource}/${resource.id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+      );
+
+      const data = response.data;
+
+      return {
+        data: data.data ?? data,
+      };
+    } catch (error) {
+      handleHttpError(error);
     }
-
-    formData.append("_method", "PUT");
-
-    const response = await axiosInstance.post(
-        `/api/${resource?.resource}/${resource.id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-    );
-
-    const data = response.data;
-
-
-    return {
-      data: data.data ?? data,
-    };
   },
+
 
   deleteOne: unwrapData(base.deleteOne),
 
@@ -93,5 +107,16 @@ const dataProvider = {
     return { data };
   },
 };
+
+function handleHttpError(error: any) {
+  if (error?.response?.data?.errors) {
+    throw {
+      message: error?.response?.data?.message || "Có lỗi xảy ra",
+      statusCode: error?.response?.status || 400,
+      errors: error?.response?.data?.errors,
+    };
+  }
+  throw error;
+}
 
 export default dataProvider;
