@@ -8,6 +8,7 @@ export const DetailProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -33,13 +34,17 @@ export const DetailProduct = () => {
   }
 
   // Lấy danh sách size duy nhất từ variants
-  const sizeOptions = Array.from(
-    new Set(
-      product?.variants
-        ?.map((variant: any) => variant.size?.name)
-        .filter(Boolean)
-    )
-  );
+const sizeOptions = Array.from(
+  new Set(
+    product?.variants
+      ?.map((variant: any) => variant.size?.name)
+      .filter(Boolean)
+  )
+);
+// Tìm variant ứng với size được chọn
+const selectedVariant = product?.variants?.find(
+  (variant: any) => variant.size?.name === selectedSize
+);
 
   return (
     <>
@@ -83,7 +88,6 @@ export const DetailProduct = () => {
 
               <div className="row" style={{ marginTop: 40 }}>
                 <div className="col">
-                
                   <Row gutter={[8, 8]}>
                     {product?.images?.length > 0 ? (
                       product.images.map((img: any, index: number) => (
@@ -118,7 +122,6 @@ export const DetailProduct = () => {
                   </Row>
                 </div>
               </div>
-
             </div>
             <div className="col-xl-7 col-lg-6 col-md-7 col-sm-12">
               <div className="quick-view-content">
@@ -145,17 +148,44 @@ export const DetailProduct = () => {
                   </div>
                   <p>{product.description}</p>
 
-                  <div className="modal-size">
-                    <h4>Size</h4>
-                    <select>
-                      {sizeOptions.map((size, idx) => (
-                        <option key={idx} value={String(size)}>
-                          {" "}
-                          {String(size)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+
+
+                <div className="modal-size mt-4">
+  <h4 className="mb-4 text-lg font-semibold text-gray-800">Chọn Size</h4>
+  <div className="flex flex-wrap gap-3">
+    {sizeOptions.map((size, idx) => (
+      <button
+        key={idx}
+        onClick={() => setSelectedSize(size as string)}
+        className={`w-16 h-16 border rounded-xl flex items-center justify-center text-base font-semibold transition-all duration-200
+          ${
+            selectedSize === size
+              ? "bg-black text-white border-black"
+              : "bg-white text-gray-800 hover:border-black hover:text-black"
+          }`}
+      >
+        {String(size)}
+      </button>
+    ))}
+  </div>
+
+  {/* In stock theo size */}
+  {selectedSize && (
+    <div className="instock mt-3">
+      {selectedVariant?.quantity > 0 ? (
+        <p className="text-green-600 font-medium">
+          In stock: {selectedVariant.quantity}
+        </p>
+      ) : (
+        <p className="text-red-500 font-medium">Out of stock</p>
+      )}
+    </div>
+  )}
+</div>
+
+
+
+
 
                   <div className="modal-color">
                     <h4>Color</h4>
@@ -189,9 +219,8 @@ export const DetailProduct = () => {
                       </button>
                     </form>
                   </div>
-                  <div className="instock">
-                    <p>In stock</p>
-                  </div>
+
+                
                   <div className="social-sharing">
                     <h3>Share</h3>
                     <ul>
@@ -252,8 +281,7 @@ export const DetailProduct = () => {
                       id="description"
                     >
                       <div className="description-content">
-                          <p>{product.description}</p>
-
+                        <p>{product.description}</p>
                       </div>
                     </div>
                     <div id="review" className="tab-pane fade">
