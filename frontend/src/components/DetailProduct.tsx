@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Spin, Row, Col, Image } from "antd";
@@ -8,7 +8,9 @@ export const DetailProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -34,17 +36,23 @@ const [selectedSize, setSelectedSize] = useState<string | null>(null);
   }
 
   // Lấy danh sách size duy nhất từ variants
-const sizeOptions = Array.from(
-  new Set(
-    product?.variants
-      ?.map((variant: any) => variant.size?.name)
-      .filter(Boolean)
-  )
-);
-// Tìm variant ứng với size được chọn
-const selectedVariant = product?.variants?.find(
-  (variant: any) => variant.size?.name === selectedSize
-);
+  const sizeOptions = Array.from(
+    new Set(
+      product?.variants
+        ?.map((variant: any) => variant.size?.name)
+        .filter(Boolean)
+    )
+  );
+
+
+  // Tìm variant ứng với size được chọn
+ const selectedVariant =
+  product?.variants?.find(
+    (variant: any) =>
+      variant.size?.name === selectedSize &&
+      variant.color?.name === selectedColor
+  ) || null;
+
 
   return (
     <>
@@ -148,57 +156,70 @@ const selectedVariant = product?.variants?.find(
                   </div>
                   <p>{product.description}</p>
 
+                  <div className="modal-size mt-4">
+                    <h4 className="mb-4 text-lg font-semibold text-gray-800">
+                      Chọn Size
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {sizeOptions.map((size, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedSize(size as string)}
+                          className={`w-16 h-16 border rounded-xl flex items-center justify-center text-base font-semibold transition-all duration-200
+                                ${
+                                  selectedSize === size
+                                    ? "bg-black text-white border-black"
+                                    : "bg-white text-gray-800 hover:border-black hover:text-black"
+                                }`}
+                        >
+                          {String(size)}
+                        </button>
+                      ))}
+                    </div>
 
+                    {/* In stock theo size */}
+                    {selectedSize && selectedColor && (
+                      <div className="instock mt-3">
+                        {selectedVariant?.quantity > 0 ? (
+                          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                            <span className="text-green-600 text-base">✔️</span>
+                            In stock: {selectedVariant.quantity}
+                          </div>
+                        ) : (
+                          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                            <span className="text-red-600 text-base">❌</span>
+                            Out of stock
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                <div className="modal-size mt-4">
-  <h4 className="mb-4 text-lg font-semibold text-gray-800">Chọn Size</h4>
-  <div className="flex flex-wrap gap-3">
-    {sizeOptions.map((size, idx) => (
-      <button
-        key={idx}
-        onClick={() => setSelectedSize(size as string)}
-        className={`w-16 h-16 border rounded-xl flex items-center justify-center text-base font-semibold transition-all duration-200
-          ${
-            selectedSize === size
-              ? "bg-black text-white border-black"
-              : "bg-white text-gray-800 hover:border-black hover:text-black"
-          }`}
-      >
-        {String(size)}
-      </button>
-    ))}
-  </div>
+                  <div className="modal-color mt-6">
+                    <h4 className="mb-4 text-lg font-semibold text-gray-800">
+                      Chọn Màu
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {product?.variants?.map((variant: any, idx: number) => {
+                        const colorName = variant.color?.name;
+                        const colorCode = variant.color?.code || "#eee";
 
-  {/* In stock theo size */}
-  {selectedSize && (
-    <div className="instock mt-3">
-      {selectedVariant?.quantity > 0 ? (
-        <p className="text-green-600 font-medium">
-          In stock: {selectedVariant.quantity}
-        </p>
-      ) : (
-        <p className="text-red-500 font-medium">Out of stock</p>
-      )}
-    </div>
-  )}
-</div>
-
-
-
-
-
-                  <div className="modal-color">
-                    <h4>Color</h4>
-                    <div className="color-list">
-                      <ul>
-                        {product?.variants?.map((variant: any, idx: number) => (
-                          <li key={idx}>
-                            <a href="#" className="color-circle">
-                              {variant?.color?.name}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => setSelectedColor(colorName)}
+                            className={`w-16 h-16 rounded-full border flex items-center justify-center text-sm font-semibold transition-all duration-200
+            ${
+              selectedColor === colorName
+                ? "bg-black text-white border-black"
+                : "bg-white text-gray-800 hover:border-black hover:text-black"
+            }`}
+                            style={{ backgroundColor: colorCode }}
+                          >
+                            {colorName}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -220,7 +241,6 @@ const selectedVariant = product?.variants?.find(
                     </form>
                   </div>
 
-                
                   <div className="social-sharing">
                     <h3>Share</h3>
                     <ul>
