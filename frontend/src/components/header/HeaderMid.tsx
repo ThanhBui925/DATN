@@ -8,7 +8,13 @@ export const HeaderMid = () => {
 
     const { notify } = useNotify();
 
-    const [cartData, setCartData] = useState([]);
+    const [cartData, setCartData] = useState<{
+        items: any[];
+        total: number;
+    }>({
+        items: [],
+        total: 0,
+    });
 
     const [loading, setLoading] = useState(true);
 
@@ -17,7 +23,10 @@ export const HeaderMid = () => {
         try {
             const res = await axiosInstance.get('/api/cart')
             if (res.data.status) {
-                setCartData(res.data.data.items || []);
+                setCartData({
+                    items: res.data.data.items,
+                    total: res.data.data.total,
+                });
             } else {
                 notify({message: res.data.message});
             }
@@ -25,6 +34,14 @@ export const HeaderMid = () => {
             notify({message: (e as Error).message});
         } finally {
             setLoading(false);
+        }
+    }
+
+    const deleteCartData = async (id: number) => {
+        try {
+            await axiosInstance.delete(`/api/cart/${id}`)
+        } catch (e) {
+            notify({message: (e as Error).message});
         }
     }
 
@@ -47,50 +64,54 @@ export const HeaderMid = () => {
                                 <li>
                                     <Link to="/gio-hang">
                                                 <span className="item-cart-inner">
-                                                    <span className="item-cont">{ cartData.length ?? 0 }</span>
+                                                    <span className="item-cont">{ cartData.items.length ?? 0 }</span>
                                                     Giỏ hàng
                                                 </span>
-                                        <div className="item-total">{ cartData.length > 0 ? '2343' : '0' + ' Đ' }</div>
+                                        <div className="item-total">{ cartData.total + ' đ' }</div>
                                     </Link>
                                     <ul className="shopping-cart-wrapper">
                                         {
                                             loading ? (
                                                 <Skeleton/>
                                             ) : (
-                                                cartData.length > 0 ? (
+                                                cartData?.items?.length > 0 ? (
                                                     <>
-                                                        <li>
-                                                            <div className="shoping-cart-image">
-                                                                <a href="#">
-                                                                    <img src="/img/small-product/1.jpg" alt=""/>
-                                                                    <span className="product-quantity">1x</span>
-                                                                </a>
-                                                            </div>
-                                                            <div className="shoping-product-details">
-                                                                <h3><a href="#">brand Free RN 2018</a></h3>
-                                                                <div className="price-box">
-                                                                    <span>$230.00</span>
-                                                                </div>
-                                                                <div className="sizeandcolor">
-                                                                    <span>Size: S</span>
-                                                                    <span>Color: Orange</span>
-                                                                </div>
-                                                                <div className="remove">
-                                                                    <button title="Remove"><i
-                                                                        className="ion-android-delete"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </li>
+                                                        {
+                                                            cartData?.items.map((cart: any) => (
+                                                                <li>
+                                                                    <div className="shoping-cart-image">
+                                                                        <a href="#">
+                                                                            <img src="/img/small-product/1.jpg" alt=""/>
+                                                                            <span className="product-quantity">{cart.quantity}x</span>
+                                                                        </a>
+                                                                    </div>
+                                                                    <div className="shoping-product-details">
+                                                                        <h3><a href="#">{cart?.product?.name}</a></h3>
+                                                                        <div className="price-box">
+                                                                            <span>{cart.product.price * cart.quantity} đ</span>
+                                                                        </div>
+                                                                        <div className="sizeandcolor">
+                                                                            <span>{cart.variant?.color?.size}</span>
+                                                                            <span>{cart.variant?.color?.name}</span>
+                                                                        </div>
+                                                                        <div className="remove">
+                                                                            <button title="Xoá khỏi giỏ hàng" onClick={() => deleteCartData(cart.id)}><i
+                                                                                className="ion-android-delete"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            ))
+                                                        }
                                                         <li>
                                                             <div className="cart-subtotals">
                                                                 <h5>Tổng tiền sản phẩm<span
-                                                                    className="float-right">$698.00</span></h5>
-                                                                <h5>Phí ship<span className="float-right"> $7.00 </span>
+                                                                    className="float-right"> {cartData.total} đ</span></h5>
+                                                                <h5>Phí ship<span className="float-right"> ... </span>
                                                                 </h5>
-                                                                <h5>VAT<span className="float-right">$0.00</span></h5>
+                                                                <h5>VAT<span className="float-right"> ... </span></h5>
                                                                 <h5>Tổng thanh toán<span
-                                                                    className="float-right">$705.00</span></h5>
+                                                                    className="float-right">...</span></h5>
                                                             </div>
                                                         </li>
                                                         <li className="shoping-cart-btn">
