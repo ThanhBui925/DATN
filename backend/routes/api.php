@@ -13,7 +13,9 @@ use App\Http\Controllers\Api\{
     DashboardController,
     ReviewController,
     BlogController,
-    CartController
+    CartController,
+    CustomerController,
+    ForgotPasswordController
 };
 
 Route::controller(AuthController::class)->group(function () {
@@ -21,6 +23,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
+
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
 
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::get('/user', [AuthController::class, 'user']);
@@ -67,6 +73,12 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
     Route::put('/{id}/reset-password', 'resetPassword');
     Route::put('/{id}/role', 'updateRole');
 });
+
+Route::apiResource('customers', CustomerController::class)->only([
+    'index', 'store', 'update', 'destroy', 'show'
+]);
+
+
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
 Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
