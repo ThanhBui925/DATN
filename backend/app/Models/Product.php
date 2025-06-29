@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Image;
+use App\Models\Category;
+use App\Models\Size;
+use App\Models\Color;
+use App\Models\VariantProduct;
+use App\Models\Review;
+
 
 class Product extends Model
 {
@@ -56,7 +62,12 @@ class Product extends Model
     }
 
     public function images()
-{
-    return $this->hasMany(Image::class)->whereNull('deleted_at');
-}
+    {
+        return $this->hasMany(Image::class)->whereNull('deleted_at');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

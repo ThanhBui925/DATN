@@ -17,6 +17,21 @@ use App\Http\Controllers\Api\{
     CustomerController,
     ForgotPasswordController
 };
+use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
+use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
+
+
+Route::prefix('client')->group(function () {
+    Route::get('/', [ClientProductController::class, 'index']);
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ClientProductController::class, 'getAllProducts']);
+        Route::get('/{id}', [ClientProductController::class, 'show']);
+    });
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [ClientCategoryController::class, 'index']);
+        Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+});
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');

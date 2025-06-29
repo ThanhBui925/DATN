@@ -34,12 +34,12 @@ export const CustomerList = () => {
                     render={(text, record, index) => index + 1}
                 />
                 <Table.Column
-                    dataIndex={["user", "name"]}
+                    dataIndex="user_name"
                     title="Tên Khách Hàng"
                     render={(value: string) => <span>{value}</span>}
                 />
                 <Table.Column
-                    dataIndex={["user", "email"]}
+                    dataIndex="user_email"
                     title="Email"
                     render={(value: string) => <span>{value}</span>}
                 />
