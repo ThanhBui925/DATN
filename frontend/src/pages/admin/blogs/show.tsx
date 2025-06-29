@@ -114,18 +114,21 @@ export const BlogPostShow = () => {
                         </Space>
 
                         {record?.image && (
-                            <Image
-                                src={record.image}
-                                alt="Blog"
-                                style={{
-                                    width: "800px",
-                                    maxHeight: 500,
-                                    objectFit: "cover",
-                                    borderRadius: 8,
-                                    marginBottom: 24,
-                                }}
-                                preview
-                            />
+                            <div>
+                                <Image
+                                    src={record.image}
+                                    alt="Blog"
+                                    style={{
+                                        width: "100%",
+                                        maxHeight: 500,
+                                        maxWidth: 800,
+                                        objectFit: "cover",
+                                        borderRadius: 8,
+                                        marginBottom: 24,
+                                    }}
+                                    preview
+                                />
+                            </div>
                         )}
 
                         <div data-color-mode="light">
