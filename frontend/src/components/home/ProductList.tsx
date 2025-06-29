@@ -43,24 +43,7 @@ export const ProductList = () => {
                                                         <div className="col">
                                                             <SingleProduct/>
                                                         </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
+                                                       
                                                     </div>
                                                 </div>
                                             </div>

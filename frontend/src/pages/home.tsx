@@ -1,5 +1,5 @@
 import {Banner} from "../components/home/Banner";
-import {Slider} from "../components/home/Slider";
+import {SliderBanner} from "../components/home/Slider";
 import {OurService} from "../components/home/OurService";
 import {FeatureProductList} from "../components/home/FeatureProductList";
 import {SingleBanner} from "../components/home/SingleBanner";
@@ -10,7 +10,7 @@ import {ProductList} from "../components/home/ProductList";
 export const Home = () => {
     return (
         <>
-            <Slider/>
+            <SliderBanner/>
             <OurService/>
             <Banner/>
             <FeatureProductList/>

@@ -29,21 +29,7 @@ export const FeatureProductList = () => {
                                 <div className="col">
                                     <SingleProduct/>
                                 </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
+                         
                             </div>
                         </div>
                     </div>
@@ -53,21 +39,7 @@ export const FeatureProductList = () => {
                                 <div className="col">
                                     <SingleProduct/>
                                 </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
+                             
                             </div>
                         </div>
                     </div>
@@ -77,24 +49,7 @@ export const FeatureProductList = () => {
                                 <div className="col">
                                     <SingleProduct/>
                                 </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
-                                <div className="col">
-                                    <SingleProduct/>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>

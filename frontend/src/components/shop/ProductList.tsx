@@ -55,39 +55,7 @@ export const ProductList = () => {
                                         <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
                                             <SingleProduct/>
                                         </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
-                                        <div className="col-xl-3 col-lg-4 col-md-4 col-sm-6 mt-40">
-                                            <SingleProduct/>
-                                        </div>
+                                       
                                     </div>
                                 </div>
                             </div>
@@ -96,10 +64,10 @@ export const ProductList = () => {
                                 <div className="row">
                                     <div className="col">
                                         <SingleProductList/>
+                                        {/* <SingleProductList/>
                                         <SingleProductList/>
                                         <SingleProductList/>
-                                        <SingleProductList/>
-                                        <SingleProductList/>
+                                        <SingleProductList/> */}
                                     </div>
                                 </div>
                             </div>
