@@ -1,5 +1,5 @@
 import axios from "axios";
-import {TOKEN_KEY} from "../authProvider";
+import {TOKEN_KEY} from "../providers/authProvider";
 
 export const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_APP_API_URL || "http://localhost:8000",

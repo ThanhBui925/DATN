@@ -1,5 +1,5 @@
 import type { AuthProvider } from "@refinedev/core";
-import {axiosInstance} from "./utils/axios";
+import {axiosInstance} from "../utils/axios";
 
 export const TOKEN_KEY = "authentication_token";
 
