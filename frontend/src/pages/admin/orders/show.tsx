@@ -1,6 +1,6 @@
 import { DateField, Show, TextField, EditButton } from "@refinedev/antd";
 import { useShow, useUpdate } from "@refinedev/core";
-import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card} from "antd";
+import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message} from "antd";
 import { useState } from "react";
 import {convertToInt} from "../../../helpers/common";
 
@@ -43,15 +43,22 @@ export const OrdersShow = () => {
     };
 
     const handleModalOk = () => {
-        form.validateFields().then((values) => {
-            mutate({
-                resource: "shop_order",
-                id: record?.id,
-                values: { order_status: values.order_status },
+        form.validateFields()
+            .then((values) => {
+                return mutate({
+                    resource: "orders",
+                    id: record?.id,
+                    values: { order_status: values.order_status },
+                }, {
+                    onSuccess: () => {
+                        setIsModalVisible(false);
+                        form.resetFields();
+                    },
+                });
+            })
+            .catch((errorInfo) => {
+                message.error("Vui lòng kiểm tra lại thông tin!");
             });
-            setIsModalVisible(false);
-            form.resetFields();
-        });
     };
 
     const handleModalCancel = () => {
@@ -162,24 +169,6 @@ export const OrdersShow = () => {
                         >
                             <Row gutter={[16, 16]}>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Phương thức thanh toán</Text>
-                                    <TextField
-                                        value={
-                                            record?.payment_method
-                                                ? paymentMethodMap[record.payment_method] || record.payment_method
-                                                : "-"
-                                        }
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Địa chỉ giao hàng</Text>
-                                    <TextField
-                                        value={record?.shipping_address || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người nhận</Text>
                                     <TextField
                                         value={record?.recipient_name || "-"}
@@ -193,6 +182,20 @@ export const OrdersShow = () => {
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
+                                <Col xs={24} sm={24}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người nhận</Text>
+                                    <TextField
+                                        value={record?.user?.email || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={24}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Địa chỉ giao hàng</Text>
+                                    <TextField
+                                        value={record?.shipping_address || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày giao hàng</Text>
                                     <DateField
@@ -202,10 +205,21 @@ export const OrdersShow = () => {
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày nhận hàng</Text>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày nhận hàng dự kiến</Text>
                                     <DateField
                                         value={record?.delivered_at}
                                         format="DD/MM/YYYY HH:mm"
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Phương thức thanh toán</Text>
+                                    <TextField
+                                        value={
+                                            record?.payment_method
+                                                ? paymentMethodMap[record.payment_method] || record.payment_method
+                                                : "-"
+                                        }
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
@@ -337,11 +351,14 @@ export const OrdersShow = () => {
                 okButtonProps={{ style: { backgroundColor: "#1d39c4", color: "#fff", borderRadius: 6 } }}
                 cancelButtonProps={{ style: { borderRadius: 6 } }}
             >
-                <Form form={form} layout="vertical">
+                <Form form={form}
+                      layout="vertical"
+                      initialValues={{ order_status: record?.order_status }}>
                     <Form.Item
                         name="order_status"
                         label="Trạng thái đơn hàng"
                         rules={[{ required: true, message: "Vui lòng chọn trạng thái đơn hàng" }]}
+
                     >
                         <Select placeholder="Chọn trạng thái" style={{ width: "100%" }}>
                             {Object.entries(statusMap).map(([key, { label }]) => (
