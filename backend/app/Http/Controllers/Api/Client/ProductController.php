@@ -21,6 +21,7 @@ class ProductController extends Controller
                 $query->where('name', 'like', '%' . $request->input('search') . '%');
             })
             ->latest()
+            ->limit(2)
             ->get();
         return $this->success($products);
     }
@@ -30,7 +31,7 @@ class ProductController extends Controller
         $products = Product::query()
             ->with(['category', 'images'])
             ->latest()
-            ->limit(10)
+            ->limit(1)
             ->get();
         return $this->success($products);
     }

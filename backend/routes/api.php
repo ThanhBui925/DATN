@@ -32,7 +32,7 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
-    Route::prefix('cart')->group(function () {
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
         Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
         Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm

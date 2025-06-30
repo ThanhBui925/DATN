@@ -220,7 +220,12 @@ class OrderController extends Controller
             'payment_method' => $order->payment_method,
             'shipped_at' => $order->shipped_at,
             'delivered_at' => $order->delivered_at,
-            'user_id' => $order->user_id,
+            'user' => $order->user ? [
+                'id' => $order->user->id,
+                'name' => $order->user->name,
+                'email' => $order->user->email,
+                // thêm các trường khác nếu cần
+            ] : null,
             'customer_id' => $order->customer_id,
             'shipping_id' => $order->shipping_id,
             'recipient_name' => $order->recipient_name,
