@@ -18,6 +18,7 @@ use App\Traits\ApiResponseTrait;
 use App\Models\Size;
 use App\Models\Color;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\UpdateOrderStatusRequest;
 
 class OrderController extends Controller
 {
@@ -263,29 +264,32 @@ class OrderController extends Controller
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(UpdateOrderStatusRequest $request, $id)
     {
         $order = Order::findOrFail($id);
 
-        $request->validate([
-            'order_status' => 'required|in:confirming,confirmed,preparing,shipping,delivered,completed,canceled,pending',
-            'payment_status' => 'nullable|in:unpaid,paid',
-            'cancel_reason' => 'required_if:order_status,canceled|string|max:255',
-        ]);
-
         $currentStatus = $order->order_status;
         $newStatus = $request->input('order_status');
+
         if (!in_array($newStatus, $this->validTransitions[$currentStatus] ?? [])) {
-            return response()->json(['error' => 'Invalid status transition from ' . $currentStatus . ' to ' . $newStatus], 400);
+            return $this->errorResponse(
+                'Invalid status transition from ' . $currentStatus . ' to ' . $newStatus,
+                null,
+                400
+            );
         }
 
         $order->order_status = $newStatus;
+
         if ($request->has('payment_status')) {
             if ($newStatus === 'canceled' && $request->input('payment_status') === 'paid') {
-                return response()->json(['error' => 'Cannot set payment_status to paid for a canceled order'], 400);
+                return response()->json([
+                    'error' => 'Cannot set payment_status to paid for a canceled order'
+                ], 400);
             }
             $order->payment_status = $request->input('payment_status');
         }
+
         if ($newStatus === 'canceled') {
             $order->cancel_reason = $request->input('cancel_reason');
         } else {
@@ -300,10 +304,15 @@ class OrderController extends Controller
 
         try {
             $order->save();
-            Log::info('Order status updated', ['order_id' => $id, 'new_status' => $newStatus]);
+            Log::info('Order status updated', [
+                'order_id' => $id,
+                'new_status' => $newStatus
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to update order status', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Failed to update order: ' . $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
         }
 
         return response()->json([
