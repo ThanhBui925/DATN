@@ -215,7 +215,7 @@ export const OrdersList = () => {
                             <>
                                 <div style={{ fontWeight: 600 }}>{record.recipient_name}</div>
                                 <div>{record.recipient_phone}</div>
-                                <div>{record?.user?.email}</div>
+                                <div>{record?.recipient_email}</div>
                             </>
                         )}
                     />

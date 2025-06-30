@@ -1,9 +1,9 @@
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {notification, Skeleton} from "antd";
-import {Breadcrumb} from "../components/Breadcrumb";
-import {convertToInt} from "../helpers/common";
-import {axiosInstance} from "../utils/axios";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { notification, Skeleton } from "antd";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { convertToInt } from "../helpers/common";
+import { axiosInstance } from "../utils/axios";
 
 export const Cart = () => {
     const [cartData, setCartData] = useState({
@@ -21,17 +21,17 @@ export const Cart = () => {
     const getCartData = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/cart");
+            const res = await axiosInstance.get("/api/client/cart");
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
-                    total: res.data.data.total,
+                    total: res.data.data.total_price,
                 });
             } else {
-                notification.error({message: res.data.message});
+                notification.error({ message: res.data.message });
             }
         } catch (e) {
-            notification.error({message: (e as Error).message});
+            notification.error({ message: (e as Error).message });
         } finally {
             setLoading(false);
         }
@@ -39,26 +39,26 @@ export const Cart = () => {
 
     const deleteCartData = async (id: number) => {
         try {
-            await axiosInstance.delete(`/api/cart/${id}`);
-            notification.success({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
+            await axiosInstance.delete(`/api/client/cart/items/${id}`);
+            notification.success({ description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !" });
             getCartData();
         } catch (e) {
-            notification.error({message: (e as Error).message});
+            notification.error({ message: (e as Error).message });
         }
     };
 
-    const updateCartQuantity = async (productId: any, quantity: any) => {
+    const updateCartQuantity = async (cartItemId: number, variantId: number, quantity: number) => {
         try {
-            const res = await axiosInstance.put("/api/cart", {product_id: productId, quantity});
+            const res = await axiosInstance.put(`/api/client/cart/items/${cartItemId}`, { variant_id: variantId, quantity });
             if (!res.data.status) {
-                notification.error({message: res.data.message});
+                notification.error({ message: res.data.message });
             }
         } catch (e) {
-            notification.error({message: (e as Error).message});
+            notification.error({ message: (e as Error).message });
         }
     };
 
-    const handleQuantityChange = (cartId: number, productId: number, newQuantity: number) => {
+    const handleQuantityChange = (cartId: number, variantId: number, newQuantity: number) => {
         if (newQuantity < 1) return;
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -66,33 +66,17 @@ export const Cart = () => {
         setCartData((prevCartData) => {
             const updatedItems = prevCartData.items.map((item: any) =>
                 item.id === cartId
-                    ? {...item, quantity: newQuantity}
+                    ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
                     : item
             );
             const newTotal = updatedItems.reduce(
-                (sum: number, item: any) => sum + item.product.price * item.quantity,
+                (sum: number, item: any) => sum + item.total,
                 0
             );
-            return {...prevCartData, items: updatedItems, total: newTotal};
+            return { ...prevCartData, items: updatedItems, total: newTotal };
         });
 
-        updateCartQuantity(productId, newQuantity);
-    };
-
-    const handleUpdateCart = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const updatedItems = cartData.items.map((item: any) => ({
-            product_id: item.product.id,
-            quantity: parseInt(formData.get(`quantity_${item.id}`)?.toString() || '') || item.quantity,
-        }));
-
-        updatedItems.forEach((item) => {
-            const original = cartData.items.find((cart: any) => cart.product.id === item.product_id) as any;
-            if (original && item.quantity !== original.quantity) {
-                updateCartQuantity(item.product_id, item.quantity);
-            }
-        });
+        updateCartQuantity(cartId, variantId, newQuantity);
     };
 
     useEffect(() => {
@@ -109,7 +93,7 @@ export const Cart = () => {
                             {loading ? (
                                 <Skeleton active/>
                             ) : cartData.items.length > 0 ? (
-                                <form className="cart-table" onSubmit={handleUpdateCart}>
+                                <form className="cart-table">
                                     <div className="table-content table-responsive">
                                         <table className="table">
                                             <thead>
@@ -137,21 +121,21 @@ export const Cart = () => {
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-thumbnail">
-                                                        <a href={`/chi-tiet-san-pham/${cart.product.id}`}>
+                                                        <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
                                                             <img
-                                                                src={cart.product.image || "/img/default.jpg"}
-                                                                alt={cart.product.name}
+                                                                src={cart?.variant?.images[0] || "/img/default.jpg"}
+                                                                alt={cart.product_name}
                                                             />
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-name">
-                                                        <a href={`/chi-tiet-san-pham/${cart.product.id}`}>
-                                                            {cart.product.name}
+                                                        <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                            {cart.product_name}
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-price">
                                                       <span className="amount">
-                                                        {convertToInt(cart.product.price)} vnđ
+                                                        {convertToInt(cart.price)} vnđ
                                                       </span>
                                                     </td>
                                                     <td className="plantmore-product-quantity">
@@ -161,13 +145,13 @@ export const Cart = () => {
                                                             type="number"
                                                             min="1"
                                                             onChange={(e) =>
-                                                                handleQuantityChange(cart.id, cart.product.id, parseInt(e.target.value) || 1)
+                                                                handleQuantityChange(cart.id, cart.variant_id, parseInt(e.target.value) || 1)
                                                             }
                                                         />
                                                     </td>
                                                     <td className="product-subtotal">
                                                           <span className="amount">
-                                                            {convertToInt(cart.product.price * cart.quantity)} vnđ
+                                                            {convertToInt(cart.total)} vnđ
                                                           </span>
                                                     </td>
                                                 </tr>
