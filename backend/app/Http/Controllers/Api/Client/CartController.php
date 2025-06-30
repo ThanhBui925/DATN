@@ -58,7 +58,6 @@ class CartController extends Controller
                     'code' => $variant->code ?? null,
                     'size' => $variant->size->name ?? null,
                     'color' => $variant->color->name ?? null,
-                    'color_code' => $variant->color->hex ?? null,
                     'images' => $variant->images->pluck('image_url'),
                 ],
                 'quantity' => $item->quantity,
@@ -91,32 +90,45 @@ class CartController extends Controller
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'variant_id' => 'required|exists:variant_products,id',
+            'color_id' => 'required|exists:colors,id',
+            'size_id' => 'required|exists:sizes,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $userId]
-        );
+        $variant = VariantProduct::where('product_id', $request->product_id)
+            ->where('color_id', $request->color_id)
+            ->where('size_id', $request->size_id)
+            ->first();
+
+        if (!$variant) {
+            return response()->json([
+                'message' => 'Không tìm thấy biến thể phù hợp với màu sắc và kích cỡ.',
+                'status' => false,
+            ], 404);
+        }
+
+        $cart = Cart::firstOrCreate(['user_id' => $userId]);
 
         $item = $cart->items()
             ->where('product_id', $request->product_id)
-            ->where('variant_id', $request->variant_id)
+            ->where('variant_id', $variant->id)
             ->first();
 
         if ($item) {
             $item->quantity += $request->quantity;
             $item->save();
         } else {
-            $cart->items()->create([
+            $item = $cart->items()->create([
                 'product_id' => $request->product_id,
-                'variant_id' => $request->variant_id,
+                'variant_id' => $variant->id,
                 'quantity' => $request->quantity,
             ]);
         }
 
         return $this->success($item, 'Thêm sản phẩm vào giỏ hàng thành công');
     }
+
+
 
 
     public function update(Request $request, $itemId)
