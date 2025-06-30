@@ -27,14 +27,14 @@ export const VoucherEdit = () => {
     min_order_amount: queryResult?.data?.data?.min_order_amount || 0,
     usage_limit: queryResult?.data?.data?.usage_limit || null,
     usage_limit_per_user: queryResult?.data?.data?.usage_limit_per_user || null,
-    is_public: queryResult?.data?.data?.is_public || false,
+    is_public: queryResult?.data?.data?.is_public,
     start_date: queryResult?.data?.data?.start_date
         ? dayjs(queryResult.data.data.start_date)
         : null,
     expiry_date: queryResult?.data?.data?.expiry_date
         ? dayjs(queryResult.data.data.expiry_date)
         : null,
-    status: !!queryResult?.data?.data?.status || false,
+    status: queryResult?.data?.data?.status,
     description: queryResult?.data?.data?.description || "",
   };
 
@@ -47,36 +47,35 @@ export const VoucherEdit = () => {
       expiry_date: values.expiry_date
           ? dayjs(values.expiry_date).format("YYYY-MM-DD HH:mm:ss")
           : null,
-      status: values.status,
+      status: values.status == true ? 1 : 0,
       usage_limit:
           values.usage_limit === undefined ||
           values.usage_limit === null ||
           values.usage_limit === ""
-              ? null
+              ? ""
               : parseInt(values.usage_limit),
       usage_limit_per_user:
           values.usage_limit_per_user === undefined ||
           values.usage_limit_per_user === null ||
           values.usage_limit_per_user === ""
-              ? null
+              ? ""
               : parseInt(values.usage_limit_per_user),
       discount: parseFloat(values.discount),
       max_discount_amount:
           values.max_discount_amount === undefined ||
           values.max_discount_amount === null ||
           values.max_discount_amount === ""
-              ? null
+              ? ""
               : parseFloat(values.max_discount_amount),
       min_order_amount:
           values.min_order_amount === undefined ||
           values.min_order_amount === null ||
           values.min_order_amount === ""
-              ? null
+              ? ""
               : parseFloat(values.min_order_amount),
-      is_public: values.is_public || false,
+      is_public: values.is_public == true ? 1 : 0,
     };
 
-    console.log("🚀 Gửi lên BE:", formattedValues);
     return formProps?.onFinish?.(formattedValues);
   };
 
@@ -117,13 +116,7 @@ export const VoucherEdit = () => {
                 <InputNumber
                     style={{ width: "100%" }}
                     min={0}
-                    step={formProps.form?.getFieldValue("discount_type") === "percentage" ? 1 : 1000}
                     precision={2}
-                    formatter={(value) =>
-                        formProps.form?.getFieldValue("discount_type") === "percentage"
-                            ? `${value}%`
-                            : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " VNĐ"
-                    }
                 />
               </Form.Item>
             </Col>
@@ -156,7 +149,6 @@ export const VoucherEdit = () => {
               <Form.Item
                   label="Số tiền đơn hàng tối thiểu"
                   name="min_order_amount"
-                  rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
               >
                 <InputNumber
                     style={{ width: "100%" }}
@@ -207,7 +199,7 @@ export const VoucherEdit = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col span={6}>
               <Form.Item
                   label="Trạng thái"
                   name="status"
@@ -215,6 +207,15 @@ export const VoucherEdit = () => {
                   rules={[{ required: true, message: "Không được bỏ trống trường này" }]}
               >
                 <Switch checkedChildren="Hoạt động" unCheckedChildren="Không hoạt động" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                  label="Công khai"
+                  name="is_public"
+                  valuePropName="checked"
+              >
+                <Switch checkedChildren="Công khai" unCheckedChildren="Riêng tư" />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -239,23 +240,6 @@ export const VoucherEdit = () => {
                     min={0}
                     placeholder="Để trống nếu không giới hạn"
                 />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                  label="Công khai"
-                  name="is_public"
-                  valuePropName="checked"
-              >
-                <Switch checkedChildren="Công khai" unCheckedChildren="Riêng tư" />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item
-                  label="Mô tả"
-                  name="description"
-              >
-                <Input.TextArea rows={4} />
               </Form.Item>
             </Col>
           </Row>

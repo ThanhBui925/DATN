@@ -89,9 +89,6 @@ export const VoucherCreate = () => {
               <Form.Item
                   label="Số tiền đơn hàng tối thiểu"
                   name="min_order_amount"
-                  rules={[
-                    { required: true, message: "Không được bỏ trống trường này" },
-                  ]}
               >
                 <InputNumber
                     style={{ width: "100%" }}
@@ -145,7 +142,7 @@ export const VoucherCreate = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col span={6}>
               <Form.Item
                   label="Trạng thái"
                   name="status"
@@ -156,6 +153,16 @@ export const VoucherCreate = () => {
                   ]}
               >
                 <Switch checkedChildren="Hoạt động" unCheckedChildren="Không hoạt động" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                  label="Công khai"
+                  name="is_public"
+                  initialValue={true}
+                  valuePropName="checked"
+              >
+                <Switch checkedChildren="Công khai" unCheckedChildren="Riêng tư" />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -180,24 +187,6 @@ export const VoucherCreate = () => {
                     min={0}
                     placeholder="Để trống nếu không giới hạn"
                 />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                  label="Công khai"
-                  name="is_public"
-                  initialValue={true}
-                  valuePropName="checked"
-              >
-                <Switch checkedChildren="Công khai" unCheckedChildren="Riêng tư" />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item
-                  label="Mô tả"
-                  name="description"
-              >
-                <Input.TextArea rows={4} />
               </Form.Item>
             </Col>
           </Row>
