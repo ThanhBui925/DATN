@@ -175,13 +175,6 @@ class CartController extends Controller
 
         $item->delete();
 
-        // Cập nhật lại tổng tiền
-        if ($cart) {
-            $cart->load('items');
-            $cart->total_price = $cart->items->sum(fn($i) => $i->price * $i->quantity);
-            $cart->save();
-        }
-
         return response()->json([
             'message' => 'Xóa sản phẩm khỏi giỏ hàng thành công',
             'status' => true,
