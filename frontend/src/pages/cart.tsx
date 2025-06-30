@@ -1,14 +1,11 @@
 import {Link} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {Skeleton} from "antd";
+import {notification, Skeleton} from "antd";
 import {Breadcrumb} from "../components/Breadcrumb";
 import {convertToInt} from "../helpers/common";
 import {axiosInstance} from "../utils/axios";
-import useNotify from "../components/Notification";
 
 export const Cart = () => {
-    const {notify} = useNotify();
-
     const [cartData, setCartData] = useState({
         items: [],
         total: 0,
@@ -31,10 +28,10 @@ export const Cart = () => {
                     total: res.data.data.total,
                 });
             } else {
-                notify({message: res.data.message});
+                notification.error({message: res.data.message});
             }
         } catch (e) {
-            notify({message: (e as Error).message});
+            notification.error({message: (e as Error).message});
         } finally {
             setLoading(false);
         }
@@ -43,11 +40,59 @@ export const Cart = () => {
     const deleteCartData = async (id: number) => {
         try {
             await axiosInstance.delete(`/api/cart/${id}`);
-            notify({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
+            notification.success({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
             getCartData();
         } catch (e) {
-            notify({message: (e as Error).message});
+            notification.error({message: (e as Error).message});
         }
+    };
+
+    const updateCartQuantity = async (productId: any, quantity: any) => {
+        try {
+            const res = await axiosInstance.put("/api/cart", {product_id: productId, quantity});
+            if (!res.data.status) {
+                notification.error({message: res.data.message});
+            }
+        } catch (e) {
+            notification.error({message: (e as Error).message});
+        }
+    };
+
+    const handleQuantityChange = (cartId: number, productId: number, newQuantity: number) => {
+        if (newQuantity < 1) return;
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        setCartData((prevCartData) => {
+            const updatedItems = prevCartData.items.map((item: any) =>
+                item.id === cartId
+                    ? {...item, quantity: newQuantity}
+                    : item
+            );
+            const newTotal = updatedItems.reduce(
+                (sum: number, item: any) => sum + item.product.price * item.quantity,
+                0
+            );
+            return {...prevCartData, items: updatedItems, total: newTotal};
+        });
+
+        updateCartQuantity(productId, newQuantity);
+    };
+
+    const handleUpdateCart = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const updatedItems = cartData.items.map((item: any) => ({
+            product_id: item.product.id,
+            quantity: parseInt(formData.get(`quantity_${item.id}`)?.toString() || '') || item.quantity,
+        }));
+
+        updatedItems.forEach((item) => {
+            const original = cartData.items.find((cart: any) => cart.product.id === item.product_id) as any;
+            if (original && item.quantity !== original.quantity) {
+                updateCartQuantity(item.product_id, item.quantity);
+            }
+        });
     };
 
     useEffect(() => {
@@ -64,7 +109,7 @@ export const Cart = () => {
                             {loading ? (
                                 <Skeleton active/>
                             ) : cartData.items.length > 0 ? (
-                                <form className="cart-table">
+                                <form className="cart-table" onSubmit={handleUpdateCart}>
                                     <div className="table-content table-responsive">
                                         <table className="table">
                                             <thead>
@@ -110,12 +155,20 @@ export const Cart = () => {
                                                       </span>
                                                     </td>
                                                     <td className="plantmore-product-quantity">
-                                                        <input value={cart.quantity} type="number" min="1"/>
+                                                        <input
+                                                            name={`quantity_${cart.id}`}
+                                                            value={cart.quantity}
+                                                            type="number"
+                                                            min="1"
+                                                            onChange={(e) =>
+                                                                handleQuantityChange(cart.id, cart.product.id, parseInt(e.target.value) || 1)
+                                                            }
+                                                        />
                                                     </td>
                                                     <td className="product-subtotal">
-                                                      <span className="amount">
-                                                        {convertToInt(cart.product.price * cart.quantity)} vnđ
-                                                      </span>
+                                                          <span className="amount">
+                                                            {convertToInt(cart.product.price * cart.quantity)} vnđ
+                                                          </span>
                                                     </td>
                                                 </tr>
                                             ))}

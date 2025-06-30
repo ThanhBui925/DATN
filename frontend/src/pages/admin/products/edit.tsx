@@ -73,13 +73,15 @@ export const ProductsEdit = () => {
         }
 
         if (
-            values.imageDesc &&
-            Array.isArray(values.imageDesc) &&
-            values.imageDesc.length > 0
+            values.images &&
+            Array.isArray(values.images) &&
+            values.images.length > 0
         ) {
-            values.imageDesc.forEach((file: any, index: number) => {
+            values.images.forEach((file: any, index: number) => {
                 if (file.originFileObj) {
-                    formData.append(`imageDesc[${index}]`, file.originFileObj);
+                    formData.append(`image_desc[]`, file.originFileObj);
+                } else if (file.url) {
+                    formData.append(`image_desc[]`, file.url);
                 }
             });
         }
