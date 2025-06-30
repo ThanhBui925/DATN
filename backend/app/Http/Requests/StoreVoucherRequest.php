@@ -37,7 +37,6 @@ class StoreVoucherRequest extends FormRequest
             'max_discount_amount' => 'nullable|numeric|min:0',
             'min_order_amount' => 'nullable|numeric|min:0',
             'expiry_date' => 'nullable|date|after:now',
-            'status' => 'nullable|in:0,1',
             'usage_limit' => 'nullable|integer|min:1',
             'usage_limit_per_user' => 'nullable|integer|min:1',
         ];
