@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\{
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
+use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 
 
 Route::prefix('client')->group(function () {
@@ -30,6 +31,12 @@ Route::prefix('client')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
+        Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
+        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
     });
 });
 
