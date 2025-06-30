@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 
 class UpdateOrderStatusRequest extends FormRequest
 {
@@ -32,6 +35,31 @@ class UpdateOrderStatusRequest extends FormRequest
             'cancel_reason.required_if' => 'Lý do hủy bắt buộc khi trạng thái là đã hủy.',
             'cancel_reason.string' => 'Lý do hủy phải là chuỗi.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $order = $this->route('id') 
+                ? \App\Models\Order::find($this->route('id')) 
+                : null;
+
+            if (!$order) {
+                $validator->errors()->add('order', 'Không tìm thấy đơn hàng.');
+                return;
+            }
+
+            $currentStatus = $order->order_status;
+            $newStatus = $this->input('order_status');
+
+            if (!in_array($newStatus, $this->validTransitions[$currentStatus] ?? [])) {
+                $validator->errors()->add('order_status', "Không thể chuyển trạng thái từ \"$currentStatus\" sang \"$newStatus\".");
+            }
+
+            if ($newStatus === 'canceled' && $this->input('payment_status') === 'paid') {
+                $validator->errors()->add('payment_status', 'Không thể hủy đơn hàng đã thanh toán.');
+            }
+        });
     }
     
     protected function failedValidation(Validator $validator)

@@ -11,6 +11,7 @@ class Cart extends Model
         'user_id',
         'product_id',
         'quantity',
+        'total_price',
     ];
     protected $casts = [
         'quantity' => 'integer',
@@ -24,5 +25,9 @@ class Cart extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+    public function items()
+    {
+        return $this->hasMany(ShoppingCartItem::class, 'cart_id');
     }
 }
