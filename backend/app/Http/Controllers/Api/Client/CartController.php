@@ -58,12 +58,11 @@ class CartController extends Controller
                     'code' => $variant->code ?? null,
                     'size' => $variant->size->name ?? null,
                     'color' => $variant->color->name ?? null,
-                    'color_code' => $variant->color->hex ?? null,
                     'images' => $variant->images->pluck('image_url'),
                 ],
                 'quantity' => $item->quantity,
-                'price' => $item->price,
-                'total' => $item->price * $item->quantity,
+                'price' => $item->product->price ?? 0,
+                'total' => $item->product->price * $item->quantity,
             ];
         });
 
@@ -91,19 +90,28 @@ class CartController extends Controller
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'variant_id' => 'required|exists:variant_products,id',
+            'color_id' => 'required|exists:colors,id',
+            'size_id' => 'required|exists:sizes,id',
             'quantity' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
         ]);
 
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $userId],
-            ['total_price' => 0]
-        );
+        $variant = VariantProduct::where('product_id', $request->product_id)
+            ->where('color_id', $request->color_id)
+            ->where('size_id', $request->size_id)
+            ->first();
+
+        if (!$variant) {
+            return response()->json([
+                'message' => 'Không tìm thấy biến thể phù hợp với màu sắc và kích cỡ.',
+                'status' => false,
+            ], 404);
+        }
+
+        $cart = Cart::firstOrCreate(['user_id' => $userId]);
 
         $item = $cart->items()
             ->where('product_id', $request->product_id)
-            ->where('variant_id', $request->variant_id)
+            ->where('variant_id', $variant->id)
             ->first();
 
         if ($item) {
@@ -112,24 +120,16 @@ class CartController extends Controller
         } else {
             $item = $cart->items()->create([
                 'product_id' => $request->product_id,
-                'variant_id' => $request->variant_id,
+                'variant_id' => $variant->id,
                 'quantity' => $request->quantity,
-                'price' => $request->price,
             ]);
         }
 
-        $cart->load('items');
-        $cart->total_price = $cart->items->sum(fn($item) => $item->price * $item->quantity);
-        $cart->save();
-
         return $this->success($item, 'Thêm sản phẩm vào giỏ hàng thành công');
-
-        // return response()->json([
-        //     'message' => 'Thêm sản phẩm vào giỏ hàng thành công',
-        //     'status' => true,
-        //     'data' => $item,
-        // ]);
     }
+
+
+
 
     public function update(Request $request, $itemId)
     {
@@ -149,11 +149,6 @@ class CartController extends Controller
         $item->quantity = $request->quantity;
         $item->save();
 
-        
-        $cart = $item->cart;
-        $cart->load('items');
-        $cart->total_price = $cart->items->sum(fn($i) => $i->price * $i->quantity);
-        $cart->save();
 
         return response()->json([
             'message' => 'Cập nhật số lượng thành công',
@@ -161,7 +156,6 @@ class CartController extends Controller
             'data' => [
                 'item_id' => $item->id,
                 'quantity' => $item->quantity,
-                'total_price' => $cart->total_price,
             ]
         ]);
     }
