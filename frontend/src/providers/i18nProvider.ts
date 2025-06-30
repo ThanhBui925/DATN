@@ -9,6 +9,7 @@ export const i18nProvider: I18nProvider = {
             "buttons.delete": "Xóa",
             "buttons.cancel": "Huỷ",
             "buttons.refresh": "Tải lại trang",
+            "buttons.edit": "Chỉnh sửa",
 
             "notifications.success": "Thành công",
             "notifications.error": "Có lỗi xảy ra",

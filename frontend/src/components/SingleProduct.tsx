@@ -1,5 +1,6 @@
 import React from "react";
 import {convertToInt} from "../helpers/common";
+import axios from "axios";
 
 export const SingleProduct= ({product}: { product: any }) => {
     return (
@@ -63,13 +64,13 @@ export const SingleProduct= ({product}: { product: any }) => {
 
 
                             <div className="price-box">
-                    <span className="new-price">
-                      {convertToInt(product.price)} vnđ
-                    </span>
+                                <span className="new-price">
+                                    {convertToInt(product.price)} vnđ
+                                </span>
                                 {product.old_price && (
                                     <span className="old-price">
-                        {convertToInt(product.old_price)} vnđ
-                      </span>
+                                        {convertToInt(product.old_price)} vnđ
+                                    </span>
                                 )}
                             </div>
                         </div>

@@ -1,14 +1,11 @@
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {Skeleton} from "antd";
-import {Breadcrumb} from "../components/Breadcrumb";
-import {convertToInt} from "../helpers/common";
-import {axiosInstance} from "../utils/axios";
-import useNotify from "../components/Notification";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { notification, Skeleton } from "antd";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { convertToInt } from "../helpers/common";
+import { axiosInstance } from "../utils/axios";
 
 export const Cart = () => {
-    const {notify} = useNotify();
-
     const [cartData, setCartData] = useState({
         items: [],
         total: 0,
@@ -24,17 +21,17 @@ export const Cart = () => {
     const getCartData = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/cart");
+            const res = await axiosInstance.get("/api/client/cart");
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
-                    total: res.data.data.total,
+                    total: res.data.data.total_price,
                 });
             } else {
-                notify({message: res.data.message});
+                notification.error({ message: res.data.message });
             }
         } catch (e) {
-            notify({message: (e as Error).message});
+            notification.error({ message: (e as Error).message });
         } finally {
             setLoading(false);
         }
@@ -42,12 +39,44 @@ export const Cart = () => {
 
     const deleteCartData = async (id: number) => {
         try {
-            await axiosInstance.delete(`/api/cart/${id}`);
-            notify({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
+            await axiosInstance.delete(`/api/client/cart/items/${id}`);
+            notification.success({ description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !" });
             getCartData();
         } catch (e) {
-            notify({message: (e as Error).message});
+            notification.error({ message: (e as Error).message });
         }
+    };
+
+    const updateCartQuantity = async (cartItemId: number, variantId: number, quantity: number) => {
+        try {
+            const res = await axiosInstance.put(`/api/client/cart/items/${cartItemId}`, { variant_id: variantId, quantity });
+            if (!res.data.status) {
+                notification.error({ message: res.data.message });
+            }
+        } catch (e) {
+            notification.error({ message: (e as Error).message });
+        }
+    };
+
+    const handleQuantityChange = (cartId: number, variantId: number, newQuantity: number) => {
+        if (newQuantity < 1) return;
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        setCartData((prevCartData) => {
+            const updatedItems = prevCartData.items.map((item: any) =>
+                item.id === cartId
+                    ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
+                    : item
+            );
+            const newTotal = updatedItems.reduce(
+                (sum: number, item: any) => sum + item.total,
+                0
+            );
+            return { ...prevCartData, items: updatedItems, total: newTotal };
+        });
+
+        updateCartQuantity(cartId, variantId, newQuantity);
     };
 
     useEffect(() => {
@@ -92,30 +121,38 @@ export const Cart = () => {
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-thumbnail">
-                                                        <a href={`/chi-tiet-san-pham/${cart.product.id}`}>
+                                                        <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
                                                             <img
-                                                                src={cart.product.image || "/img/default.jpg"}
-                                                                alt={cart.product.name}
+                                                                src={cart?.variant?.images[0] || "/img/default.jpg"}
+                                                                alt={cart.product_name}
                                                             />
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-name">
-                                                        <a href={`/chi-tiet-san-pham/${cart.product.id}`}>
-                                                            {cart.product.name}
+                                                        <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                            {cart.product_name}
                                                         </a>
                                                     </td>
                                                     <td className="plantmore-product-price">
                                                       <span className="amount">
-                                                        {convertToInt(cart.product.price)} vnđ
+                                                        {convertToInt(cart.price)} vnđ
                                                       </span>
                                                     </td>
                                                     <td className="plantmore-product-quantity">
-                                                        <input value={cart.quantity} type="number" min="1"/>
+                                                        <input
+                                                            name={`quantity_${cart.id}`}
+                                                            value={cart.quantity}
+                                                            type="number"
+                                                            min="1"
+                                                            onChange={(e) =>
+                                                                handleQuantityChange(cart.id, cart.variant_id, parseInt(e.target.value) || 1)
+                                                            }
+                                                        />
                                                     </td>
                                                     <td className="product-subtotal">
-                                                      <span className="amount">
-                                                        {convertToInt(cart.product.price * cart.quantity)} vnđ
-                                                      </span>
+                                                          <span className="amount">
+                                                            {convertToInt(cart.total)} vnđ
+                                                          </span>
                                                     </td>
                                                 </tr>
                                             ))}

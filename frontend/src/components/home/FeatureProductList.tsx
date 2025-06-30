@@ -11,8 +11,8 @@ export const FeatureProductList = () => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const res = await axios.get("http://localhost:8000/api/products");
-                setProducts(res.data.data || res.data);
+                const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+                setProducts(res.data.data || []);
             } catch (err) {
                 console.error("Lỗi khi tải sản phẩm:", err);
             } finally {
@@ -54,25 +54,25 @@ export const FeatureProductList = () => {
                     </div>
                 </div>
                 <div className="tab-content">
-                    {/*<div id="new-arrivals" className="tab-pane active show" role="tabpanel">*/}
-                    {/*    <div className="row">*/}
-                    {/*        <div className="product-active owl-carousel">*/}
-                    {/*            {*/}
-                    {/*                loading ? (*/}
-                    {/*                    <Skeleton/>*/}
-                    {/*                ) : (*/}
-                    {/*                    products && products.length > 0 && (*/}
-                    {/*                        products.map((product) => (*/}
-                    {/*                            <div className="col">*/}
-                    {/*                                <SingleProduct product={product}/>*/}
-                    {/*                            </div>*/}
-                    {/*                        ))*/}
-                    {/*                    )*/}
-                    {/*                )*/}
-                    {/*            }*/}
-                    {/*        </div>*/}
-                    {/*    </div>*/}
-                    {/*</div>*/}
+                    <div id="new-arrivals" className="tab-pane active show" role="tabpanel">
+                        <div className="row">
+                            <div className="product-active owl-carousel">
+                                <div className="col">
+                                    {
+                                        loading ? (
+                                            <Skeleton/>
+                                        ) : (
+                                            products && products.length > 0 && (
+                                                products.map((product) => (
+                                                    <SingleProduct product={product}/>
+                                                ))
+                                            )
+                                        )
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {/*<div id="best-sellers" className="tab-pane" role="tabpanel">*/}
                     {/*    <div className="row">*/}
                     {/*        <div className="product-active owl-carousel">*/}

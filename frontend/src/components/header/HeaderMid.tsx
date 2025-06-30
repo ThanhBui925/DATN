@@ -21,11 +21,11 @@ export const HeaderMid = () => {
     const getCartData = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get('/api/cart')
+            const res = await axiosInstance.get('/api/client/cart')
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
-                    total: res.data.data.total,
+                    total: res.data.data.total_price,
                 });
             } else {
                 notify({message: res.data.message});
@@ -39,9 +39,11 @@ export const HeaderMid = () => {
 
     const deleteCartData = async (id: number) => {
         try {
-            await axiosInstance.delete(`/api/cart/${id}`)
+            await axiosInstance.delete(`/api/client/cart/items/${id}`)
         } catch (e) {
             notify({message: (e as Error).message});
+        } finally {
+            getCartData();
         }
     }
 
@@ -86,13 +88,13 @@ export const HeaderMid = () => {
                                                                         </a>
                                                                     </div>
                                                                     <div className="shoping-product-details">
-                                                                        <h3><a href="#">{cart?.product?.name}</a></h3>
+                                                                        <h3><a href="#">{cart?.product_name}</a></h3>
                                                                         <div className="price-box">
-                                                                            <span>{cart.product.price * cart.quantity} đ</span>
+                                                                            <span>{cart.total} đ</span>
                                                                         </div>
                                                                         <div className="sizeandcolor">
-                                                                            <span>{cart.variant?.color?.size}</span>
-                                                                            <span>{cart.variant?.color?.name}</span>
+                                                                            <span>{cart.variant?.size}</span>
+                                                                            <span>{cart.variant?.color}</span>
                                                                         </div>
                                                                         <div className="remove">
                                                                             <button title="Xoá khỏi giỏ hàng" onClick={() => deleteCartData(cart.id)}><i

@@ -84,7 +84,90 @@ export const OrdersShow = () => {
                 )}
             >
                 <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
-                    <Col xs={24} lg={12}>
+                    <Col xs={24}>
+                        <Card
+                            title={<Title level={4} style={{ margin: 0 }}>Thông tin giao hàng</Title>}
+                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+                        >
+                            <Row gutter={[16, 16]}>
+                                <Col xs={24}>
+                                    <Title level={5} style={{ marginTop: 0 }}>Thông tin người đặt hàng</Title>
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người đặt</Text>
+                                    <TextField
+                                        value={record?.user?.name || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người đặt</Text>
+                                    <TextField
+                                        value={record?.user?.email || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người đặt</Text>
+                                    <TextField
+                                        value={record?.user?.customer?.phone || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24}>
+                                    <Title level={5} style={{ marginTop: 24 }}>Thông tin người nhận</Title>
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người nhận</Text>
+                                    <TextField
+                                        value={record?.recipient_name || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người nhận</Text>
+                                    <TextField
+                                        value={record?.recipient_phone || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={24}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người nhận</Text>
+                                    <TextField
+                                        value={record?.recipient_email || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={24}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Địa chỉ giao hàng</Text>
+                                    <TextField
+                                        value={record?.shipping_address || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày giao hàng</Text>
+                                    <DateField
+                                        value={record?.shipped_at}
+                                        format="DD/MM/YYYY HH:mm"
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Phương thức thanh toán</Text>
+                                    <TextField
+                                        value={
+                                            record?.payment_method
+                                                ? paymentMethodMap[record.payment_method] || record.payment_method
+                                                : "-"
+                                        }
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
+                            </Row>
+                        </Card>
+                    </Col>
+                    <Col xs={24}>
                         <Card
                             title={<Title level={4} style={{ margin: 0 }}>Thông tin đơn hàng</Title>}
                             style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
@@ -158,70 +241,6 @@ export const OrdersShow = () => {
                                             />
                                         )}
                                     </div>
-                                </Col>
-                            </Row>
-                        </Card>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={<Title level={4} style={{ margin: 0 }}>Thông tin giao hàng</Title>}
-                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
-                        >
-                            <Row gutter={[16, 16]}>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người nhận</Text>
-                                    <TextField
-                                        value={record?.recipient_name || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người nhận</Text>
-                                    <TextField
-                                        value={record?.recipient_phone || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={24}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người nhận</Text>
-                                    <TextField
-                                        value={record?.user?.email || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={24}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Địa chỉ giao hàng</Text>
-                                    <TextField
-                                        value={record?.shipping_address || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày giao hàng</Text>
-                                    <DateField
-                                        value={record?.shipped_at}
-                                        format="DD/MM/YYYY HH:mm"
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày nhận hàng dự kiến</Text>
-                                    <DateField
-                                        value={record?.delivered_at}
-                                        format="DD/MM/YYYY HH:mm"
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Phương thức thanh toán</Text>
-                                    <TextField
-                                        value={
-                                            record?.payment_method
-                                                ? paymentMethodMap[record.payment_method] || record.payment_method
-                                                : "-"
-                                        }
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
                                 </Col>
                             </Row>
                         </Card>
