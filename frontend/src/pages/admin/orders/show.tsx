@@ -6,6 +6,17 @@ import {convertToInt} from "../../../helpers/common";
 
 const { Title, Text } = Typography;
 
+const validTransitions: Record<string, string[]> = {
+    pending: ["confirming", "canceled"],
+    confirming: ["confirmed", "canceled"],
+    confirmed: ["preparing", "canceled"],
+    preparing: ["shipping", "canceled"],
+    shipping: ["delivered", "canceled"],
+    delivered: ["completed"],
+    completed: [],
+    canceled: [],
+};
+
 export const OrdersShow = () => {
     const { queryResult } = useShow({});
     const { data, isLoading } = queryResult;
@@ -45,6 +56,12 @@ export const OrdersShow = () => {
     const handleModalOk = () => {
         form.validateFields()
             .then((values) => {
+                const allowed = validTransitions[record?.order_status] || [];
+                if (!allowed.includes(values.order_status)) {
+                    message.error("Không thể chuyển sang trạng thái này!");
+                    return;
+                }
+
                 return mutate({
                     resource: "orders",
                     id: record?.id,
@@ -56,10 +73,12 @@ export const OrdersShow = () => {
                     },
                 });
             })
-            .catch((errorInfo) => {
+            .catch(() => {
                 message.error("Vui lòng kiểm tra lại thông tin!");
             });
     };
+
+
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
@@ -377,16 +396,24 @@ export const OrdersShow = () => {
                         name="order_status"
                         label="Trạng thái đơn hàng"
                         rules={[{ required: true, message: "Vui lòng chọn trạng thái đơn hàng" }]}
-
                     >
                         <Select placeholder="Chọn trạng thái" style={{ width: "100%" }}>
                             {Object.entries(statusMap).map(([key, { label }]) => (
-                                <Select.Option key={key} value={key}>
+                                <Select.Option
+                                    key={key}
+                                    value={key}
+                                    disabled={
+                                        record?.order_status
+                                            ? !validTransitions[record.order_status]?.includes(key)
+                                            : true // chưa có trạng thái thì disable hết (hoặc chỉnh theo nhu cầu)
+                                    }
+                                >
                                     {label}
                                 </Select.Option>
                             ))}
                         </Select>
                     </Form.Item>
+
                 </Form>
             </Modal>
         </>
