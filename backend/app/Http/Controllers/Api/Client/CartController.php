@@ -62,8 +62,8 @@ class CartController extends Controller
                     'images' => $variant->images->pluck('image_url'),
                 ],
                 'quantity' => $item->quantity,
-                'price' => $item->price,
-                'total' => $item->price * $item->quantity,
+                'price' => $item->product->price ?? 0,
+                'total' => $item->product->price * $item->quantity,
             ];
         });
 
@@ -93,12 +93,10 @@ class CartController extends Controller
             'product_id' => 'required|exists:products,id',
             'variant_id' => 'required|exists:variant_products,id',
             'quantity' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
         ]);
 
         $cart = Cart::firstOrCreate(
-            ['user_id' => $userId],
-            ['total_price' => 0]
+            ['user_id' => $userId]
         );
 
         $item = $cart->items()
@@ -110,26 +108,16 @@ class CartController extends Controller
             $item->quantity += $request->quantity;
             $item->save();
         } else {
-            $item = $cart->items()->create([
+            $cart->items()->create([
                 'product_id' => $request->product_id,
                 'variant_id' => $request->variant_id,
                 'quantity' => $request->quantity,
-                'price' => $request->price,
             ]);
         }
 
-        $cart->load('items');
-        $cart->total_price = $cart->items->sum(fn($item) => $item->price * $item->quantity);
-        $cart->save();
-
         return $this->success($item, 'Thêm sản phẩm vào giỏ hàng thành công');
-
-        // return response()->json([
-        //     'message' => 'Thêm sản phẩm vào giỏ hàng thành công',
-        //     'status' => true,
-        //     'data' => $item,
-        // ]);
     }
+
 
     public function update(Request $request, $itemId)
     {
@@ -149,11 +137,6 @@ class CartController extends Controller
         $item->quantity = $request->quantity;
         $item->save();
 
-        
-        $cart = $item->cart;
-        $cart->load('items');
-        $cart->total_price = $cart->items->sum(fn($i) => $i->price * $i->quantity);
-        $cart->save();
 
         return response()->json([
             'message' => 'Cập nhật số lượng thành công',
@@ -161,7 +144,6 @@ class CartController extends Controller
             'data' => [
                 'item_id' => $item->id,
                 'quantity' => $item->quantity,
-                'total_price' => $cart->total_price,
             ]
         ]);
     }
