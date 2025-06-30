@@ -1,7 +1,7 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Row, Col, Skeleton, Tag, Breadcrumb, Card, Divider } from "antd";
-import {convertDate, convertToInt} from "../../../helpers/common";
+import { convertDate, convertToInt } from "../../../helpers/common";
 
 const { Title, Text } = Typography;
 
@@ -14,10 +14,15 @@ export const VoucherShow = () => {
     if (isLoading) {
         return (
             <Show>
-                <Skeleton active paragraph={{ rows: 4 }} />
+                <Skeleton active paragraph={{ rows: 6 }} />
             </Show>
         );
     }
+
+    // Định dạng ngày bắt đầu
+    const formattedStartDate = record?.start_date
+        ? convertDate(record?.start_date)
+        : "Không có ngày bắt đầu";
 
     // Định dạng ngày hết hạn
     const formattedExpiryDate = record?.expiry_date
@@ -28,6 +33,16 @@ export const VoucherShow = () => {
     const formattedDiscount = record?.discount
         ? `${convertToInt(record.discount)}${record.discount_type === "percentage" ? "%" : " VNĐ"}`
         : "Không có giá trị giảm giá";
+
+    // Định dạng số tiền giảm giá tối đa
+    const formattedMaxDiscountAmount = record?.max_discount_amount
+        ? `${convertToInt(record.max_discount_amount)} VNĐ`
+        : "Không giới hạn";
+
+    // Định dạng số tiền đơn hàng tối thiểu
+    const formattedMinOrderAmount = record?.min_order_amount
+        ? `${convertToInt(record.min_order_amount)} VNĐ`
+        : "Không có tối thiểu";
 
     return (
         <Show
@@ -70,6 +85,24 @@ export const VoucherShow = () => {
                             style={{ fontSize: 16, color: "#000" }}
                         />
                     </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Số tiền giảm giá tối đa
+                        </Title>
+                        <TextField
+                            value={formattedMaxDiscountAmount}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Số tiền đơn hàng tối thiểu
+                        </Title>
+                        <TextField
+                            value={formattedMinOrderAmount}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
                     <Col xs={24} sm={24}>
                         <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                             Mô tả
@@ -85,6 +118,14 @@ export const VoucherShow = () => {
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} md={8}>
                         <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Ngày bắt đầu
+                        </Title>
+                        <Text strong style={{ fontSize: 16, color: "#fa8c16" }}>
+                            {formattedStartDate}
+                        </Text>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                             Ngày hết hạn
                         </Title>
                         <Text strong style={{ fontSize: 16, color: "#fa8c16" }}>
@@ -95,19 +136,12 @@ export const VoucherShow = () => {
                         <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                             Trạng thái
                         </Title>
-                        {record?.status ? (
-                            <Tag
-                                color={record.status === "1" ? "green" : "red"}
-                                style={{ fontSize: 14, padding: "4px 8px" }}
-                            >
-                                {record.status === "1" ? "Hoạt động" : "Không hoạt động"}
-                            </Tag>
-                        ) : (
-                            <TextField
-                                value="Không có trạng thái"
-                                style={{ fontSize: 16, color: "#000" }}
-                            />
-                        )}
+                        <Tag
+                            color={record?.status ? "green" : "red"}
+                            style={{ fontSize: 14, padding: "4px 8px" }}
+                        >
+                            {record?.status ? "Hoạt động" : "Không hoạt động"}
+                        </Tag>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
@@ -117,6 +151,26 @@ export const VoucherShow = () => {
                             value={record?.usage_limit || "Không giới hạn"}
                             style={{ fontSize: 16, color: "#000" }}
                         />
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Giới hạn sử dụng mỗi người
+                        </Title>
+                        <TextField
+                            value={record?.usage_limit_per_user || "Không giới hạn"}
+                            style={{ fontSize: 16, color: "#000" }}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                            Công khai
+                        </Title>
+                        <Tag
+                            color={record?.is_public ? "blue" : "orange"}
+                            style={{ fontSize: 14, padding: "4px 8px" }}
+                        >
+                            {record?.is_public ? "Công khai" : "Riêng tư"}
+                        </Tag>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
