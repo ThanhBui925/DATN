@@ -1,6 +1,5 @@
 import React from "react";
 import {convertToInt} from "../helpers/common";
-import axios from "axios";
 
 export const SingleProduct= ({product}: { product: any }) => {
     return (

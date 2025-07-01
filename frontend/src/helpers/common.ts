@@ -1,4 +1,4 @@
-export function convertToInt(decimal: number): string {
+export function convertToInt(decimal: any) {
     const intValue = Math.floor(decimal);
     return intValue.toLocaleString('vi-VN');
 }
