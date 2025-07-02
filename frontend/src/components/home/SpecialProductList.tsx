@@ -41,7 +41,7 @@ export const SpecialProductList: React.FC = () => {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="section-title-2">
-                            <h2>Week Special Products</h2>
+                            <h2>Sản phẩm đặc biệt</h2>
                         </div>
                     </div>
                 </div>
@@ -51,16 +51,16 @@ export const SpecialProductList: React.FC = () => {
                             <Skeleton active paragraph={{ rows: 4 }} />
                         </div>
                     ) : products.length > 0 ? (
-                        products.map((product) => (
-                            <SingleProduct product={product} key={product.id} />
+                        products.slice(0, 8).map((product) => (
+                            <div className="col-6 col-sm-6 col-md-3 mb-4" key={product.id}>
+                                <SingleProduct product={product} />
+                            </div>
                         ))
                     ) : (
-                        <div className="col-12">Không có sản phẩm nào để hiển thị.</div>
+                        <div className="col-12 text-center">Không có sản phẩm nào để hiển thị.</div>
                     )}
                 </div>
             </div>
         </div>
     );
 };
-
-export default SpecialProductList;
