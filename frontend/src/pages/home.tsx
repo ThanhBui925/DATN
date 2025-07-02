@@ -15,8 +15,8 @@ export const Home = () => {
             <Banner/>
             <FeatureProductList/>
             <SingleBanner/>
-            {/*<SpecialProductList/>*/}
-            {/*<ProductList/>*/}
+            <SpecialProductList/>
+            <ProductList/>
             <NewLetter/>
         </>
     )

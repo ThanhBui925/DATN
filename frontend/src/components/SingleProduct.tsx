@@ -66,12 +66,12 @@ export const SingleProduct= ({product}: { product: any }) => {
 
 
                             <div className="price-box">
-                                <span className="new-price">
-                                    {convertToInt(product.price)} vnđ
+                                <span className="new-price text-original-base">
+                                    {convertToInt(product.price)} đ
                                 </span>
                                 {product.old_price && (
                                     <span className="old-price">
-                                        {convertToInt(product.old_price)} vnđ
+                                        {convertToInt(product.old_price)} đ
                                     </span>
                                 )}
                             </div>
@@ -80,7 +80,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                             <ul className="add-actions-link">
                                 <li className="add-cart">
                                     <Link to="#">
-                                        <i className="ion-android-cart"></i> Thêm vào giỏ hàng
+                                        Xem chi tiết
                                     </Link>
                                 </li>
                                 <li>

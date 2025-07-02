@@ -5,26 +5,31 @@ import {Skeleton} from "antd";
 
 export const ProductList = () => {
     const [recentTab, setRecentTab] = useState<'tab1' | 'tab2' | 'tab3'>('tab1');
+    const [forMan, setForMan] = useState([]);
+    const [forGirl, setForGirl] = useState([]);
+    const [forChildren, setForChildren] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const changeTab = (tab: 'tab1' | 'tab2' | 'tab3') => {
         setRecentTab(tab);
-    }
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
+    };
+
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+            const data = res.data.data || {};
+            setForMan(data.forMan || []);
+            setForGirl(data.forGirl || []);
+            setForChildren(data.forChildren || []);
+        } catch (err) {
+            console.error("Lỗi khi tải sản phẩm:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const res = await axios.get("http://localhost:8000/api/products");
-                setProducts(res.data.data || res.data);
-            } catch (err) {
-                console.error("Lỗi khi tải sản phẩm:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProducts();
     }, []);
 
@@ -36,17 +41,20 @@ export const ProductList = () => {
                         <div className="row">
                             <div className="col">
                                 <div className="section-title-3">
-                                    <h2>For men</h2>
+                                    <h2>Sản phẩm</h2>
                                     <div className="product-tabs-list-2">
-                                        <ul className="nav" role="tablist">
-                                            <li role="presentation" className="active">
-                                                <a onClick={() => {changeTab('tab1')}} className={`${recentTab == 'tab1' && 'active show'}`}>For men</a>
+                                        <ul className="nav">
+                                            <li>
+                                                <a className={recentTab === 'tab1' ? 'text-original-base' : ''}
+                                                   onClick={() => changeTab('tab1')}>Cho nam</a>
                                             </li>
-                                            <li role="presentation">
-                                                <a onClick={() => {changeTab('tab2')}} className={`${recentTab == 'tab2' && 'active show'}`}>For women</a>
+                                            <li>
+                                                <a className={recentTab === 'tab2' ? 'text-original-base' : ''}
+                                                   onClick={() => changeTab('tab2')}>Cho nữ</a>
                                             </li>
-                                            <li role="presentation">
-                                                <a onClick={() => {changeTab('tab3')}} className={`${recentTab == 'tab3' && 'active show'}`}>For kids </a>
+                                            <li>
+                                                <a className={recentTab === 'tab3' ? 'text-original-base' : ''}
+                                                   onClick={() => changeTab('tab3')}>Cho trẻ</a>
                                             </li>
                                         </ul>
                                     </div>
@@ -56,76 +64,72 @@ export const ProductList = () => {
                         <div className="row">
                             <div className="col">
                                 <div className="tab-content">
-                                    {
-                                        recentTab == 'tab1' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            {
-                                                                loading ? (
-                                                                    <Skeleton/>
-                                                                ) : (
-                                                                    products && products.length > 0 && (
-                                                                        products.map((product) => (
-                                                                            <SingleProduct product={product} />
-                                                                        ))
-                                                                    )
-                                                                )
-                                                            }
-                                                        </div>
-                                                       
+                                    {recentTab === 'tab1' && (
+                                        <div id="for-men" className="tab-pane active show" role="tabpanel">
+                                            <div className="row">
+                                                {loading ? (
+                                                    <div className="col-12">
+                                                        <Skeleton/>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    forMan && forMan.length > 0 ? (
+                                                        forMan.slice(0, 4).map((product: any) => (
+                                                            <div className="col-6 col-sm-6 col-md-3 mb-4"
+                                                                 key={product.id}>
+                                                                <SingleProduct product={product}/>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p className="">Không có sản phẩm</p>
+                                                    )
+                                                )}
                                             </div>
-                                        )
-                                    }
-                                    {
-                                        recentTab == 'tab2' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            {
-                                                                loading ? (
-                                                                    <Skeleton/>
-                                                                ) : (
-                                                                    products && products.length > 0 && (
-                                                                        products.map((product) => (
-                                                                            <SingleProduct product={product} />
-                                                                        ))
-                                                                    )
-                                                                )
-                                                            }
-                                                        </div>
+                                        </div>
+                                    )}
+                                    {recentTab === 'tab2' && (
+                                        <div id="for-men" className="tab-pane active show" role="tabpanel">
+                                            <div className="row">
+                                                {loading ? (
+                                                    <div className="col-12">
+                                                        <Skeleton/>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    forGirl && forGirl.length > 0 ? (
+                                                        forGirl.slice(0, 4).map((product: any) => (
+                                                            <div className="col-6 col-sm-6 col-md-3 mb-4"
+                                                                 key={product.id}>
+                                                                <SingleProduct product={product}/>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p className="">Không có sản phẩm</p>
+                                                    )
+                                                )}
                                             </div>
-                                        )
-                                    }
-                                    {
-                                        recentTab == 'tab3' && (
-                                            <div id="for-men" className="tab-pane active show" role="tabpanel">
-                                                <div className="row">
-                                                    <div className="product-active-3 owl-carousel">
-                                                        <div className="col">
-                                                            {
-                                                                loading ? (
-                                                                    <Skeleton/>
-                                                                ) : (
-                                                                    products && products.length > 0 && (
-                                                                        products.map((product) => (
-                                                                            <SingleProduct product={product} />
-                                                                        ))
-                                                                    )
-                                                                )
-                                                            }
-                                                        </div>
+                                        </div>
+                                    )}
+                                    {recentTab === 'tab3' && (
+                                        <div id="for-men" className="tab-pane active show" role="tabpanel">
+                                            <div className="row">
+                                                {loading ? (
+                                                    <div className="col-12">
+                                                        <Skeleton/>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    forChildren && forChildren.length > 0 ? (
+                                                        forChildren.slice(0, 4).map((product: any) => (
+                                                            <div className="col-6 col-sm-6 col-md-3 mb-4"
+                                                                 key={product.id}>
+                                                                <SingleProduct product={product}/>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p className="">Không có sản phẩm</p>
+                                                    )
+                                                )}
                                             </div>
-                                        )
-                                    }
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -138,5 +142,5 @@ export const ProductList = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
