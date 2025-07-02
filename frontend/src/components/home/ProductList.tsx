@@ -1,5 +1,7 @@
 import {SingleProduct} from "../SingleProduct";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import axios from "axios";
+import {Skeleton} from "antd";
 
 export const ProductList = () => {
     const [recentTab, setRecentTab] = useState<'tab1' | 'tab2' | 'tab3'>('tab1');
@@ -7,6 +9,25 @@ export const ProductList = () => {
     const changeTab = (tab: 'tab1' | 'tab2' | 'tab3') => {
         setRecentTab(tab);
     }
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                const res = await axios.get("http://localhost:8000/api/products");
+                setProducts(res.data.data || res.data);
+            } catch (err) {
+                console.error("Lỗi khi tải sản phẩm:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     return (
         <div className="product-area pb-95">
             <div className="container-fluid">
@@ -41,26 +62,19 @@ export const ProductList = () => {
                                                 <div className="row">
                                                     <div className="product-active-3 owl-carousel">
                                                         <div className="col">
-                                                            <SingleProduct/>
+                                                            {
+                                                                loading ? (
+                                                                    <Skeleton/>
+                                                                ) : (
+                                                                    products && products.length > 0 && (
+                                                                        products.map((product) => (
+                                                                            <SingleProduct product={product} />
+                                                                        ))
+                                                                    )
+                                                                )
+                                                            }
                                                         </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
+                                                       
                                                     </div>
                                                 </div>
                                             </div>
@@ -72,25 +86,17 @@ export const ProductList = () => {
                                                 <div className="row">
                                                     <div className="product-active-3 owl-carousel">
                                                         <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
+                                                            {
+                                                                loading ? (
+                                                                    <Skeleton/>
+                                                                ) : (
+                                                                    products && products.length > 0 && (
+                                                                        products.map((product) => (
+                                                                            <SingleProduct product={product} />
+                                                                        ))
+                                                                    )
+                                                                )
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -103,25 +109,17 @@ export const ProductList = () => {
                                                 <div className="row">
                                                     <div className="product-active-3 owl-carousel">
                                                         <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
-                                                        </div>
-                                                        <div className="col">
-                                                            <SingleProduct/>
+                                                            {
+                                                                loading ? (
+                                                                    <Skeleton/>
+                                                                ) : (
+                                                                    products && products.length > 0 && (
+                                                                        products.map((product) => (
+                                                                            <SingleProduct product={product} />
+                                                                        ))
+                                                                    )
+                                                                )
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>

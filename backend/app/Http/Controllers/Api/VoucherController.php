@@ -55,7 +55,7 @@ class VoucherController extends Controller
             $userId = $request->input('user_id');
             $query->where('user_id', $userId);
         }
-        
+
         $vouchers = $query->get();
 
         return $this->success($vouchers, 'Lấy danh sách voucher thành công');
@@ -77,46 +77,13 @@ class VoucherController extends Controller
 
     public function store(StoreVoucherRequest $request)
     {
-        $voucher = Voucher::create([
-        'code' => $request->code,
-        'discount_type' => $request->discount_type,
-        'discount' => $request->discount,
-        'max_discount_amount' => $request->max_discount_amount,
-        'min_order_amount' => $request->min_order_amount,
-        'expiry_date' => $request->expiry_date,
-        'status' => $request->status ?? 1,
-        'description' => $request->description,
-        'usage_limit' => $request->usage_limit,
-        'usage_limit_per_user' => $request->usage_limit_per_user,
-        'usage_count' => 0,
-        'is_public' => 1,
-        ]);
-
-        return $this->success($voucher, 'Tạo mới voucher thành công', 201);
+        return $this->success(Voucher::create($request->all()), 'Tạo mới voucher thành công', 201);
     }
-
-
-
 
     public function update(UpdateVoucherRequest $request, $id)
     {
         $voucher = Voucher::findOrFail($id);
-
-        $voucher->update([
-            'code' => $request->code,
-            'discount_type' => $request->discount_type,
-            'discount' => $request->discount,
-            'max_discount_amount' => $request->max_discount_amount,
-            'min_order_amount' => $request->min_order_amount,
-            'expiry_date' => $request->expiry_date,
-            'status' => $request->status,
-            'description' => $request->description,
-            'usage_limit' => $request->usage_limit,
-            'usage_limit_per_user' => $request->usage_limit_per_user,
-            'applies_to' => $request->applies_to,
-        ]);
-
-        return $this->success($voucher, 'Cập nhật voucher thành công', 201);
+        return $this->success($voucher->update($request->all()), 'Cập nhật voucher thành công', 200);
     }
 
     public function destroy($id)

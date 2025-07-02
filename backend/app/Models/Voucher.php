@@ -11,7 +11,7 @@ class Voucher extends Model
 
     protected $table = 'vouchers';
 
-    
+
     protected $fillable = [
         'code',
         'discount_type',
@@ -35,12 +35,11 @@ class Voucher extends Model
         'usage_limit' => 'integer',
         'usage_limit_per_user' => 'integer',
         'usage_count' => 'integer',
-        'is_public' => 'boolean',
-        'status' => 'boolean',
+//         'is_public' => 'boolean',
+//         'status' => 'boolean',
         'start_date' => 'datetime',
         'expiry_date' => 'datetime',
     ];
-
 
     public function user()
     {

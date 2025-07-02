@@ -38,5 +38,9 @@ class VariantProduct extends Model
     {
         return $this->hasMany(VariantImage::class, 'variant_product_id');
     }
+    public function detail()
+    {
+        return $this->hasOne(VariantDetail::class, 'variant_id');
+    }
 
 }

@@ -13,14 +13,42 @@ use App\Http\Controllers\Api\{
     DashboardController,
     ReviewController,
     BlogController,
-    CartController
+    CartController,
+    CustomerController,
+    ForgotPasswordController
 };
+use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
+use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
+use App\Http\Controllers\Api\Client\CartController as ClientCartController;
+
+
+Route::prefix('client')->group(function () {
+    Route::get('/', [ClientProductController::class, 'index']);
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ClientProductController::class, 'getAllProducts']);
+        Route::get('/{id}', [ClientProductController::class, 'show']);
+    });
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [ClientCategoryController::class, 'index']);
+        Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
+        Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
+        Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
+        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+    });
+});
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/register', 'register');
     Route::middleware('auth:sanctum')->get('/user', 'user');
 });
+
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
 
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::get('/user', [AuthController::class, 'user']);
@@ -67,6 +95,12 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
     Route::put('/{id}/reset-password', 'resetPassword');
     Route::put('/{id}/role', 'updateRole');
 });
+
+Route::apiResource('customers', CustomerController::class)->only([
+    'index', 'store', 'update', 'destroy', 'show'
+]);
+
+
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
 Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);

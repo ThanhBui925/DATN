@@ -2747,6 +2747,7 @@ body {
 .coupon-info p.coupon-input {
   margin: 0 0 10px;
 }
+
 .coupon-info p.form-row-first{
   float: left;
   width: 47%;
@@ -3950,4 +3951,12 @@ thead {
 }
 .comment-form-submit .comment-submit:hover {
   background: #EB3E32;
+}
+
+.text-original-base {
+  color: #eb3e32 !important;
+}
+
+.bg-original-base {
+  background-color: #eb3e32 !important;
 }

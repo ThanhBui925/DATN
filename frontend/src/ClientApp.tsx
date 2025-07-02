@@ -14,6 +14,7 @@ import {Shop} from "./pages/shop";
 import {Cart} from "./pages/cart";
 import {Checkout} from "./pages/checkout";
 
+
 export const ClientApp = () => {
     return (
         <Routes>
@@ -25,6 +26,7 @@ export const ClientApp = () => {
                 <Route path="quen-mat-khau" element={<ForgotPassword />} />
 
                 <Route path="chi-tiet-san-pham/:id" element={<DetailProductPage />} />
+                
                 <Route path="bai-viet" element={<ListBlogPage />} />
                 <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
                 <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
@@ -36,6 +38,8 @@ export const ClientApp = () => {
 
                 <Route path="gio-hang" element={<Cart />} />
                 <Route path="thanh-toan" element={<Checkout />} />
+
+           
 
             </Route>
         </Routes>

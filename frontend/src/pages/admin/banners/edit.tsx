@@ -178,6 +178,18 @@ export const BannerEdit: React.FC<IResourceComponentsProps> = () => {
                         <Form.Item
                             label="Ngày kết thúc"
                             name="end_date"
+                            dependencies={['start_date']}
+                            rules={[
+                                ({ getFieldValue }) => ({
+                                    validator(_, value) {
+                                        const startDate = getFieldValue('start_date');
+                                        if (value && startDate && value < startDate) {
+                                            return Promise.reject("Ngày kết thúc phải sau ngày bắt đầu!");
+                                        }
+                                        return Promise.resolve();
+                                    }
+                                })
+                            ]}
                         >
                             <DatePicker
                                 showTime

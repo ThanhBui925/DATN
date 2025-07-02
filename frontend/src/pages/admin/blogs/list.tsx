@@ -114,9 +114,9 @@ export const BlogPostList = () => {
                         if (!value) return null;
 
                         const statusMap: Record<string, { color: string; label: string }> = {
-                            published: { color: "green", label: "Công khai" },
-                            draft: { color: "red", label: "Nháp" },
-                            private: { color: "blue", label: "Riêng tư" },
+                            1: { color: "green", label: "Công khai" },
+                            0: { color: "red", label: "Nháp" },
+                            2: { color: "blue", label: "Riêng tư" },
                         };
 
                         const status = statusMap[value];
