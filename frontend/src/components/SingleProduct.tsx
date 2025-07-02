@@ -4,7 +4,7 @@ import {Link} from "react-router-dom";
 
 export const SingleProduct= ({product}: { product: any }) => {
     return (
-        <div className="product-list-area" style={{padding: "40px"}}>
+        <div className="product-list-area p-2 p-md-3">
             <div className="product-grid">
                 <div className="single-product-wrap" key={product.id}>
                     <div className="product-image">
@@ -13,6 +13,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 className="primary-image"
                                 src={product.image || "/img/default.jpg"}
                                 alt={product.name}
+                                style={{width: "100%", height: "250px", objectFit: "cover"}}
                             />
                             <img
                                 className="secondary-image"
@@ -22,6 +23,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                                     "/img/default.jpg"
                                 }
                                 alt={product.name}
+                                style={{width: "100%", height: "250px", objectFit: "cover"}}
                             />
                         </Link>
                         <div className="label-product">-10% off</div>
@@ -78,7 +80,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                             <ul className="add-actions-link">
                                 <li className="add-cart">
                                     <Link to="#">
-                                        <i className="ion-android-cart"></i> Thêm vào giỏ
+                                        <i className="ion-android-cart"></i> Thêm vào giỏ hàng
                                     </Link>
                                 </li>
                                 <li>

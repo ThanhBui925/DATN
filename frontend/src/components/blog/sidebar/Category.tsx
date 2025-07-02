@@ -1,7 +1,7 @@
 export const Category = () => {
     return (
         <div className="single-categories-1">
-            <h3 className="blog-categorie-title">Categories</h3>
+            <h3 className="blog-categorie-title">Danh mục bài viết</h3>
             <div className="single-categories-blog">
                 <ul>
                     <li><a href="#">Creative</a> <span>(3)</span></li>

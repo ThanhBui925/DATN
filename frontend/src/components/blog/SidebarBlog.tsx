@@ -3,10 +3,13 @@ import {Category} from "./sidebar/Category";
 import {RecentBlog} from "./sidebar/RecentBlog";
 import {Tag} from "./sidebar/Tag";
 
-export const SidebarBlog = () => {
+interface SidebarBlogProps {
+    onSearch: (keyword: string) => void;
+}
+export const SidebarBlog = ({ onSearch }: SidebarBlogProps) => {
     return (
         <div className="col-lg-3 order-2 order-lg-1">
-            <Search/>
+            <Search onSearch={onSearch} />
             <Category/>
             <RecentBlog/>
             <Tag/>
