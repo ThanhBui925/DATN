@@ -2,7 +2,8 @@ import {Link} from "react-router-dom";
 import {useEffect, useState} from "react";
 import useNotify from "../Notification";
 import {axiosInstance} from "../../utils/axios";
-import {Skeleton} from "antd";
+import {notification, Skeleton} from "antd";
+import {convertToInt} from "../../helpers/common";
 
 export const HeaderMid = () => {
 
@@ -40,6 +41,7 @@ export const HeaderMid = () => {
     const deleteCartData = async (id: number) => {
         try {
             await axiosInstance.delete(`/api/client/cart/items/${id}`)
+            notification.success({ message: "Sản phẩm đã được xóa khỏi giỏ hàng !"})
         } catch (e) {
             notify({message: (e as Error).message});
         } finally {
@@ -69,7 +71,7 @@ export const HeaderMid = () => {
                                                     <span className="item-cont">{ cartData.items.length ?? 0 }</span>
                                                     Giỏ hàng
                                                 </span>
-                                        <div className="item-total">{ cartData.total + ' đ' }</div>
+                                        <div className="item-total">{ convertToInt(cartData.total) + ' đ' }</div>
                                     </Link>
                                     <ul className="shopping-cart-wrapper">
                                         {
@@ -83,14 +85,14 @@ export const HeaderMid = () => {
                                                                 <li>
                                                                     <div className="shoping-cart-image">
                                                                         <a href="#">
-                                                                            <img src="/img/small-product/1.jpg" alt=""/>
+                                                                            <img src={cart?.variant?.images[0]} style={{ height: 100, width: 100}} alt=""/>
                                                                             <span className="product-quantity">{cart.quantity}x</span>
                                                                         </a>
                                                                     </div>
                                                                     <div className="shoping-product-details">
                                                                         <h3><a href="#">{cart?.product_name}</a></h3>
                                                                         <div className="price-box">
-                                                                            <span>{cart.total} đ</span>
+                                                                            <span>{convertToInt(cart.total)} đ</span>
                                                                         </div>
                                                                         <div className="sizeandcolor">
                                                                             <span>{cart.variant?.size}</span>
@@ -108,7 +110,7 @@ export const HeaderMid = () => {
                                                         <li>
                                                             <div className="cart-subtotals">
                                                                 <h5>Tổng tiền sản phẩm<span
-                                                                    className="float-right"> {cartData.total} đ</span></h5>
+                                                                    className="float-right"> {convertToInt(cartData.total)} đ</span></h5>
                                                                 <h5>Phí ship<span className="float-right"> ... </span>
                                                                 </h5>
                                                                 <h5>VAT<span className="float-right"> ... </span></h5>

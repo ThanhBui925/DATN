@@ -125,6 +125,7 @@ export const Cart = () => {
                                                             <img
                                                                 src={cart?.variant?.images[0] || "/img/default.jpg"}
                                                                 alt={cart.product_name}
+                                                                style={{ height: "150px", width: "200px"}}
                                                             />
                                                         </a>
                                                     </td>
