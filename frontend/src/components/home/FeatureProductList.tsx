@@ -12,7 +12,7 @@ export const FeatureProductList = () => {
     const fetchNewArrivalProducts = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/new-arrival-product');
             setNewArrivalProducts(res.data.data || []);
         } catch (err) {
             console.error("Lỗi khi tải sản phẩm:", err);
@@ -24,7 +24,7 @@ export const FeatureProductList = () => {
     const fetchBestSeller = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/best-seller-product');
             setBestSellerProduct(res.data.data || []);
         } catch (err) {
             console.error("Lỗi khi tải sản phẩm:", err);
@@ -36,7 +36,7 @@ export const FeatureProductList = () => {
     const fetchFeatureProduct = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/feature-product');
             setFeatureProducts(res.data.data || []);
         } catch (err) {
             console.error("Lỗi khi tải sản phẩm:", err);
@@ -104,8 +104,8 @@ export const FeatureProductList = () => {
                                     </div>
                                 ) : (
                                     newArrivalProducts && newArrivalProducts.length > 0 && (
-                                        newArrivalProducts.map((product: any) => (
-                                            <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
+                                        newArrivalProducts.slice(0,4).map((product: any) => (
+                                            <div className="col-6 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
                                                 <SingleProduct product={product}/>
                                             </div>
                                         ))
@@ -123,8 +123,8 @@ export const FeatureProductList = () => {
                                     </div>
                                 ) : (
                                     bestSellerProduct && bestSellerProduct.length > 0 && (
-                                        bestSellerProduct.map((product: any) => (
-                                            <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
+                                        bestSellerProduct.slice(0,4).map((product: any) => (
+                                            <div className="col-6 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
                                                 <SingleProduct product={product}/>
                                             </div>
                                         ))
@@ -142,8 +142,8 @@ export const FeatureProductList = () => {
                                     </div>
                                 ) : (
                                     featureProducts && featureProducts.length > 0 && (
-                                        featureProducts.map((product: any) => (
-                                            <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
+                                        featureProducts.slice(0,4).map((product: any) => (
+                                            <div className="col-6 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
                                                 <SingleProduct product={product}/>
                                             </div>
                                         ))
