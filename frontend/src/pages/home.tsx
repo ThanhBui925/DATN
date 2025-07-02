@@ -13,9 +13,9 @@ export const Home = () => {
             <Slider/>
             <OurService/>
             <Banner/>
-            <FeatureProductList/>
+            {/*<FeatureProductList/>*/}
             <SingleBanner/>
-            {/*<SpecialProductList/>*/}
+            <SpecialProductList/>
             {/*<ProductList/>*/}
             <NewLetter/>
         </>

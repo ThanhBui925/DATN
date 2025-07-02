@@ -1,6 +1,6 @@
 import React from "react";
 import {convertToInt} from "../helpers/common";
-import axios from "axios";
+import {Link} from "react-router-dom";
 
 export const SingleProduct= ({product}: { product: any }) => {
     return (
@@ -8,7 +8,7 @@ export const SingleProduct= ({product}: { product: any }) => {
             <div className="product-grid">
                 <div className="single-product-wrap" key={product.id}>
                     <div className="product-image">
-                        <a href={`/chi-tiet-san-pham/${product.id}`}>
+                        <Link to={`/chi-tiet-san-pham/${product.id}`}>
                             <img
                                 className="primary-image"
                                 src={product.image || "/img/default.jpg"}
@@ -23,7 +23,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 }
                                 alt={product.name}
                             />
-                        </a>
+                        </Link>
                         <div className="label-product">-10% off</div>
                     </div>
 
@@ -49,12 +49,12 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 </ul>
                             </div>
                             <h4>
-                                <a
+                                <Link
                                     className="product_name"
-                                    href={`/chi-tiet-san-pham/${product.id}`}
+                                    to={`/chi-tiet-san-pham/${product.id}`}
                                 >
                                     {product.name}
-                                </a>
+                                </Link>
                             </h4>
 
 
@@ -77,9 +77,9 @@ export const SingleProduct= ({product}: { product: any }) => {
                         <div className="add-actions">
                             <ul className="add-actions-link">
                                 <li className="add-cart">
-                                    <a href="#">
+                                    <Link to="#">
                                         <i className="ion-android-cart"></i> Thêm vào giỏ
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
                                     <a
