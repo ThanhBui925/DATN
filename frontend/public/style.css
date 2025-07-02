@@ -3960,3 +3960,10 @@ thead {
 .bg-original-base {
   background-color: #eb3e32 !important;
 }
+
+@media screen and (max-width: 768px) {
+  .single-service {
+      justify-content: start;
+      margin-left: 50px;
+  }
+}
