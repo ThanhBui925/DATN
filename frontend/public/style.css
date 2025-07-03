@@ -3967,3 +3967,27 @@ thead {
       margin-left: 50px;
   }
 }
+
+@media (max-width: 576px) {
+  .slider-wrapper {
+    height: 320px;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+  .slider-wrapper {
+    height: 400px;
+  }
+}
+
+@media (min-width: 993px) and (max-width: 1400px) {
+  .slider-wrapper {
+    height: 500px;
+  }
+}
+
+@media (min-width: 1401px) {
+  .slider-wrapper {
+    height: 500px;
+  }
+}

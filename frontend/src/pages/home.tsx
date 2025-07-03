@@ -5,12 +5,12 @@ import {SingleBanner} from "../components/home/SingleBanner";
 import {SpecialProductList} from "../components/home/SpecialProductList";
 import {NewLetter} from "../components/home/NewLetter";
 import {ProductList} from "../components/home/ProductList";
-import {Slider} from "../components/home/Slider";
+import {SliderBanner} from "../components/home/SliderBanner";
 
 export const Home = () => {
     return (
         <>
-            <Slider/>
+            <SliderBanner/>
             <OurService/>
             <Banner/>
             <FeatureProductList/>

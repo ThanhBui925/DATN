@@ -1,54 +1,13 @@
 export const Sidebar = () => {
     return (
         <div className="col-lg-3 order-2 order-lg-1">
-            <div className="sidebar-categores-box mt-95">
-                <div className="sidebar-title">
-                    <h2>For men</h2>
-                </div>
-                <div className="category-sub-menu">
-                    <ul>
-                        <li className="has-sub"><a href="# ">Jackets</a>
-                            <ul>
-                                <li><a href="#">Florals</a></li>
-                                <li><a href="#">Shirts</a></li>
-                                <li><a href="#">Shorts</a></li>
-                                <li><a href="#">Stripes</a></li>
-                            </ul>
-                        </li>
-                        <li className="has-sub"><a href="#">Jeans</a>
-                            <ul>
-                                <li><a href="#">Hoodies</a></li>
-                                <li><a href="#">Sweaters</a></li>
-                                <li><a href="#">Vests</a></li>
-                                <li><a href="#">Wedges</a></li>
-                            </ul>
-                        </li>
-                        <li className="has-sub"><a href="#">Men</a>
-                            <ul>
-                                <li><a href="#">Crochet</a></li>
-                                <li><a href="#">Dresses</a></li>
-                                <li><a href="#"> Jeans</a></li>
-                                <li><a href="#">Trousers</a></li>
-                            </ul>
-                        </li>
-                        <li className="has-sub"><a href="#">Women</a>
-                            <ul>
-                                <li><a href="#">Casual</a></li>
-                                <li><a href="#">Chinos</a></li>
-                                <li><a href="#">Joggers</a></li>
-                                <li><a href="#">Tailored</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            </div>
             <div className="sidebar-categores-box">
                 <div className="sidebar-title">
-                    <h2>Filter By</h2>
+                    <h2>Bộ lọc</h2>
                 </div>
-                <button className="btn-clear-all">Clear all</button>
+                <button className="btn-clear-all">Xóa tất cả</button>
                 <div className="filter-sub-area">
-                    <h5 className="filter-sub-titel">Price</h5>
+                    <h5 className="filter-sub-titel">Lọc theo giá</h5>
                     <div className="price-checkbox">
                         <form action="#">
                             <ul>
@@ -65,7 +24,7 @@ export const Sidebar = () => {
                     </div>
                 </div>
                 <div className="filter-sub-area">
-                    <h5 className="filter-sub-titel">Size</h5>
+                    <h5 className="filter-sub-titel">Lọc theo kích cỡ</h5>
                     <div className="size-checkbox">
                         <form action="#">
                             <ul>
@@ -77,7 +36,7 @@ export const Sidebar = () => {
                     </div>
                 </div>
                 <div className="filter-sub-area">
-                    <h5 className="filter-sub-titel">Color</h5>
+                    <h5 className="filter-sub-titel">Lọc theo màu sắc</h5>
                     <div className="color-categoriy">
                         <form action="#">
                             <ul>
@@ -90,7 +49,7 @@ export const Sidebar = () => {
                     </div>
                 </div>
                 <div className="filter-sub-area">
-                    <h5 className="filter-sub-titel">Compositions</h5>
+                    <h5 className="filter-sub-titel">Lọc theo danh mục</h5>
                     <div className="categori-checkbox">
                         <form action="#">
                             <ul>
