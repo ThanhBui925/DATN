@@ -92,7 +92,7 @@ export const HeaderMid = () => {
                                                                     <div className="shoping-product-details">
                                                                         <h3><a href="#">{cart?.product_name}</a></h3>
                                                                         <div className="price-box">
-                                                                            <span>{convertToInt(cart.total)} đ</span>
+                                                                            <span className={`text-dark`}>{cart.quantity} x</span><span> {convertToInt(cart.price)} đ</span>
                                                                         </div>
                                                                         <div className="sizeandcolor">
                                                                             <span>{cart.variant?.size}</span>
@@ -108,19 +108,13 @@ export const HeaderMid = () => {
                                                             ))
                                                         }
                                                         <li>
-                                                            <div className="cart-subtotals">
-                                                                <h5>Tổng tiền sản phẩm<span
-                                                                    className="float-right"> {convertToInt(cartData.total)} đ</span></h5>
-                                                                <h5>Phí ship<span className="float-right"> ... </span>
-                                                                </h5>
-                                                                <h5>VAT<span className="float-right"> ... </span></h5>
-                                                                <h5>Tổng thanh toán<span
-                                                                    className="float-right">...</span></h5>
+                                                            <div className="d-flex justify-content-between" style={{ fontSize: 16}}>
+                                                                <span className={`fw-bold`}>Tổng tiền sản phẩm:</span>
+                                                                <span className="text-original-base fw-bold"> {convertToInt(cartData.total)}đ</span>
                                                             </div>
                                                         </li>
                                                         <li className="shoping-cart-btn">
-                                                            <Link className="checkout-btn" to="/thanh-toan">Thanh
-                                                                toán</Link>
+                                                            <Link className="checkout-btn" to="/gio-hang">Xem giỏ hàng</Link>
                                                         </li>
                                                     </>
                                                 ) : (

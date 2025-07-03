@@ -13,10 +13,10 @@ export const Home = () => {
             <Slider/>
             <OurService/>
             <Banner/>
-            {/*<FeatureProductList/>*/}
+            <FeatureProductList/>
             <SingleBanner/>
             <SpecialProductList/>
-            {/*<ProductList/>*/}
+            <ProductList/>
             <NewLetter/>
         </>
     )
