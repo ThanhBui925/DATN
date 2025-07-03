@@ -1,6 +1,23 @@
-import {Link} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export const Navbar = () => {
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState("");
+
+    useEffect(() => {
+        const path = location.pathname;
+        if (path === "/trang-chu") setActiveTab("/trang-chu");
+        else if (path === "/bai-viet") setActiveTab("/bai-viet");
+        else if (path === "/lien-he") setActiveTab("/lien-he");
+        else if (path === "/danh-muc-san-pham") setActiveTab("/danh-muc-san-pham");
+        else if (path === "/ve-chung-toi") setActiveTab("/ve-chung-toi");
+    }, [location]);
+
+    const handleTabClick = (tab: any) => {
+        setActiveTab(tab);
+    };
+
     return (
         <>
             <div className="row">
@@ -8,8 +25,11 @@ export const Navbar = () => {
                     <div className="main-menu-area">
                         <nav>
                             <ul>
-                                <li className="active"><Link to="/trang-chu">Trang chủ</Link></li>
-                                <li><a href="#">Danh mục sản phẩm<i className="ion-ios-arrow-down"></i></a>
+                                <li className={activeTab === "/trang-chu" ? "active" : ""}>
+                                    <Link to="/trang-chu" onClick={() => handleTabClick("/trang-chu")}>Trang chủ</Link>
+                                </li>
+                                <li className={activeTab === "/danh-muc-san-pham" ? "active" : ""}>
+                                    <a href="#">Danh mục sản phẩm<i className="ion-ios-arrow-down"></i></a>
                                     <ul className="mega-menu">
                                         <li><a href="#">Giày thể thao</a>
                                             <ul>
@@ -35,14 +55,23 @@ export const Navbar = () => {
                                                 <li><a href="single-product.html">Mizuno</a></li>
                                             </ul>
                                         </li>
-                                        <li><Link to="danh-muc-san-pham">Xem tất cả</Link></li>
+                                        <li>
+                                            <Link to="/danh-muc-san-pham" onClick={() => handleTabClick("/danh-muc-san-pham")}>
+                                                Xem tất cả
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </li>
-                                <li><a href="#">Giới thiệu<i className="ion-ios-arrow-down"></i></a>
+                                <li className={activeTab === "/ve-chung-toi" ? "active" : ""}>
+                                    <a href="#">Giới thiệu<i className="ion-ios-arrow-down"></i></a>
                                     <ul className="mega-menu">
                                         <li><a href="#">Giới thiệu</a>
                                             <ul>
-                                            <li><Link to="/ve-chung-toi">Về chúng tôi</Link></li>
+                                                <li>
+                                                    <Link to="/ve-chung-toi" onClick={() => handleTabClick("/ve-chung-toi")}>
+                                                        Về chúng tôi
+                                                    </Link>
+                                                </li>
                                                 <li><a href="shop-right.html">Thương hiệu đồng hành</a></li>
                                             </ul>
                                         </li>
@@ -60,8 +89,12 @@ export const Navbar = () => {
                                         </li>
                                     </ul>
                                 </li>
-                                <li><Link to="/bai-viet">Bài viết</Link></li>
-                                <li><Link to="/lien-he">Liên hệ</Link></li>
+                                <li className={activeTab === "/bai-viet" ? "active" : ""}>
+                                    <Link to="/bai-viet" onClick={() => handleTabClick("/bai-viet")}>Bài viết</Link>
+                                </li>
+                                <li className={activeTab === "/lien-he" ? "active" : ""}>
+                                    <Link to="/lien-he" onClick={() => handleTabClick("/lien-he")}>Liên hệ</Link>
+                                </li>
                             </ul>
                         </nav>
                     </div>
@@ -87,7 +120,8 @@ export const Navbar = () => {
                         <div className="mobile-menu">
                             <nav id="mobile-menu-active">
                                 <ul>
-                                    <li className="active"><a href="#">Home</a>
+                                    <li className={activeTab === "/trang-chu" ? "active" : ""}>
+                                        <a href="#" onClick={() => handleTabClick("/trang-chu")}>Home</a>
                                         <ul className="dropdown_menu">
                                             <li><a href="index.html">Home Page 1</a></li>
                                             <li><a href="index-2.html">Home Page 2</a></li>
@@ -169,5 +203,5 @@ export const Navbar = () => {
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
