@@ -11,9 +11,7 @@ const ClientLayout = () => {
     useEffect(() => {
         const scripts = [
             "/js/vendor/jquery-3.5.1.min.js",
-            "/js/vendor/jquery-migrate-3.3.0.min.js",
             "/js/bootstrap.min.js",
-            "/js/owl.carousel.min.js",
             "/js/jquery.mainmenu.js",
             "/js/ajax-email.js",
             "/js/plugins.js",
