@@ -4,8 +4,11 @@ import { Header } from "../components/header/Header";
 import { Footer } from "../components/footer/Footer";
 import { Modal } from "../components/modal/Modal";
 import { Helmet } from 'react-helmet-async';
+import {HeaderTop} from "../components/header/HeaderTop";
+import {HeaderMid} from "../components/header/HeaderMid";
+import {HeaderBottom} from "../components/header/HeaderBottom";
 
-const ClientLayout = () => {
+const ClientLayout2 = () => {
     const location = useLocation();
 
     useEffect(() => {
@@ -50,15 +53,17 @@ const ClientLayout = () => {
             </Helmet>
 
             <div className="wrapper">
-                <Header />
+                <header>
+                    <HeaderTop/>
+                </header>
                 <main>
-                    <Outlet />
+                    <Outlet/>
                 </main>
-                <Footer />
+                <Footer/>
                 <Modal />
             </div>
         </>
     );
 };
 
-export default ClientLayout;
+export default ClientLayout2;

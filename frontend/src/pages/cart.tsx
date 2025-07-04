@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { notification, Skeleton } from "antd";
-import { Breadcrumb } from "../components/Breadcrumb";
 import { convertToInt } from "../helpers/common";
 import { axiosInstance } from "../utils/axios";
 
@@ -12,11 +11,6 @@ export const Cart = () => {
     });
 
     const [loading, setLoading] = useState(true);
-
-    const breadcrumb = {
-        breadcrumb1: "Trang chủ",
-        breadcrumb2: "Giỏ hàng",
-    };
 
     const getCartData = async () => {
         setLoading(true);
@@ -85,7 +79,20 @@ export const Cart = () => {
 
     return (
         <>
-            <Breadcrumb {...breadcrumb} />
+            <div className="breadcrumb-area bg-gray">
+                <div className="container-fluid">
+                    <div className="row">
+                        <div className="col-lg-12">
+                            <div className="d-flex gap-4">
+                                <a className={`d-sm-block d-none`} href="/trang-chu">
+                                    <img className={`mt-2`} src="/img/logo/logo.png" alt=""/>
+                                </a>
+                                <h1 className="cE_Tbx text-original-base">Giỏ hàng</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="content-wraper mt-95">
                 <div className="container-fluid">
                     <div className="row">
@@ -98,7 +105,7 @@ export const Cart = () => {
                                         <table className="table">
                                             <thead>
                                             <tr>
-                                                <th className="plantmore-product-remove">Xóa</th>
+                                            <th className="plantmore-product-remove">Xóa</th>
                                                 <th className="plantmore-product-thumbnail">Hình ảnh</th>
                                                 <th className="cart-product-name">Sản phẩm</th>
                                                 <th className="plantmore-product-price">Đơn giá</th>
@@ -160,27 +167,7 @@ export const Cart = () => {
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div className="row">
-                                        <div className="col-12">
-                                            <div className="coupon-all">
-                                                <div className="coupon">
-                                                    <input
-                                                        id="coupon_code"
-                                                        className="input-text"
-                                                        name="coupon_code"
-                                                        placeholder="Mã giảm giá"
-                                                        type="text"
-                                                    />
-                                                    <input
-                                                        className="button"
-                                                        name="apply_coupon"
-                                                        value="Áp dụng mã"
-                                                        type="button"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                     <div className="row">
                                         <div className="col-md-5 ml-auto">
                                             <div className="cart-page-total">

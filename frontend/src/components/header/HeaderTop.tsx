@@ -1,4 +1,25 @@
+import {axiosInstance} from "../../utils/axios";
+import {Link} from "react-router-dom";
+import {notification} from "antd";
+import {TOKEN_KEY} from "../../providers/authProvider";
+
 export const HeaderTop = () => {
+
+    const isAuth = localStorage.getItem(TOKEN_KEY) || false;
+    const handleLogout = async () => {
+        try {
+            const res = await axiosInstance.post('/api/logout')
+            if (res.data.success) {
+                localStorage.removeItem(TOKEN_KEY);
+                notification.success({message: "Đăng xuất thành công"})
+            } else {
+                notification.error({message: "Không thể đăng xuất"})
+            }
+        } catch (e) {
+            notification.error({message: (e as Error).message})
+        }
+    }
+
     return (
             <div className="header-top bg-black">
                 <div className="container-fluid">
@@ -29,14 +50,20 @@ export const HeaderTop = () => {
                                                 <li><a href="#"><img src="img/icon/p-2.jpg" alt=""/> Français</a></li>
                                             </ul>
                                         </li>
-                                        {/*<li className="drodown-show"><a href="#"> Setting <i*/}
-                                        {/*    className="fa fa-angle-down"></i></a>*/}
-                                        {/*    <ul className="open-dropdown setting">*/}
-                                        {/*        <li><a href="my-account.html">My account</a></li>*/}
-                                        {/*        <li><a href="checkout.html">Checkout</a></li>*/}
-                                        {/*        <li><a href="login-register.html">Sign in</a></li>*/}
-                                        {/*    </ul>*/}
-                                        {/*</li>*/}
+                                        {
+                                            isAuth ? (
+                                                <li className="drodown-show"><a href="#"> LeeHieu123 <i
+                                                    className="fa fa-angle-down"></i></a>
+                                                    <ul className="open-dropdown setting">
+                                                        <li><a href="my-account.html">Tài khoản của tôi</a></li>
+                                                        <li><a href="checkout.html">Đơn mua</a></li>
+                                                        <li><Link to={'#'} onClick={handleLogout}>Đăng xuất</Link></li>
+                                                    </ul>
+                                                </li>
+                                            ) : (
+                                                <li><Link to="/dang-nhap"> Đăng nhập </Link></li>
+                                            )
+                                        }
                                     </ul>
                                 </div>
                             </div>

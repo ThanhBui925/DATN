@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Header } from "../components/header/Header";
 import { Footer } from "../components/footer/Footer";
 import { Modal } from "../components/modal/Modal";
 import { Helmet } from 'react-helmet-async';
 
-const ClientLayout = () => {
+const AuthLayout = () => {
     const location = useLocation();
 
     useEffect(() => {
@@ -50,15 +49,14 @@ const ClientLayout = () => {
             </Helmet>
 
             <div className="wrapper">
-                <Header />
                 <main>
-                    <Outlet />
+                    <Outlet/>
                 </main>
-                <Footer />
+                <Footer/>
                 <Modal />
             </div>
         </>
     );
 };
 
-export default ClientLayout;
+export default AuthLayout;

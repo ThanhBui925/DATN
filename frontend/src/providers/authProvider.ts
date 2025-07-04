@@ -1,5 +1,6 @@
 import type { AuthProvider } from "@refinedev/core";
 import {axiosInstance} from "../utils/axios";
+import { notification} from "antd";
 
 export const TOKEN_KEY = "authentication_token";
 
@@ -13,16 +14,16 @@ export const authProvider: AuthProvider = {
         axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
         localStorage.setItem("role", response.data.user.role);
         if (response.data.user.role === 'admin') {
+          notification.success({message: 'Đăng nhập trị viên thành công'})
           return {
             success: true,
             redirectTo: "/admin/dashboard",
-            mesage: response.data.mesage || "Đăng nhập trị viên thành công",
           };
         } else {
+          notification.success({message: 'Đăng nhập thành công'})
           return {
             success: true,
             redirectTo: "/trang-chu",
-            mesage: response.data.mesage || "Đăng nhập thành công",
           };
         }
       } catch (error) {
@@ -40,6 +41,21 @@ export const authProvider: AuthProvider = {
   },
   logout: async () => {
     localStorage.removeItem(TOKEN_KEY);
+    try {
+      const res = await axiosInstance.post('/api/logout')
+      if (res.data.success) {
+        localStorage.removeItem(TOKEN_KEY);
+        notification.success({message: "Đăng xuất thành công"})
+        return {
+          success: true,
+          redirectTo: "/dang-nhap",
+        };
+      } else {
+        notification.error({message: "Không thể đăng xuất"})
+      }
+    } catch (e) {
+      notification.error({message: (e as Error).message})
+    }
     return {
       success: true,
       redirectTo: "/dang-nhap",
