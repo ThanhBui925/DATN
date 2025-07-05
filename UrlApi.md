@@ -32,6 +32,7 @@ http://localhost:8000/api/orders/{id}/detail -> GET : Xem chi tiết đơn hàng
 http://localhost:8000/api/orders/{id}/pdf -> GET : Xuất ra file pdf của đơn hàng
 
 // ĐƠN HÀNG (CLIENT)
+// ĐƠN HÀNG (CLIENT)
 http://localhost:8000/api/client/orders -> GET : Lấy danh sách đơn hàng của user hiện tại
 http://localhost:8000/api/client/orders -> POST : Tạo đơn hàng mới từ giỏ hàng
 http://localhost:8000/api/client/orders/{id} -> GET : Xem chi tiết đơn hàng của user
