@@ -51,10 +51,13 @@ class UpdateOrderStatusRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $order = $this->route('id') 
-                ? \App\Models\Order::find($this->route('id')) 
-                : null;
+            $orderId = $this->route('id');
+            if (!$orderId) {
+                $validator->errors()->add('order', 'ID đơn hàng không hợp lệ.');
+                return;
+            }
 
+            $order = \App\Models\Order::find($orderId);
             if (!$order) {
                 $validator->errors()->add('order', 'Không tìm thấy đơn hàng.');
                 return;

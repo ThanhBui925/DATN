@@ -85,9 +85,9 @@ Route::prefix('orders')->controller(OrderController::class)->group(function () {
     Route::get('/', 'index');
     Route::post('/', 'store');
     Route::get('/search', 'searchByProduct');
-    Route::put('/{id}', 'updateStatus');
-    Route::get('/{id}', 'show');
     Route::get('/{id}/pdf', 'generatePDF');
+    Route::get('/{id}', 'show');
+    Route::put('/{id}', 'updateStatus');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {

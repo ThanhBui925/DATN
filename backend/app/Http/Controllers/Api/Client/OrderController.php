@@ -14,9 +14,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Traits\ApiResponseTrait;
-use App\Models\Size;
-use App\Models\Color;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreOrderRequest;
 
 class OrderController extends Controller
 {
@@ -28,7 +27,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
@@ -55,28 +54,12 @@ class OrderController extends Controller
     /**
      * Tạo đơn hàng mới
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
         $user = $request->user();
-        
+
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.variant_id' => 'nullable|exists:variant_products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'shipping_address' => 'required|string',
-            'recipient_name' => 'required|string',
-            'recipient_phone' => 'required|string',
-            'payment_method' => 'required|in:cash,cod,online',
-            'voucher_code' => 'nullable|string|exists:vouchers,code',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse('Dữ liệu không hợp lệ', $validator->errors(), 422);
         }
 
         DB::beginTransaction();
@@ -102,7 +85,7 @@ class OrderController extends Controller
                 // Kiểm tra tồn kho
                 $availableStock = $variant ? $variant->stock : $product->stock;
                 if ($availableStock < $item['quantity']) {
-                    throw new \Exception("Sản phẩm {$product->name} không đủ tồn kho");
+                    throw new \Exception("Sản phẩm {$product->name} không đủ tồn kho (Có: {$availableStock}, Cần: {$item['quantity']})");
                 }
 
                 $itemPrice = $variant ? $variant->price : $product->sale_price ?: $product->price;
@@ -119,7 +102,7 @@ class OrderController extends Controller
             // Xử lý voucher
             $discountAmount = 0;
             $voucher = null;
-            if ($request->has('voucher_code')) {
+            if ($request->has('voucher_code') && $request->input('voucher_code')) {
                 $voucher = Voucher::where('code', $request->input('voucher_code'))
                     ->where('status', 'active')
                     ->where('start_date', '<=', Carbon::now())
@@ -138,7 +121,7 @@ class OrderController extends Controller
                         } else {
                             $discountAmount = $voucher->value;
                         }
-                        
+
                         // Giới hạn số tiền giảm tối đa
                         if ($voucher->max_discount && $discountAmount > $voucher->max_discount) {
                             $discountAmount = $voucher->max_discount;
@@ -147,7 +130,7 @@ class OrderController extends Controller
                 }
             }
 
-            $finalTotal = $totalPrice - $discountAmount;
+            $finalTotal = max(0, $totalPrice - $discountAmount);
 
             // Tạo đơn hàng
             $order = Order::create([
@@ -197,7 +180,6 @@ class OrderController extends Controller
             $order->load(['orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color', 'voucher']);
 
             return $this->successResponse($order, 'Tạo đơn hàng thành công');
-
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to create order', ['error' => $e->getMessage()]);
@@ -211,7 +193,7 @@ class OrderController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        
+
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
@@ -232,64 +214,7 @@ class OrderController extends Controller
             return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
         }
 
-        $result = [
-            'id' => $order->id,
-            'date_order' => $order->created_at,
-            'total_price' => $order->total_price,
-            'order_status' => $order->order_status,
-            'cancel_reason' => $order->cancel_reason,
-            'payment_status' => $order->payment_status,
-            'shipping_address' => $order->shipping_address,
-            'payment_method' => $order->payment_method,
-            'shipped_at' => $order->shipped_at,
-            'delivered_at' => $order->delivered_at,
-            'discount_amount' => $order->discount_amount,
-            'user' => $order->user ? [
-                'id' => $order->user->id,
-                'name' => $order->user->name,
-                'email' => $order->user->email,
-            ] : null,
-            'customer_id' => $order->customer_id,
-            'shipping_id' => $order->shipping_id,
-            'recipient_name' => $order->recipient_name,
-            'recipient_phone' => $order->recipient_phone,
-            'created_at' => $order->created_at,
-            'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher, 
-            'items' => $order->orderItems->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'product' => [
-                        'id' => $item->product->id,
-                        'slug' => $item->product->slug,
-                        'category_id' => $item->product->category_id,
-                        'name' => $item->product->name,
-                        'description' => $item->product->description,
-                        'price' => $item->product->price,
-                        'sale_price' => $item->product->sale_price,
-                        'sale_end' => $item->product->sale_end,
-                        'status' => $item->product->status,
-                        'deleted_at' => $item->product->deleted_at,
-                        'created_at' => $item->product->created_at,
-                        'updated_at' => $item->product->updated_at,
-                    ],
-                    'variant' => $item->variant ? [
-                        'id' => $item->variant->id,
-                        'size' => [
-                            'name' => optional($item->variant->size)->name,
-                        ],
-                        'color' => [
-                            'name' => optional($item->variant->color)->name,
-                        ],
-                        'status' => $item->variant->status,
-                    ] : null,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                ];
-            }),
-        ];
-
-        return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
+        return $this->successResponse($order, 'Lấy thông tin đơn hàng thành công');
     }
 
     /**
@@ -298,13 +223,16 @@ class OrderController extends Controller
     public function cancel(Request $request, $id)
     {
         $user = $request->user();
-        
+
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
 
         $validator = Validator::make($request->all(), [
             'cancel_reason' => 'required|string|max:500',
+        ], [
+            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
+            'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
         ]);
 
         if ($validator->fails()) {
@@ -321,7 +249,7 @@ class OrderController extends Controller
 
         // Chỉ cho phép hủy đơn hàng ở trạng thái pending hoặc confirming
         if (!in_array($order->order_status, ['pending', 'confirming'])) {
-            return $this->errorResponse('Không thể hủy đơn hàng ở trạng thái này', null, 400);
+            return $this->errorResponse("Không thể hủy đơn hàng ở trạng thái '{$order->order_status}'", null, 400);
         }
 
         DB::beginTransaction();
@@ -351,11 +279,10 @@ class OrderController extends Controller
             DB::commit();
 
             return $this->successResponse($order, 'Hủy đơn hàng thành công');
-
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to cancel order', ['error' => $e->getMessage()]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
     }
-} 
+}

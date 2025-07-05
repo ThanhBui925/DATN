@@ -180,5 +180,4 @@ class CartController extends Controller
             'status' => true,
         ]);
     }
-
 }
