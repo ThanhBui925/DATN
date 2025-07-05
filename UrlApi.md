@@ -24,12 +24,18 @@ http://localhost:8000/api/register -> POST : Đăng ký tài khoản
 http://localhost:8000/api/login -> POST : Đăng nhập
 
 
-/// ĐƠN HÀNG
+/// ĐƠN HÀNG (ADMIN)
 http://localhost:8000/api/orders  -> GET : Lấy tất cả đơn hàng
 http://localhost:8000/api/orders/{id}/status -> PUT : Cập nhật trạng thái đơn hàng
 http://localhost:8000/api/orders/search -> GET : Tìm kiếm đơn hàng theo tên sản phẩm
 http://localhost:8000/api/orders/{id}/detail -> GET : Xem chi tiết đơn hàng theo id
 http://localhost:8000/api/orders/{id}/pdf -> GET : Xuất ra file pdf của đơn hàng
+
+// ĐƠN HÀNG (CLIENT)
+http://localhost:8000/api/client/orders -> GET : Lấy danh sách đơn hàng của user hiện tại
+http://localhost:8000/api/client/orders -> POST : Tạo đơn hàng mới từ giỏ hàng
+http://localhost:8000/api/client/orders/{id} -> GET : Xem chi tiết đơn hàng của user
+http://localhost:8000/api/client/orders/{id}/cancel -> PUT : Hủy đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
 
 
 // TÀI KHOẢN
