@@ -55,8 +55,8 @@ export const HeaderTop = () => {
                                                 <li className="drodown-show"><a href="#"> LeeHieu123 <i
                                                     className="fa fa-angle-down"></i></a>
                                                     <ul className="open-dropdown setting">
-                                                        <li><Link to={`tai-khoan-cua-toi`}>Tài khoản của tôi</Link></li>
-                                                        <li><Link to="checkout.html">Đơn mua</Link></li>
+                                                        <li><a href="my-account.html">Tài khoản của tôi</a></li>
+                                                        <li><a href="checkout.html">Đơn mua</a></li>
                                                         <li><Link to={'#'} onClick={handleLogout}>Đăng xuất</Link></li>
                                                     </ul>
                                                 </li>
