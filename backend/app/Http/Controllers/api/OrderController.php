@@ -23,6 +23,7 @@ use App\Http\Requests\UpdateOrderStatusRequest;
 class OrderController extends Controller
 {
     use ApiResponseTrait;
+    
     private $validTransitions = [
         'pending' => ['confirming', 'canceled'],
         'confirming' => ['confirmed', 'canceled'],
@@ -33,140 +34,10 @@ class OrderController extends Controller
         'completed' => [],
         'canceled' => [],
     ];
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'customer_id' => 'required|exists:customers,id',
-            'shipping_id' => 'required|exists:shipping,id',
-            'user_id' => 'required|exists:users,id',
-            'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|in:cash,card,paypal,vnpay',
-            'recipient_name' => 'required|string|max:255',
-            'recipient_phone' => 'required|string|max:20',
-            'order_items' => 'required|array',
-            'order_items.*.product_id' => 'required|exists:products,id',
-            'order_items.*.quantity' => 'required|integer|min:1',
-            'order_items.*.price' => 'required|numeric|min:0',
-            'voucher_code' => 'nullable|string|exists:vouchers,code',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $total = 0;
-        foreach ($request->order_items as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
-
-        $discount = 0;
-        $voucher = null;
-        if ($request->voucher_code) {
-            $voucher = Voucher::where('code', $request->voucher_code)
-                ->where('status', 'active')
-                ->where(function ($query) {
-                    $query->whereNull('expiry_date')
-                        ->orWhere('expiry_date', '>=', Carbon::now());
-                })
-                ->first();
-
-            if ($voucher) {
-                $applicable_total = 0;
-                foreach ($request->order_items as $item) {
-                    $product = Product::find($item['product_id']);
-                    if (
-                        ($voucher->product_id && $voucher->product_id == $product->id) ||
-                        ($voucher->category_id && $product->category_id == $voucher->category_id) ||
-                        (!$voucher->product_id && !$voucher->category_id)
-                    ) {
-                        $applicable_total += $item['price'] * $item['quantity'];
-                    }
-                }
-
-                if ($applicable_total > 0) {
-                    $discount = $voucher->discount_type === 'percentage'
-                        ? $applicable_total * ($voucher->discount / 100)
-                        : min($voucher->discount, $applicable_total);
-                } else {
-                    return response()->json(['message' => 'Voucher not applicable to any items in cart'], 400);
-                }
-            } else {
-                return response()->json(['message' => 'Invalid or expired voucher'], 400);
-            }
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // Tạo đơn hàng
-            $order = Order::create([
-                'slug' => Str::slug('order-' . time()),
-                'date_order' => Carbon::now(),
-                'total_price' => $total - $discount,
-                'order_status' => 'pending',
-                'payment_status' => 'unpaid',
-                'shipping_address' => $request->shipping_address,
-                'payment_method' => $request->payment_method,
-                'shipped_at' => null,
-                'delivered_at' => null,
-                'user_id' => $request->user_id,
-                'customer_id' => $request->customer_id,
-                'shipping_id' => $request->shipping_id,
-                'recipient_name' => $request->recipient_name,
-                'recipient_phone' => $request->recipient_phone,
-                'voucher_id' => $voucher ? $voucher->id : null,
-            ]);
-
-            foreach ($request->order_items as $item) {
-                $variant = VariantProduct::find($item['variant_id'] ?? null);
-                if ($variant && $variant->quantity < $item['quantity']) {
-                    throw new \Exception('Insufficient stock for product ID ' . $item['product_id']);
-                }
-            }
-
-            foreach ($request->order_items as $item) {
-                $orderItem = $order->orderItems()->create([
-                    'slug' => Str::slug('item-' . time() . '-' . $item['product_id']),
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'variant_id' => $item['variant_id'] ?? null,
-                ]);
-
-                if ($item['variant_id']) {
-                    $variant = VariantProduct::find($item['variant_id']);
-                    $variant->quantity -= $item['quantity'];
-                    $variant->save();
-                }
-            }
-
-            if ($voucher) {
-                VoucherUser::where('voucher_id', $voucher->id)
-                    ->where('user_id', $request->user_id)
-                    ->whereNull('order_id')
-                    ->update(['order_id' => $order->id]);
-
-                if ($voucher->usage_limit && $voucher->usage_count >= $voucher->usage_limit) {
-                    throw new \Exception('Voucher usage limit exceeded');
-                }
-                $voucher->increment('usage_count');
-            }
-
-            DB::commit();
-            Log::info('Order created successfully', ['order_id' => $order->id]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to create order', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Failed to create order: ' . $e->getMessage()], 400);
-        }
-
-        return response()->json([
-            'message' => 'Order created successfully',
-            'data' => $order->load(['customer', 'shipping', 'user', 'orderItems.product', 'voucher']),
-        ], 201);
-    }
+    /**
+     * Lấy danh sách tất cả đơn hàng (Admin)
+     */
     public function index(Request $request)
     {
         $query = Order::query()->with(['customer', 'shipping', 'user']);
@@ -188,11 +59,24 @@ class OrderController extends Controller
             ]);
         }
 
-        $orders = $query->paginate(10);
+        // Lọc theo trạng thái
+        if ($request->has('status')) {
+            $query->where('order_status', $request->input('status'));
+        }
+
+        // Lọc theo user
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return response()->json($orders, 200);
     }
 
+    /**
+     * Xem chi tiết đơn hàng (Admin)
+     */
     public function show($id)
     {
         $order = Order::with([
@@ -220,11 +104,11 @@ class OrderController extends Controller
             'payment_method' => $order->payment_method,
             'shipped_at' => $order->shipped_at,
             'delivered_at' => $order->delivered_at,
+            'discount_amount' => $order->discount_amount,
             'user' => $order->user ? [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
                 'email' => $order->user->email,
-                // thêm các trường khác nếu cần
             ] : null,
             'customer_id' => $order->customer_id,
             'shipping_id' => $order->shipping_id,
@@ -269,6 +153,9 @@ class OrderController extends Controller
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng (Admin)
+     */
     public function updateStatus(UpdateOrderStatusRequest $request, $id)
     {
         $order = Order::findOrFail($id);
@@ -326,6 +213,9 @@ class OrderController extends Controller
         ], 200);
     }
 
+    /**
+     * Tìm kiếm đơn hàng theo sản phẩm (Admin)
+     */
     public function searchByProduct(Request $request)
     {
         $request->validate([
@@ -343,6 +233,9 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
+    /**
+     * Tạo PDF hóa đơn (Admin)
+     */
     public function generatePDF($id)
     {
         $order = Order::with(['customer', 'shipping', 'user', 'orderItems.product', 'orderItems.variant'])
