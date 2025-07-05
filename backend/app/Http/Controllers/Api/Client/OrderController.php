@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Controllers\Api;
+
+namespace App\Http\Controllers\Api\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
@@ -9,50 +10,40 @@ use App\Models\Product;
 use App\Models\OrderItem;
 use App\Models\VariantProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Log;
-use App\Http\Requests\UpdateOrderStatusRequest;
-use App\Http\Requests\StoreAdminOrderRequest;
+use App\Http\Requests\StoreOrderRequest;
 
 class OrderController extends Controller
 {
     use ApiResponseTrait;
 
     /**
-     * Lấy danh sách tất cả đơn hàng (Admin)
+     * Lấy danh sách đơn hàng của user hiện tại
      */
     public function index(Request $request)
     {
-        $query = Order::query()->with(['customer', 'shipping', 'user']);
+        $user = $request->user();
 
-        if ($request->has('date')) {
-            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
-            $query->whereDate('date_order', $date);
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
 
-        if ($request->has('month') && $request->has('year')) {
-            $query->whereMonth('date_order', $request->input('month'))
-                ->whereYear('date_order', $request->input('year'));
-        }
-
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('date_order', [
-                Carbon::parse($request->input('start_date'))->startOfDay(),
-                Carbon::parse($request->input('end_date'))->endOfDay()
-            ]);
-        }
+        $query = Order::where('user_id', $user->id)
+            ->with(['customer', 'shipping', 'orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color']);
 
         // Lọc theo trạng thái
         if ($request->has('status')) {
             $query->where('order_status', $request->input('status'));
         }
 
-        // Lọc theo user
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
+        // Lọc theo ngày
+        if ($request->has('date')) {
+            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
+            $query->whereDate('created_at', $date);
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -61,10 +52,16 @@ class OrderController extends Controller
     }
 
     /**
-     * Tạo đơn hàng mới (Admin)
+     * Tạo đơn hàng mới
      */
-    public function store(StoreAdminOrderRequest $request)
+    public function store(StoreOrderRequest $request)
     {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
         DB::beginTransaction();
         try {
             // Tính tổng tiền và kiểm tra tồn kho
@@ -114,7 +111,7 @@ class OrderController extends Controller
 
                 if ($voucher) {
                     // Kiểm tra xem user đã sử dụng voucher này chưa
-                    $usedVoucher = VoucherUser::where('user_id', $request->input('user_id'))
+                    $usedVoucher = VoucherUser::where('user_id', $user->id)
                         ->where('voucher_id', $voucher->id)
                         ->first();
 
@@ -129,7 +126,7 @@ class OrderController extends Controller
                         } else {
                             $discountAmount = $voucher->value;
                         }
-                        
+
                         // Giới hạn số tiền giảm tối đa
                         if ($voucher->max_discount && $discountAmount > $voucher->max_discount) {
                             $discountAmount = $voucher->max_discount;
@@ -142,7 +139,7 @@ class OrderController extends Controller
 
             // Tạo đơn hàng
             $order = Order::create([
-                'user_id' => $request->input('user_id'),
+                'user_id' => $user->id,
                 'total_price' => $finalTotal,
                 'order_status' => 'pending',
                 'payment_status' => 'unpaid',
@@ -152,7 +149,6 @@ class OrderController extends Controller
                 'recipient_phone' => $request->input('recipient_phone'),
                 'voucher_id' => $voucher ? $voucher->id : null,
                 'discount_amount' => $discountAmount,
-                'date_order' => Carbon::now(),
             ]);
 
             // Tạo order items
@@ -178,7 +174,7 @@ class OrderController extends Controller
             // Đánh dấu voucher đã sử dụng
             if ($voucher) {
                 VoucherUser::create([
-                    'user_id' => $request->input('user_id'),
+                    'user_id' => $user->id,
                     'voucher_id' => $voucher->id,
                     'used_at' => Carbon::now(),
                 ]);
@@ -188,8 +184,7 @@ class OrderController extends Controller
 
             $order->load(['orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color', 'voucher']);
 
-            return $this->successResponse($order, 'Tạo đơn hàng thành công', 201);
-
+            return $this->successResponse($order, 'Tạo đơn hàng thành công');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to create order', ['error' => $e->getMessage()]);
@@ -198,19 +193,27 @@ class OrderController extends Controller
     }
 
     /**
-     * Xem chi tiết đơn hàng (Admin)
+     * Xem chi tiết đơn hàng của user
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $order = Order::with([
-            'customer',
-            'shipping',
-            'user',
-            'orderItems.product',
-            'orderItems.variant.size',
-            'orderItems.variant.color',
-            'voucher'
-        ])->find($id);
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->with([
+                'customer',
+                'shipping',
+                'user',
+                'voucher',
+                'orderItems.product',
+                'orderItems.variant.size',
+                'orderItems.variant.color',
+            ])->first();
 
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
@@ -220,124 +223,72 @@ class OrderController extends Controller
     }
 
     /**
-     * Cập nhật trạng thái đơn hàng (Admin)
+     * Hủy đơn hàng
      */
-    public function updateStatus(UpdateOrderStatusRequest $request, $id)
+    public function cancel(Request $request, $id)
     {
-        $order = Order::find($id);
-        
-        if (!$order) {
-            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
 
-        $newStatus = $request->input('order_status');
-        $currentStatus = $order->order_status;
-
-        // Kiểm tra nếu hủy đơn hàng thì hoàn trả tồn kho
-        if ($newStatus === 'canceled' && $currentStatus !== 'canceled') {
-            DB::beginTransaction();
-            try {
-                // Hoàn trả tồn kho
-                foreach ($order->orderItems as $item) {
-                    if ($item->variant_id) {
-                        $variant = VariantProduct::find($item->variant_id);
-                        $variant->increment('stock', $item->quantity);
-                    } else {
-                        $product = Product::find($item->product_id);
-                        $product->increment('stock', $item->quantity);
-                    }
-                }
-
-                // Hoàn trả voucher nếu có
-                if ($order->voucher_id) {
-                    VoucherUser::where('user_id', $order->user_id)
-                        ->where('voucher_id', $order->voucher_id)
-                        ->delete();
-                }
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollback();
-                Log::error('Failed to cancel order', ['error' => $e->getMessage()]);
-                return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
-            }
-        }
-
-        // Cập nhật trạng thái
-        $order->order_status = $newStatus;
-        
-        // Cập nhật payment_status nếu cần
-        if ($newStatus === 'delivered' || $newStatus === 'completed') {
-            $order->payment_status = 'paid';
-        }
-
-        // Cập nhật cancel_reason nếu hủy đơn hàng
-        if ($newStatus === 'canceled' && $request->has('cancel_reason')) {
-            $order->cancel_reason = $request->input('cancel_reason');
-        }
-
-        $order->save();
-
-        return $this->successResponse($order, 'Cập nhật trạng thái đơn hàng thành công');
-    }
-
-    /**
-     * Tìm kiếm đơn hàng theo tên sản phẩm (Admin)
-     */
-    public function searchByProduct(Request $request)
-    {
-        $request->validate([
-            'product_name' => 'required|string|min:1'
+        $validator = Validator::make($request->all(), [
+            'cancel_reason' => 'required|string|max:500',
         ], [
-            'product_name.required' => 'Tên sản phẩm là bắt buộc',
-            'product_name.min' => 'Tên sản phẩm phải có ít nhất 1 ký tự'
+            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
+            'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
         ]);
 
-        $productName = $request->input('product_name');
+        if ($validator->fails()) {
+            return $this->errorResponse('Dữ liệu không hợp lệ', $validator->errors(), 422);
+        }
 
-        $orders = Order::whereHas('orderItems.product', function($query) use ($productName) {
-            $query->where('name', 'like', "%{$productName}%");
-        })
-        ->with(['customer', 'shipping', 'user', 'orderItems.product'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
-
-        return $this->successResponse($orders, 'Tìm kiếm đơn hàng thành công');
-    }
-
-    /**
-     * Tạo file PDF cho đơn hàng (Admin)
-     */
-    public function generatePDF($id)
-    {
-        $order = Order::with([
-            'customer', 
-            'shipping', 
-            'user', 
-            'orderItems.product', 
-            'orderItems.variant.size', 
-            'orderItems.variant.color',
-            'voucher'
-        ])->find($id);
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
 
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
         }
 
+        // Chỉ cho phép hủy đơn hàng ở trạng thái pending hoặc confirming
+        if (!in_array($order->order_status, ['pending', 'confirming'])) {
+            return $this->errorResponse("Không thể hủy đơn hàng ở trạng thái '{$order->order_status}'", null, 400);
+        }
+
+        DB::beginTransaction();
         try {
-            // Kiểm tra template PDF có tồn tại không
-            if (!view()->exists('pdf.invoice')) {
-                return $this->errorResponse('Template PDF không tồn tại', null, 500);
+            $order->order_status = 'canceled';
+            $order->cancel_reason = $request->input('cancel_reason');
+            $order->save();
+
+            // Hoàn trả tồn kho
+            foreach ($order->orderItems as $item) {
+                if ($item->variant_id) {
+                    $variant = VariantProduct::find($item->variant_id);
+                    $variant->increment('stock', $item->quantity);
+                } else {
+                    $product = Product::find($item->product_id);
+                    $product->increment('stock', $item->quantity);
+                }
             }
 
-            $pdf = Pdf::loadView('pdf.invoice', compact('order'));
-            
-            $filename = 'invoice-' . $order->id . '-' . date('Y-m-d-H-i-s') . '.pdf';
-            
-            return $pdf->download($filename);
+            // Hoàn trả voucher nếu có
+            if ($order->voucher_id) {
+                VoucherUser::where('user_id', $user->id)
+                    ->where('voucher_id', $order->voucher_id)
+                    ->delete();
+            }
+
+            DB::commit();
+
+            return $this->successResponse($order, 'Hủy đơn hàng thành công');
+
         } catch (\Exception $e) {
-            Log::error('PDF generation failed', ['error' => $e->getMessage()]);
-            return $this->errorResponse('Không thể tạo file PDF', null, 500);
+            DB::rollback();
+            Log::error('Failed to cancel order', ['error' => $e->getMessage()]);
+            return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
     }
-}
+} 

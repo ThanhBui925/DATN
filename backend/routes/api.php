@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\{
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
+use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 
 
 Route::prefix('client')->group(function () {
@@ -37,6 +38,12 @@ Route::prefix('client')->group(function () {
         Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+    });
+    Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+        Route::get('/', [ClientOrderController::class, 'index']); // Lấy danh sách đơn hàng của user
+        Route::post('/', [ClientOrderController::class, 'store']); // Tạo đơn hàng mới
+        Route::get('/{id}', [ClientOrderController::class, 'show']); // Xem chi tiết đơn hàng
+        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']); // Hủy đơn hàng
     });
 });
 
@@ -84,9 +91,9 @@ Route::prefix('orders')->controller(OrderController::class)->group(function () {
     Route::get('/', 'index');
     Route::post('/', 'store');
     Route::get('/search', 'searchByProduct');
-    Route::put('/{id}', 'updateStatus');
-    Route::get('/{id}', 'show');
     Route::get('/{id}/pdf', 'generatePDF');
+    Route::get('/{id}', 'show');
+    Route::put('/{id}', 'updateStatus');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {
