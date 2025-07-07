@@ -112,45 +112,45 @@ export const OrdersShow = () => {
                                 <Col xs={24}>
                                     <Title level={5} style={{ marginTop: 0 }}>Thông tin người đặt hàng</Title>
                                 </Col>
-                                <Col xs={24} sm={12}>
+                                <Col xs={24} sm={8}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người đặt</Text>
                                     <TextField
                                         value={record?.user?.name || "-"}
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người đặt</Text>
-                                    <TextField
-                                        value={record?.user?.email || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
+                                <Col xs={24} sm={8}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người đặt</Text>
                                     <TextField
                                         value={record?.user?.customer?.phone || "-"}
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
+                                <Col xs={24} sm={8}>
+                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người đặt</Text>
+                                    <TextField
+                                        value={record?.user?.email || "-"}
+                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                    />
+                                </Col>
                                 <Col xs={24}>
                                     <Title level={5} style={{ marginTop: 24 }}>Thông tin người nhận</Title>
                                 </Col>
-                                <Col xs={24} sm={12}>
+                                <Col xs={24} sm={8}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người nhận</Text>
                                     <TextField
                                         value={record?.recipient_name || "-"}
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
-                                <Col xs={24} sm={12}>
+                                <Col xs={24} sm={8}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người nhận</Text>
                                     <TextField
                                         value={record?.recipient_phone || "-"}
                                         style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
                                     />
                                 </Col>
-                                <Col xs={24} sm={24}>
+                                <Col xs={24} sm={8}>
                                     <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người nhận</Text>
                                     <TextField
                                         value={record?.recipient_email || "-"}
