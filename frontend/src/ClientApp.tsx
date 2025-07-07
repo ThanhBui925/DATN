@@ -16,6 +16,7 @@ import {Login} from "./pages/auth/login";
 import AuthLayout from "./layout/AuthLayout";
 import {Register} from "./pages/auth/register";
 import {Profile} from "./pages/auth/profile";
+import {Order} from "./pages/order";
 
 export const ClientApp = () => {
     return (
@@ -34,9 +35,8 @@ export const ClientApp = () => {
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />
 
                 <Route path="danh-muc-san-pham" element={<Shop />} />
-
                 <Route path="tai-khoan-cua-toi" element={<Profile />} />
-
+                <Route path="don-hang-cua-toi" element={<Order />} />
             </Route>
             <Route path="/" element={<ClientLayout2 />}>
                 <Route path="gio-hang" element={<Cart />} />
