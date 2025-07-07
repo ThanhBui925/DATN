@@ -88,7 +88,10 @@ class OrderController extends Controller
                     throw new \Exception("Sản phẩm {$product->name} không đủ tồn kho (Có: {$availableStock}, Cần: {$item['quantity']})");
                 }
 
-                $itemPrice = $variant ? $variant->price : $product->sale_price ?: $product->price;
+                $itemPrice = $variant 
+                    ? $variant->price 
+                    : ($product->sale_price !== null ? $product->sale_price : $product->price);
+
                 $totalPrice += $itemPrice * $item['quantity'];
 
                 $orderItems[] = [
