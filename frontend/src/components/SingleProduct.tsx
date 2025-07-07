@@ -79,7 +79,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                         <div className="add-actions">
                             <ul className="add-actions-link">
                                 <li className="add-cart">
-                                    <Link to="#">
+                                    <Link className={`mt-1`} to={`/chi-tiet-san-pham/${product.id}`}>
                                         Xem chi tiết
                                     </Link>
                                 </li>
