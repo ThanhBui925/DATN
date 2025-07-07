@@ -2,7 +2,7 @@ import {Link} from "react-router-dom";
 
 export const Footer = () => {
     return (
-        <footer className="footer-area mt-5">
+        <footer className="footer-area"> {/* mt-5 */}
             <div className="footer-top">
                 <div className="container-fluid">
                     <div className="row">

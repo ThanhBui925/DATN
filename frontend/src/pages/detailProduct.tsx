@@ -1,5 +1,6 @@
-import {DetailProduct} from "../components/DetailProduct";
+
 import {Breadcrumb} from "../components/Breadcrumb";
+import { DetailProduct } from "../components/DetailProduct";
 export const DetailProductPage = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",

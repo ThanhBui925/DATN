@@ -14,22 +14,49 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     use ApiResponseTrait;
 
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with([
+        $query = Product::with([
             'category',
             'variants.size',
             'variants.color',
             'variants.images'
-        ])->orderBy('created_at', 'desc')->get();
+        ])->withSum('variants', 'quantity');
+
+
+        // Tìm theo tên (LIKE)
+        if ($request->filled('name_like')) {
+            $query->where('name', 'like', '%' . trim($request->name_like) . '%');
+        } elseif ($request->filled('name')) {
+            $query->where('name', 'like', '%' . trim($request->name) . '%');
+        }
+
+        // Tìm theo trạng thái (0 hoặc 1)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Tìm theo nhiều danh mục
+        if ($request->has('category_id')) {
+            $categoryIds = is_array($request->category_id)
+                ? $request->category_id
+                : [$request->category_id];
+
+            $query->whereIn('category_id', $categoryIds);
+        }
+
+        $products = $query->orderBy('created_at', 'desc')->get();
 
         return $this->successResponse($products);
     }
+
+
 
     public function show($id)
     {
@@ -163,7 +190,9 @@ class ProductController extends Controller
 
             // Xử lý ảnh mô tả sản phẩm
             if ($request->hasFile('image_desc')) {
-                $product->images()->delete();
+            // XÓA MỀM ẢNH MÔ TẢ CŨ
+                $product->images()->delete(); // Soft delete
+
                 $descImages = [];
                 foreach ($request->file('image_desc') as $file) {
                     $path = $file->store('products/descriptions', 'public');
@@ -175,23 +204,96 @@ class ProductController extends Controller
                         'updated_at' => now(),
                     ];
                 }
+
                 Image::insert($descImages);
             } elseif ($request->has('image_desc') && is_array($request->image_desc)) {
-                $product->images()->delete();
+                // XÓA MỀM ẢNH MÔ TẢ CŨ
+                $product->images()->delete(); // Soft delete
+
                 $descImages = array_map(fn ($url) => [
                     'product_id' => $product->id,
                     'url' => $url,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ], $request->image_desc);
+
                 Image::insert($descImages);
             }
 
-            foreach ($request->variants as $index => $variantInput) {
-                if (isset($variantInput['id'])) {
-                    $variant = $product->variants->firstWhere('id', $variantInput['id']);
-                    if ($variant) {
-                        $variant->update([
+            $variantIdsMustDelete = array_diff(
+                array_column($product->variants->toArray() ?? [], 'id'),
+                array_column($request->variants ?? [], 'id')
+            );
+
+            if (!empty($variantIdsMustDelete)) {
+
+                $variantImages = VariantImage::whereIn('variant_product_id', $variantIdsMustDelete)->get();
+
+                foreach ($variantImages as $variantImage) {
+                    if (isset($variantImage->image_url)) {
+                        $imageUrl = $variantImage->image_url;
+
+                        if (Str::startsWith($imageUrl, ['http://', 'https://'])) {
+                            $path = Str::after($imageUrl, '/storage/');
+                        } else {
+                            $path = Str::replaceFirst('/storage/', '', $imageUrl);
+                        }
+
+                        if (Storage::disk('public')->exists($path)) {
+                            Storage::disk('public')->delete($path);
+                        }
+                    }
+
+                    $variantImage->delete();
+                }
+
+                VariantProduct::whereIn('id', $variantIdsMustDelete)->delete();
+            }
+
+            // dd(1);
+            if (!empty($request->variants)) {
+                foreach ($request->variants as $index => $variantInput) {
+                    if (isset($variantInput['id'])) {
+                        $variant = $product->variants->firstWhere('id', $variantInput['id']);
+                        if ($variant) {
+                            $variant->update([
+                                'name' => $variantInput['name'],
+                                'quantity' => $variantInput['quantity'],
+                                'size_id' => $variantInput['size_id'],
+                                'color_id' => $variantInput['color_id'],
+                                'status' => $variantInput['status'],
+                            ]);
+
+                            $variantImagesKey = "variants.$index.images";
+                            if ($request->hasFile($variantImagesKey)) {
+                                $variant->images()->delete();
+                                $images = [];
+                                foreach ($request->file($variantImagesKey) as $file) {
+                                    $path = $file->store('products/variants', 'public');
+                                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+
+                                    $images[] = [
+                                        'variant_product_id' => $variant->id,
+                                        'image_url' => $fullUrl,
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ];
+                                }
+                                VariantImage::insert($images);
+                            } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                                $variant->images()->delete();
+                                $newImages = array_map(fn ($url) => [
+                                    'variant_product_id' => $variant->id,
+                                    'image_url' => $url,
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ], $variantInput['images']);
+                                VariantImage::insert($newImages);
+                            }
+                        }
+                    } else {
+                        $newVariant = VariantProduct::create([
+                            'product_id' => $product->id,
                             'name' => $variantInput['name'],
                             'quantity' => $variantInput['quantity'],
                             'size_id' => $variantInput['size_id'],
@@ -201,14 +303,13 @@ class ProductController extends Controller
 
                         $variantImagesKey = "variants.$index.images";
                         if ($request->hasFile($variantImagesKey)) {
-                            $variant->images()->delete();
                             $images = [];
                             foreach ($request->file($variantImagesKey) as $file) {
                                 $path = $file->store('products/variants', 'public');
                                 $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
 
                                 $images[] = [
-                                    'variant_product_id' => $variant->id,
+                                    'variant_product_id' => $newVariant->id,
                                     'image_url' => $fullUrl,
                                     'created_at' => now(),
                                     'updated_at' => now(),
@@ -216,49 +317,14 @@ class ProductController extends Controller
                             }
                             VariantImage::insert($images);
                         } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
-                            $variant->images()->delete();
                             $newImages = array_map(fn ($url) => [
-                                'variant_product_id' => $variant->id,
+                                'variant_product_id' => $newVariant->id,
                                 'image_url' => $url,
                                 'created_at' => now(),
                                 'updated_at' => now(),
                             ], $variantInput['images']);
                             VariantImage::insert($newImages);
                         }
-                    }
-                } else {
-                    $newVariant = VariantProduct::create([
-                        'product_id' => $product->id,
-                        'name' => $variantInput['name'],
-                        'quantity' => $variantInput['quantity'],
-                        'size_id' => $variantInput['size_id'],
-                        'color_id' => $variantInput['color_id'],
-                        'status' => $variantInput['status'],
-                    ]);
-
-                    $variantImagesKey = "variants.$index.images";
-                    if ($request->hasFile($variantImagesKey)) {
-                        $images = [];
-                        foreach ($request->file($variantImagesKey) as $file) {
-                            $path = $file->store('products/variants', 'public');
-                            $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
-
-                            $images[] = [
-                                'variant_product_id' => $newVariant->id,
-                                'image_url' => $fullUrl,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
-                        VariantImage::insert($images);
-                    } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
-                        $newImages = array_map(fn ($url) => [
-                            'variant_product_id' => $newVariant->id,
-                            'image_url' => $url,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ], $variantInput['images']);
-                        VariantImage::insert($newImages);
                     }
                 }
             }

@@ -1,45 +1,66 @@
-import {SingleProduct} from "../SingleProduct";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Skeleton } from "antd";
+import { SingleProduct } from "../SingleProduct";
 
-export const SpecialProductList = () => {
+interface Product {
+    id: number;
+    name: string;
+    image: string;
+    price: string;
+    sale_price: string | null;
+    category: { name: string };
+    images: { url: string }[];
+}
+
+export const SpecialProductList: React.FC = () => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                const res = await axios.get(
+                    `${import.meta.env.VITE_APP_API_URL}/api/client/products`
+                );
+                setProducts(Array.isArray(res.data.data) ? res.data.data : []);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     return (
         <div className="product-area pb-95">
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-lg-12">
-                        <div className=" section-title-2">
-                            <h2>Week Special Products</h2>
+                        <div className="section-title-2">
+                            <h2>Sản phẩm đặc biệt</h2>
                         </div>
                     </div>
                 </div>
                 <div className="row">
-                    <div className="product-active-2 owl-carousel">
-                        <div className="col">
-                            <SingleProduct/>
+                    {loading ? (
+                        <div className="col-12">
+                            <Skeleton active paragraph={{ rows: 4 }} />
                         </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                        <div className="col">
-                            <SingleProduct/>
-                        </div>
-                    </div>
+                    ) : products.length > 0 ? (
+                        products.slice(0, 8).map((product) => (
+                            <div className="col-6 col-sm-6 col-md-3 mb-4" key={product.id}>
+                                <SingleProduct product={product} />
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-12 text-center">Không có sản phẩm nào để hiển thị.</div>
+                    )}
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

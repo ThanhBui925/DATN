@@ -54,9 +54,9 @@ img {max-width:100%;height:auto}
 .fix {overflow:hidden}
 p {margin:0 0 15px;}
 h1,
-h2, 
-h3, 
-h4, 
+h2,
+h3,
+h4,
 h5,
 h6 {
   margin: 0 0 10px;
@@ -284,7 +284,7 @@ body {
   padding-right: 90px;
 }
 /*------------------------------------
-    02. header-area css 
+    02. header-area css
 --------------------------------------*/
 .notification-close {
   position: relative;
@@ -420,7 +420,7 @@ body {
    border: 2px solid #EBEBEB;
   border-radius: 5px;
   margin: 35px 0;
-  position: relative; 
+  position: relative;
 }
 .search-form-input .nice-select {
   background: #f3f3f3 none repeat scroll 0 0;
@@ -723,7 +723,7 @@ body {
   margin: 20px 0;
 }
 /*--------------------------------
-   05. main-menu-area css 
+   05. main-menu-area css
 ----------------------------------*/
 .sticky-header.sticky {
   -webkit-animation: 600ms ease-in-out 0s normal none 1 running fadeInDown;
@@ -859,7 +859,7 @@ body {
 }
 .header-top.sticky {
   border-bottom: medium none;
-}  
+}
 .mean-container a.meanmenu-reveal {
   left: 0 !important;
   right: auto;
@@ -1112,11 +1112,11 @@ body {
   color: #fff;
 }
 .slider-text-info.style-4  .title2 {
-  color: #fff;  
+  color: #fff;
 }
 
 .slider-text-info.style-4.style-1 p {
-  color: #fff;  
+  color: #fff;
 }
 .slider-text-info.style-4 .slier-btn-1{
   margin-top: 60px;
@@ -1154,7 +1154,7 @@ body {
   width: 14px;
 }
 /*--------------------------------
-   08. service-area css  
+   08. service-area css
 ----------------------------------*/
 .our-service-inner {
   border: 1px solid #999999;
@@ -1807,7 +1807,7 @@ body {
   top: -69px;
 }
 /*---------------------------------
-   13. newsletter-area css 
+   13. newsletter-area css
 ------------------------------------*/
 .newsletter-inner {
   background: rgba(0, 0, 0, 0) url("../img/bg-newletter.html") no-repeat scroll left center;
@@ -2277,7 +2277,7 @@ body {
   margin-bottom: 40px;
 }
 /*-----------------------------------
-   17. shop-page css 
+   17. shop-page css
 -------------------------------------*/
 .breadcrumb-area {
   padding: 20px 0;
@@ -2703,7 +2703,7 @@ body {
   top: -70px;
 }
 /*------------------------------------
-  19. checkout-page css 
+  19. checkout-page css
 --------------------------------------*/
 .coupon-accordion h3:before {
   color: #1e85be;
@@ -2747,6 +2747,7 @@ body {
 .coupon-info p.coupon-input {
   margin: 0 0 10px;
 }
+
 .coupon-info p.form-row-first{
   float: left;
   width: 47%;
@@ -2934,7 +2935,7 @@ table.checkout-review-order-table {
   padding: 50px;
 }
 /*-------------------------------------
-   20. shopping-cart css 
+   20. shopping-cart css
 ---------------------------------------*/
 .table-content table {
   background: #ffffff none repeat scroll 0 0;
@@ -3285,13 +3286,13 @@ thead {
 .default-btn:hover {
 	background: #EB3E32;
 	color: #fff;
-} 
+}
 .account-login-form label {
   font-size: 15px;
   color: #333;
-} 
+}
 /*---------------------------------------
-   22. faequently-questions css 
+   22. faequently-questions css
 ----------------------------------------*/
 .feequently-about-content > h4 {
   font-size: 20px;
@@ -3361,7 +3362,7 @@ thead {
   font-size: 14px;
 }
 /*---------------------------------------
-    23. error-404 css 
+    23. error-404 css
 ----------------------------------------*/
 .search-error-wrapper {
   padding: 95px 0;
@@ -3443,7 +3444,7 @@ thead {
   background: #333;
 }
 /*----------------------------
-   24. contact-page css 
+   24. contact-page css
 -----------------------------*/
 .contact-form-inner {
   padding: 95px 90px;
@@ -3540,8 +3541,8 @@ thead {
   height: 400px;
 }
 /*--------------------------------------
-    25. about-page css 
-----------------------------------------*/ 
+    25. about-page css
+----------------------------------------*/
 .about-info-wrapper > h2 {
   font-weight: 600;
   font-size: 28px;
@@ -3566,7 +3567,7 @@ thead {
   text-transform: uppercase;
   -webkit-transition: all 0.3s ease-in-out 0s;
   transition: all 0.3s ease-in-out 0s;
-}   
+}
 .read-more-btn > a:hover {
   background: #EB3E32;
 }
@@ -3621,16 +3622,16 @@ thead {
   background: #f1f1f1 none repeat scroll 0 0;
   padding: 10px 0;
   text-align: center;
-}   
+}
 .our-team-info > h3 {
   color: #333333;
   font-size: 20px;
   margin-bottom: 5px;
-}       
+}
 .our-team-info > p {
   font-size: 16px;
   margin: 0;
-}    
+}
 .section-titel-three > p {
   margin: 0;
 }
@@ -3641,7 +3642,7 @@ thead {
   -webkit-transform: translateY(0);
           -ms-transform: translateY(0);
       transform: translateY(0)
-}  
+}
 /*--  testimonial ---*/
 .testimonials-area {
   background: #f1f1f1 none repeat scroll 0 0;
@@ -3651,20 +3652,20 @@ thead {
   font-size: 20px;
   font-style: italic;
   margin: 20px 0 30px;
-}   
+}
 .single-testimonial  h4 {
   font-size: 20px;
   font-weight: 700;
   text-transform: capitalize;
   margin: 0;
-}   
+}
 .single-testimonial span {
   color: #666666;
   font-size: 14px;
   font-style: italic;
   font-weight: 400;
   text-transform: uppercase;
-}     
+}
 .owl-carousel .owl-item .single-testimonial img {
   display: block;
   margin: 0 auto;
@@ -3672,7 +3673,7 @@ thead {
 }
 .about-page .brand-logo-active {
   border-top: medium none;
-} 
+}
 .count-icon span {
   font-size: 50px;
   line-height: 1;
@@ -3695,7 +3696,7 @@ thead {
           animation: 850ms ease-in-out 0s normal none 1 running tada;
 }
 /*------------------------------
-  26.  blog-page css 
+  26.  blog-page css
 -------------------------------*/
 .blog-wrapper {
   border: 1px solid #eeeeee;
@@ -3824,7 +3825,7 @@ thead {
   text-align: center;
 }
 /*-------------------------------
-  27. blog-details-page css 
+  27. blog-details-page css
 ---------------------------------*/
 .blog-dtl-header {
   font-size: 24px;
@@ -3950,4 +3951,71 @@ thead {
 }
 .comment-form-submit .comment-submit:hover {
   background: #EB3E32;
+}
+
+.text-original-base {
+    color: #eb3e32 !important;
+}
+
+.bg-original-base {
+    background-color: #eb3e32 !important;
+}
+
+@media screen and (min-width: 576px){
+    .cE_Tbx {
+        border-left: .0625rem solid #ee4d2d;
+        padding-left: .9375rem;
+    }
+}
+
+@media screen and (min-width: 769px){
+  .cE_Tbx {
+    border-left: .0625rem solid #ee4d2d;
+    padding-left: .9375rem;
+  }
+  .banner_login_form {
+    background-image: url('/img/slider/home-1-02.jpg');
+  }
+
+  .banner_register_form {
+    background-image: url('/img/slider/home-4-03.jpg');
+  }
+
+  .banner_login_form,
+  .banner_register_form {
+    background-size: cover;
+    background-position: center;
+    height: 70vh;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .single-service {
+    justify-content: start;
+    margin-left: 50px;
+  }
+}
+
+@media (max-width: 576px) {
+    .slider-wrapper {
+        height: 320px;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+    .slider-wrapper {
+        height: 400px;
+    }
+}
+
+@media (min-width: 993px) and (max-width: 1400px) {
+    .slider-wrapper {
+        height: 500px;
+    }
+}
+
+@media (min-width: 1401px) {
+    .slider-wrapper {
+        height: 500px;
+    }
 }

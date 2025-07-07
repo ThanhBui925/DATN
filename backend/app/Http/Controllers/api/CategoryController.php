@@ -18,8 +18,10 @@ class CategoryController extends Controller
     {
         $query = Category::query();
 
-        if ($request->filled('keyword')) {
-            $query->where('name', 'like', '%' . $request->keyword . '%');
+        if ($request->filled('name_like')) {
+            $query->where('name', 'like', '%' . trim($request->name_like) . '%');
+        } elseif ($request->filled('name')) {
+            $query->where('name', 'like', '%' . trim($request->name) . '%');
         }
 
         if ($request->filled('status')) {

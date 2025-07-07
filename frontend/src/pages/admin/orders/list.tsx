@@ -5,18 +5,37 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select } from "antd";
+import { Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select, Row, Col, Input, DatePicker, message } from "antd";
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
-import {SyncOutlined} from "@ant-design/icons";
+import { convertToInt } from "../../../helpers/common";
+
+const validTransitions: Record<string, string[]> = {
+    pending: ["confirming", "canceled"],
+    confirming: ["confirmed", "canceled"],
+    confirmed: ["preparing", "canceled"],
+    preparing: ["shipping", "canceled"],
+    shipping: ["delivered", "canceled"],
+    delivered: ["completed"],
+    completed: [],
+    canceled: [],
+};
 
 export const OrdersList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
+        filters: {
+            initial: [
+                { field: "order_code", operator: "eq", value: undefined },
+                { field: "order_date", operator: "eq", value: undefined },
+                { field: "phone", operator: "eq", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
+            ],
+        },
     });
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+    const [selectedOrder, setSelectedOrder] = useState<BaseRecord | null>(null);
     const [form] = Form.useForm();
     const { mutate } = useUpdate();
 
@@ -31,26 +50,69 @@ export const OrdersList = () => {
         pending: { color: "default", label: "Chờ xử lý" },
     };
 
-    const handleUpdateStatus = (orderId: any) => {
-        setSelectedOrderId(orderId);
+    const handleUpdateStatus = (order: BaseRecord) => {
+        setSelectedOrder(order);
         setIsModalVisible(true);
+        form.setFieldsValue({ order_status: order.order_status });
     };
 
     const handleModalOk = () => {
-        form.validateFields().then((values) => {
-            mutate({
-                resource: "shop_order",
-                id: selectedOrderId!,
-                values: { order_status: values.order_status },
+        form.validateFields()
+            .then((values) => {
+                if (!selectedOrder) {
+                    message.error("Không tìm thấy đơn hàng!");
+                    return;
+                }
+
+                const allowed = validTransitions[selectedOrder.order_status] || [];
+                if (!allowed.includes(values.order_status)) {
+                    message.error("Không thể chuyển sang trạng thái này!");
+                    return;
+                }
+
+                return mutate(
+                    {
+                        resource: "orders",
+                        id: Number(selectedOrder.id),
+                        values: { order_status: values.order_status },
+                    },
+                    {
+                        onSuccess: () => {
+                            setIsModalVisible(false);
+                            form.resetFields();
+                            setSelectedOrder(null);
+                        }
+                    }
+                );
+            })
+            .catch(() => {
+                message.error("Vui lòng kiểm tra lại thông tin!");
             });
-            setIsModalVisible(false);
-            form.resetFields();
-        });
     };
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
         form.resetFields();
+        setSelectedOrder(null);
+    };
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "order_code", operator: "eq", value: values.order_code || undefined },
+            { field: "order_date", operator: "eq", value: values.order_date ? values.order_date.format("YYYY-MM-DD") : undefined },
+            { field: "phone", operator: "eq", value: values.phone || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "order_code", operator: "eq", value: undefined },
+            { field: "order_date", operator: "eq", value: undefined },
+            { field: "phone", operator: "eq", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
+        ]);
     };
 
     return (
@@ -65,6 +127,59 @@ export const OrdersList = () => {
                 }
                 headerButtons={false}
             >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleFilter}
+                    style={{ marginBottom: 16 }}
+                >
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Mã đơn hàng" name="order_code">
+                                <Input placeholder="Không nhập dấu #" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Số điện thoại" name="phone">
+                                <Input placeholder="Nhập số điện thoại người nhận" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Ngày đặt" name="order_date">
+                                <DatePicker
+                                    showTime
+                                    format="YYYY-MM-DD"
+                                    style={{ width: "100%" }}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Trạng thái" name="status">
+                                <Select
+                                    placeholder="Chọn trạng thái"
+                                    allowClear={true}
+                                    mode={'multiple'}
+                                >
+                                    {Object.entries(statusMap).map(([key, { label }]) => (
+                                        <Select.Option key={key} value={key}>
+                                            {label}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={8}>
+                            <Form.Item label=" ">
+                                <Space>
+                                    <Button type="primary" htmlType="submit">
+                                        Lọc
+                                    </Button>
+                                    <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                                </Space>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                </Form>
                 <Table {...tableProps} rowKey="id">
                     <Table.Column
                         title="STT"
@@ -85,7 +200,7 @@ export const OrdersList = () => {
                         title="Tổng tiền"
                         dataIndex="total_price"
                         render={(value: number) =>
-                            value ? `${value.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ"
+                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
                         }
                     />
                     <Table.Column
@@ -130,16 +245,21 @@ export const OrdersList = () => {
                         }}
                     />
                     <Table.Column
-                        title="Tên người nhận"
-                        dataIndex="recipient_name"
-                        render={(value: string) => value || "-"}
+                        title="Người nhận"
+                        render={(record: any) => (
+                            <>
+                                <div style={{ fontWeight: 600 }}>{record.recipient_name}</div>
+                                <div>{record.recipient_phone}</div>
+                                <div>{record?.recipient_email}</div>
+                            </>
+                        )}
                     />
                     <Table.Column
                         title="Hành động"
                         dataIndex="actions"
                         render={(_, record: BaseRecord) => (
                             <Space>
-                                <EditButton hideText size="large" onClick={() => handleUpdateStatus(record.id)}/>
+                                <EditButton hideText size="large" onClick={() => handleUpdateStatus(record)} />
                                 <ShowButton hideText size="large" recordItemId={record.id} />
                             </Space>
                         )}
@@ -160,9 +280,13 @@ export const OrdersList = () => {
                         label="Trạng thái đơn hàng"
                         rules={[{ required: true, message: "Vui lòng chọn trạng thái đơn hàng" }]}
                     >
-                        <Select placeholder="Chọn trạng thái">
+                        <Select placeholder="Chọn trạng thái" style={{ width: "100%" }}>
                             {Object.entries(statusMap).map(([key, { label }]) => (
-                                <Select.Option key={key} value={key}>
+                                <Select.Option
+                                    key={key}
+                                    value={key}
+                                    disabled={selectedOrder ? !validTransitions[selectedOrder.order_status]?.includes(key) : true}
+                                >
                                     {label}
                                 </Select.Option>
                             ))}

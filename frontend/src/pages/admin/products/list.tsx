@@ -10,6 +10,7 @@ import {
 import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Space, Table, Tag, Form, Input, Select, Button } from "antd";
 import { SearchOutlined } from '@ant-design/icons';
+import {convertToInt} from "../../../helpers/common";
 
 export const ProductsList = () => {
     const { tableProps, setFilters } = useTable({
@@ -121,8 +122,12 @@ export const ProductsList = () => {
                     }
                 />
                 <Table.Column dataIndex="name" title={"Tên sản phẩm"} />
-                <Table.Column dataIndex="price" title={"Giá sản phẩm"} />
-                <Table.Column dataIndex="stock" title={"Tồn kho"} />
+                <Table.Column dataIndex="price" title={"Giá sản phẩm"}
+                    render={(value: number) => (
+                        convertToInt(value) + ' vnđ'
+                    )}
+                />
+                <Table.Column dataIndex="variants_sum_quantity" title={"Tồn kho"} />
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"

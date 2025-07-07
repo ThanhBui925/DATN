@@ -1,4 +1,3 @@
-import { DeleteOutlined } from "@ant-design/icons";
 import {
     CreateButton, DateField,
     DeleteButton,
@@ -8,16 +7,44 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Button, Modal, Space, Table, Tag } from "antd";
-import { useForceDelete } from "../../../hooks/useForceDelete";
+import {Breadcrumb, Button, Col, DatePicker, Form, Input, Row, Select, Space, Table, Tag} from "antd";
+import {convertToInt} from "../../../helpers/common";
+import React from "react";
 
 export const VoucherList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
-        resource: "vouchers", // Specify the resource
+        resource: "vouchers",
+        filters: {
+            initial: [
+                { field: "code", operator: "eq", value: undefined },
+                // { field: "issue_date", operator: "eq", value: undefined },
+                // { field: "expiry_date", operator: "eq", value: undefined },
+                { field: "discount_type", operator: "eq", value: undefined },
+            ],
+        },
     });
 
-    const { forceDelete } = useForceDelete();
+    const [form] = Form.useForm();
+
+    const handleFilter = (values: any) => {
+        setFilters([
+            { field: "code", operator: "eq", value: values.code || undefined },
+            // { field: "issue_date", operator: "eq", value: values.issue_date.format("YYYY-MM-DD hh:mm") || undefined },
+            // { field: "expiry_date", operator: "eq", value: values.expiry_date.format("YYYY-MM-DD hh:mm") || undefined },
+            { field: "discount_type", operator: "eq", value: values.discount_type || undefined },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([
+            { field: "code", operator: "eq", value: undefined },
+            // { field: "issue_date", operator: "eq", value: undefined },
+            // { field: "expiry_date", operator: "eq", value: undefined },
+            { field: "discount_type", operator: "eq", value: undefined },
+        ]);
+    };
 
     return (
         <List
@@ -32,6 +59,59 @@ export const VoucherList = () => {
                 <CreateButton>Thêm Voucher</CreateButton>
             )}
         >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFilter}
+                style={{ marginBottom: 16 }}
+            >
+                <Row gutter={16}>
+                    <Col xs={24} sm={12} md={6}>
+                        <Form.Item label="Mã voucher" name="code">
+                            <Input placeholder="Mã voucher" />
+                        </Form.Item>
+                    </Col>
+                    {/*<Col xs={24} sm={12} md={6}>*/}
+                    {/*    <Form.Item label="Ngày bắt đầu" name="issue_date">*/}
+                    {/*        <DatePicker*/}
+                    {/*            showTime*/}
+                    {/*            format="YYYY-MM-DD"*/}
+                    {/*            style={{ width: "100%" }}*/}
+                    {/*        />*/}
+                    {/*    </Form.Item>*/}
+                    {/*</Col>*/}
+                    {/*<Col xs={24} sm={12} md={6}>*/}
+                    {/*    <Form.Item label="Ngày kết thúc" name="expiry_date">*/}
+                    {/*        <DatePicker*/}
+                    {/*            showTime*/}
+                    {/*            format="YYYY-MM-DD"*/}
+                    {/*            style={{ width: "100%" }}*/}
+                    {/*        />*/}
+                    {/*    </Form.Item>*/}
+                    {/*</Col>*/}
+                    <Col xs={24} sm={12} md={6}>
+                        <Form.Item
+                            label="Loại giảm giá"
+                            name="discount_type"
+                        >
+                            <Select placeholder="Chọn loại" allowClear>
+                                <Select.Option value="percentage">Phần trăm</Select.Option>
+                                <Select.Option value="fixed">Số tiền cố định</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                        <Form.Item label=" ">
+                            <Space>
+                                <Button type="primary" htmlType="submit">
+                                    Lọc
+                                </Button>
+                                <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                            </Space>
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Form>
             <Table {...tableProps} rowKey="id">
                 <Table.Column
                     title="STT"
@@ -45,8 +125,8 @@ export const VoucherList = () => {
                     render={(value: number, record: BaseRecord) => (
                         <span>
                             {record.discount_type === "percentage"
-                                ? `${value}%`
-                                : `${value.toLocaleString()} VNĐ`}
+                                ? `${convertToInt(value)}%`
+                                : `${convertToInt(value)} VNĐ`}
                         </span>
                     )}
                 />
@@ -63,17 +143,19 @@ export const VoucherList = () => {
                 <Table.Column
                     dataIndex={["expiry_date"]}
                     title={"Ngày tạo"}
-                    render={(value: any) => <DateField value={value}/>}
+                    render={(value: any) => <DateField value={value} format={'hh:mm DD/MM/YYYY'} />}
                 />
+                
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
                     render={(value: string) => (
-                        <Tag color={value === "1" ? "green" : "red"}>
-                            {value === "1" ? "Hoạt động" : "Không hoạt động"}
+                        <Tag color={Number(value) === 1 ? "green" : "red"}>
+                            {Number(value) === 1 ? "Hoạt động" : "Không hoạt động"}
                         </Tag>
                     )}
                 />
+
                 <Table.Column
                     dataIndex="usage"
                     title="Sử dụng"

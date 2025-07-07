@@ -1,6 +1,17 @@
 import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Breadcrumb, Col, Image, Row, Skeleton, Tag, Typography, Card, Divider, Space } from "antd";
+import {
+    Breadcrumb,
+    Col,
+    Image,
+    Row,
+    Skeleton,
+    Tag,
+    Typography,
+    Card,
+    Divider,
+    Space,
+} from "antd";
 import MDEditor from "@uiw/react-md-editor";
 
 const { Title, Text, Paragraph } = Typography;
@@ -20,23 +31,40 @@ export const BlogPostShow = () => {
 
     const formattedCreatedDate = record?.created_at
         ? new Date(record.created_at).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        })
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+          })
         : "Không có ngày tạo";
 
     const formattedUpdatedDate = record?.updated_at
         ? new Date(record.updated_at).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        })
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+          })
         : "Không có ngày cập nhật";
+
+    // Map trạng thái
+    const statusValue =
+        typeof record?.status === "string"
+            ? record.status
+            : Number(record?.status);
+
+    const statusMap: Record<string | number, { label: string; color: string }> = {
+        draft: { label: "Nháp", color: "red" },
+        0: { label: "Nháp", color: "red" },
+        published: { label: "Công khai", color: "green" },
+        1: { label: "Công khai", color: "green" },
+        private: { label: "Riêng tư", color: "blue" },
+        2: { label: "Riêng tư", color: "blue" },
+    };
+
+    const status = statusMap[statusValue];
 
     return (
         <Show
@@ -50,7 +78,9 @@ export const BlogPostShow = () => {
                         <Text style={{ color: "#666" }}>Bài viết</Text>
                     </Breadcrumb.Item>
                     <Breadcrumb.Item>
-                        <Text strong style={{ color: "#000" }}>{record?.name || "Không có tiêu đề"}</Text>
+                        <Text strong style={{ color: "#000" }}>
+                            {record?.title || "Không có tiêu đề"}
+                        </Text>
                     </Breadcrumb.Item>
                 </Breadcrumb>
             }
@@ -75,29 +105,32 @@ export const BlogPostShow = () => {
                                 lineHeight: 1.2,
                             }}
                         >
-                            {record?.name || "Không có tiêu đề"}
+                            {record?.title || "Không có tiêu đề"}
                         </Title>
                         <Space style={{ marginBottom: 24, color: "#666", fontSize: 14 }}>
                             <Text>Đăng ngày: {formattedCreatedDate}</Text>
                             <Text> • </Text>
                             <Text>Cập nhật: {formattedUpdatedDate}</Text>
-                            <Text> • </Text>
-                            <Text>Danh mục: {record?.title || "Không có dữ liệu"}</Text>
                         </Space>
+
                         {record?.image && (
-                            <Image
-                                src={record.image}
-                                alt="Blog"
-                                style={{
-                                    width: "100%",
-                                    maxHeight: 400,
-                                    objectFit: "cover",
-                                    borderRadius: 8,
-                                    marginBottom: 24,
-                                }}
-                                preview
-                            />
+                            <div>
+                                <Image
+                                    src={record.image}
+                                    alt="Blog"
+                                    style={{
+                                        width: "100%",
+                                        maxHeight: 500,
+                                        maxWidth: 800,
+                                        objectFit: "cover",
+                                        borderRadius: 8,
+                                        marginBottom: 24,
+                                    }}
+                                    preview
+                                />
+                            </div>
                         )}
+
                         <div data-color-mode="light">
                             <MDEditor.Markdown
                                 source={record?.content || "Không có nội dung"}
@@ -110,19 +143,21 @@ export const BlogPostShow = () => {
                                 }}
                             />
                         </div>
+
                         <Divider />
+
                         <Space wrap style={{ marginTop: 16 }}>
                             <Text strong style={{ color: "#666" }}>Trạng thái:</Text>
-                            {record?.status ? (
+                            {status ? (
                                 <Tag
-                                    color={record.status === "published" ? "green" : record.status === "draft" ? "red" : "blue"}
+                                    color={status.color}
                                     style={{
                                         fontSize: 14,
                                         padding: "4px 12px",
                                         borderRadius: 20,
                                     }}
                                 >
-                                    {record.status === "published" ? "Công khai" : record.status === "draft" ? "Nháp" : "Riêng tư"}
+                                    {status.label}
                                 </Tag>
                             ) : (
                                 <Text style={{ color: "#666" }}>Không có trạng thái</Text>
@@ -130,6 +165,7 @@ export const BlogPostShow = () => {
                         </Space>
                     </Card>
                 </Col>
+
                 <Col xs={24} lg={8}>
                     <Card
                         bordered={false}
@@ -144,26 +180,24 @@ export const BlogPostShow = () => {
                             Thông tin bổ sung
                         </Title>
                         <Divider style={{ margin: "16px 0" }} />
+
                         <Paragraph style={{ marginBottom: 16 }}>
-                            <Text strong style={{ color: "#666" }}>Danh mục: </Text>
-                            <TextField
-                                value={record?.title || "Không có dữ liệu"}
-                                style={{ fontSize: 14, color: "#333" }}
-                            />
+                            <Text strong style={{ color: "#666" }}>Tiêu đề:</Text>{" "}
+                            <TextField value={record?.title || "Không có dữ liệu"} />
                         </Paragraph>
+
                         <Paragraph style={{ marginBottom: 16 }}>
-                            <Text strong style={{ color: "#666" }}>Mô tả: </Text>
-                            <TextField
-                                value={record?.description || "Không có mô tả"}
-                                style={{ fontSize: 14, color: "#333", lineHeight: 1.6 }}
-                            />
+                            <Text strong style={{ color: "#666" }}>Tiêu đề ngắn:</Text>{" "}
+                            <TextField value={record?.description || "Không có mô tả"} />
                         </Paragraph>
+
                         <Paragraph>
-                            <Text strong style={{ color: "#666" }}>Ngày tạo: </Text>
+                            <Text strong style={{ color: "#666" }}>Ngày tạo:</Text>{" "}
                             <Text style={{ color: "#fa8c16" }}>{formattedCreatedDate}</Text>
                         </Paragraph>
+
                         <Paragraph>
-                            <Text strong style={{ color: "#666" }}>Ngày cập nhật: </Text>
+                            <Text strong style={{ color: "#666" }}>Ngày cập nhật:</Text>{" "}
                             <Text style={{ color: "#fa8c16" }}>{formattedUpdatedDate}</Text>
                         </Paragraph>
                     </Card>
