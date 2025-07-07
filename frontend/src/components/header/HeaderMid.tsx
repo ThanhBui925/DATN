@@ -26,7 +26,7 @@ export const HeaderMid = () => {
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
-                    total: res.data.data.total_price,
+                    total: res.data.data.total,
                 });
             } else {
                 notify({message: res.data.message});
@@ -85,7 +85,7 @@ export const HeaderMid = () => {
                                                                 <li>
                                                                     <div className="shoping-cart-image">
                                                                         <a href="#">
-                                                                            <img src={cart?.variant?.images[0]} style={{ height: 100, width: 100}} alt=""/>
+                                                                            <img src={cart?.image} style={{ height: 100, width: 100}} alt=""/>
                                                                             <span className="product-quantity">{cart.quantity}x</span>
                                                                         </a>
                                                                     </div>
