@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 
 Route::prefix('client')->group(function () {
     Route::get('/', [ClientProductController::class, 'index']);
+    // Các route public (không cần đăng nhập)
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
@@ -34,21 +35,21 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
     Route::prefix('cart')->group(function () {
-        Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
-        Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
-        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
-        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+        Route::get('/', [ClientCartController::class, 'index']); 
+        Route::post('/items', [ClientCartController::class, 'store']); 
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); 
+        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
-    Route::prefix('orders')->group(function () {
-        Route::get('/', [ClientOrderController::class, 'index']); // Lấy danh sách đơn hàng của user
-        Route::post('/', [ClientOrderController::class, 'store']); // Tạo đơn hàng mới
-        Route::get('/{id}', [ClientOrderController::class, 'show']); // Xem chi tiết đơn hàng
-        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']); // Hủy đơn hàng
+    Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+        Route::get('/', [ClientOrderController::class, 'index']); 
+        Route::post('/', [ClientOrderController::class, 'store']); 
+        Route::get('/{id}', [ClientOrderController::class, 'show']);
+        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
     });
     Route::prefix('blogs')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); // Danh sách blog
-        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']); // Chi tiết blog
+        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); 
+        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']); 
     });
 });
 

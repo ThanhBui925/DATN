@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->dateTime('date_order');
             $table->decimal('total_price', 10, 2);
-            $table->enum('order_status', ['confirming', 'confirmed', 'preparing', 'shipping', 'delivered', 'completed', 'canceled', 'pending'])->default('pending');
+            $table->enum('order_status', allowed: ['confirming', 'confirmed', 'preparing', 'shipping', 'delivered', 'completed', 'canceled', 'pending'])->default('pending');
             $table->string('cancel_reason')->nullable();
             $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
             $table->string('shipping_address', 255);
