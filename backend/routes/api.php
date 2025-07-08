@@ -33,18 +33,18 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
-    Route::prefix('cart')->group(function () {
-        Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
-        Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
-        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
-        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
+        Route::get('/', [ClientCartController::class, 'index']);
+        Route::post('/items', [ClientCartController::class, 'store']);
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
+        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
-    Route::prefix('orders')->group(function () {
-        Route::get('/', [ClientOrderController::class, 'index']); // Lấy danh sách đơn hàng của user
-        Route::post('/', [ClientOrderController::class, 'store']); // Tạo đơn hàng mới
-        Route::get('/{id}', [ClientOrderController::class, 'show']); // Xem chi tiết đơn hàng
-        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']); // Hủy đơn hàng
+    Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+        Route::get('/', [ClientOrderController::class, 'index']);
+        Route::post('/', [ClientOrderController::class, 'store']);
+        Route::get('/{id}', [ClientOrderController::class, 'show']);
+        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
     });
     Route::prefix('blogs')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); // Danh sách blog
@@ -61,93 +61,90 @@ Route::controller(AuthController::class)->group(function () {
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
 
-Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
-Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
-Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
-Route::get('/dashboard/average-order-value', [DashboardController::class, 'getAverageOrderValue']);
-Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverageRating']);
-Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
-Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
-Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::apiResource('banners', BannerController::class);
+    Route::middleware('is_admin')->group(function () {
+        Route::get('/dashboard/total-revenue', [DashboardController::class, 'getTotalRevenue']);
+        Route::get('/dashboard/total-orders', [DashboardController::class, 'getTotalOrders']);
+        Route::get('/dashboard/total-customers', [DashboardController::class, 'getTotalCustomers']);
+        Route::get('/dashboard/average-order-value', [DashboardController::class, 'getAverageOrderValue']);
+        Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverageRating']);
+        Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
+        Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
+        Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+    });
+    Route::apiResource('banners', BannerController::class);
 
-Route::prefix('categories')->controller(CategoryController::class)->group(function () {
-    Route::get('/trashed', 'trashed');
-    Route::post('{id}/restore', 'restore');
-    Route::delete('{id}/force-delete', 'forceDelete');
-    Route::apiResource('/', CategoryController::class)->parameter('', 'category');
-});
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+        Route::get('/trashed', 'trashed');
+        Route::post('{id}/restore', 'restore');
+        Route::delete('{id}/force-delete', 'forceDelete');
+        Route::apiResource('/', CategoryController::class)->parameter('', 'category');
+    });
 
-Route::prefix('products')->controller(ProductController::class)->group(function () {
-    Route::get('/trashed', 'trashed');
-    Route::post('{id}/restore', 'restore');
-    Route::delete('{id}/force-delete', 'forceDelete');
-    Route::apiResource('/', ProductController::class)->parameter('', 'product');
-});
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/trashed', 'trashed');
+        Route::post('{id}/restore', 'restore');
+        Route::delete('{id}/force-delete', 'forceDelete');
+        Route::apiResource('/', ProductController::class)->parameter('', 'product');
+    });
 
-Route::prefix('orders')->controller(OrderController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::get('/search', 'searchByProduct');
-    Route::put('/{id}', 'updateStatus');
-    Route::get('/{id}', 'show');
-    Route::get('/{id}/pdf', 'generatePDF');
-});
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/search', 'searchByProduct');
+        Route::put('/{id}', 'updateStatus');
+        Route::get('/{id}', 'show');
+        Route::get('/{id}/pdf', 'generatePDF');
+    });
 
-Route::prefix('users')->controller(UserController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::put('/{id}/toggle-status', 'toggleStatus');
-    Route::put('/{id}/reset-password', 'resetPassword');
-    Route::put('/{id}/role', 'updateRole');
-});
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::put('/{id}/toggle-status', 'toggleStatus');
+        Route::put('/{id}/reset-password', 'resetPassword');
+        Route::put('/{id}/role', 'updateRole');
+    });
 
-Route::apiResource('customers', CustomerController::class)->only([
-    'index', 'store', 'update', 'destroy', 'show'
-]);
+    Route::apiResource('customers', CustomerController::class)->only([
+        'index', 'store', 'update', 'destroy', 'show'
+    ]);
 
-Route::apiResource('colors', ColorController::class)->only(['index']);
-Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('colors', ColorController::class)->only(['index']);
+    Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
 
-Route::apiResource('sizes', SizeController::class)->only(['index']);
-Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('sizes', SizeController::class)->only(['index']);
+    Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
 
-Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{id}', 'show');
-    Route::post('/apply', 'apply');
-    Route::post('/', 'store');
-    Route::put('/{id}', 'update');
-    Route::delete('/{id}', 'destroy');
-});
+    Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/apply', 'apply');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+    });
 
-Route::prefix('reviews')->controller(ReviewController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::get('/{id}', 'show');
-    Route::put('/{id}', 'update');
-    Route::delete('/{id}', 'destroy');
-    Route::post('/{id}/reply', 'reply');
-});
+    Route::prefix('reviews')->controller(ReviewController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/{id}', 'show');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/{id}/reply', 'reply');
+    });
 
-Route::prefix('blogs')->controller(BlogController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::put('/{id}', 'update');
-    Route::put('/{id}/hide', 'hide');
-    Route::get('/{id}', 'show');
-    Route::delete('/{id}', 'destroy');
+    Route::prefix('blogs')->controller(BlogController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::put('/{id}/hide', 'hide');
+        Route::get('/{id}', 'show');
+        Route::delete('/{id}', 'destroy');
 
-    // Bình luận blog
-    Route::get('/{blogId}/comments', 'comments');
-    Route::post('/{blogId}/comments', 'storeComment');
-    Route::delete('/comments/{commentId}', 'softDeleteComment');
-    Route::put('/comments/{commentId}/restore', 'restoreComment');
-});
-
-Route::prefix('cart')->controller(CartController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::put('/', 'update');
-    Route::delete('/', 'destroy');
+        // Bình luận blog
+        Route::get('/{blogId}/comments', 'comments');
+        Route::post('/{blogId}/comments', 'storeComment');
+        Route::delete('/comments/{commentId}', 'softDeleteComment');
+        Route::put('/comments/{commentId}/restore', 'restoreComment');
+    });
 });
