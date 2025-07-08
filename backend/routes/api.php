@@ -46,6 +46,10 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientOrderController::class, 'show']); // Xem chi tiết đơn hàng
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']); // Hủy đơn hàng
     });
+    Route::prefix('blogs')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); // Danh sách blog
+        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']); // Chi tiết blog
+    });
 });
 
 Route::controller(AuthController::class)->group(function () {
