@@ -38,6 +38,7 @@ Route::prefix('client')->group(function () {
         Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+        Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
     Route::prefix('orders')->group(function () {
         Route::get('/', [ClientOrderController::class, 'index']); // Lấy danh sách đơn hàng của user

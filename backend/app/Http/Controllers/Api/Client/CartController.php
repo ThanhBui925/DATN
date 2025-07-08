@@ -25,56 +25,52 @@ class CartController extends Controller
     use ApiResponseTrait;
     public function index(Request $request)
     {
-        // Ưu tiên từ auth, fallback là user_id từ FE / Postman
-        $userId = $request->user()->id ?? $request->input('user_id');
+        $userId = $request->user()->id;
+        $cart = Cart::with(['items.product', 'items.variant.size', 'items.variant.color'])
+            ->where('user_id', $userId)
+            ->first();
 
-        if (!$userId) {
-            return response()->json([
-                'message' => 'Bạn cần đăng nhập hoặc truyền user_id để lấy giỏ hàng.',
-                'status' => false,
-            ], 400);
+        if (!$cart) {
+            return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
         }
 
-        $cart = Cart::with([
-            'items.product',
-            'items.variant.color',
-            'items.variant.size',
-            'items.variant.images',
-        ])->firstOrCreate(
-            ['user_id' => $userId],
-            ['total_price' => 0]
-        );
-
-        $items = $cart->items->map(function ($item) {
-            $variant = $item->variant;
+        $cartItems = $cart->items->map(function ($item) {
+            $price = $item->product->sale_price ?? $item->product->price;
+            $productVariants = VariantProduct::where('product_id', $item->product_id)
+                ->where('status', 1)
+                ->where('quantity', '>', 0)
+                ->with(['size', 'color'])
+                ->get()
+                ->map(function ($variant) {
+                    return [
+                        'id' => $variant->id,
+                        'size' => $variant->size->name ?? null,
+                        'color' => $variant->color->name ?? null,
+                        'quantity' => $variant->quantity,
+                    ];
+                });
 
             return [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
-                'product_name' => $item->product->name ?? null,
-                'variant_id' => $variant->id ?? null,
-                'variant' => [
-                    'name' => $variant->name ?? null,
-                    'code' => $variant->code ?? null,
-                    'size' => $variant->size->name ?? null,
-                    'color' => $variant->color->name ?? null,
-                    'images' => $variant->images->pluck('image_url'),
-                ],
+                'product_name' => $item->product->name,
+                'variant_id' => $item->variant_id,
+                'size' => $item->variant->size->name ?? null,
+                'color' => $item->variant->color->name ?? null,
+                'price' => $price,
                 'quantity' => $item->quantity,
-                'price' => $item->product->price ?? 0,
-                'total' => $item->product->price * $item->quantity,
+                'total' => $price * $item->quantity,
+                'image' => $item->product->image,
+                'available_variants' => $productVariants,
             ];
         });
 
-        return response()->json([
-            'message' => 'Lấy giỏ hàng thành công',
-            'status' => true,
-            'data' => [
-                'cart_id' => $cart->id,
-                'total_price' => $items->sum('total'),
-                'items' => $items,
-            ],
-        ]);
+        $total = $cartItems->sum('total');
+
+        return $this->success([
+            'items' => $cartItems,
+            'total' => $total,
+        ], 'Lấy giỏ hàng thành công');
     }
 
     public function store(Request $request)
@@ -89,7 +85,7 @@ class CartController extends Controller
         }
 
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+'product_id' => 'required|exists:products,id',
             'color_id' => 'required|exists:colors,id',
             'size_id' => 'required|exists:sizes,id',
             'quantity' => 'required|integer|min:1',
@@ -128,36 +124,55 @@ class CartController extends Controller
         return $this->success($item, 'Thêm sản phẩm vào giỏ hàng thành công');
     }
 
-
-
-
-    public function update(Request $request, $itemId)
+    public function update(Request $request, $cartItemId)
     {
         $request->validate([
+            'variant_id' => 'required|exists:variant_products,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $item = ShoppingCartItem::find($itemId);
+        $cartItem = ShoppingCartItem::where('id', $cartItemId)
+            ->whereHas('cart', function ($query) use ($request) {
+                $query->where('user_id', $request->user()->id);
+            })
+            ->firstOrFail();
 
-        if (!$item) {
-            return response()->json([
-                'message' => 'Không tìm thấy sản phẩm trong giỏ hàng',
-                'status' => false,
-            ], 404);
+        $variant = VariantProduct::where('id', $request->variant_id)
+            ->where('product_id', $cartItem->product_id)
+            ->where('quantity', '>', 0)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        if ($variant->quantity < $request->quantity) {
+            return $this->error('Số lượng vượt quá tồn kho', 400);
         }
 
-        $item->quantity = $request->quantity;
-        $item->save();
-
-
-        return response()->json([
-            'message' => 'Cập nhật số lượng thành công',
-            'status' => true,
-            'data' => [
-                'item_id' => $item->id,
-                'quantity' => $item->quantity,
-            ]
+        $cartItem->update([
+            'variant_id' => $request->variant_id,
+            'quantity' => $request->quantity,
         ]);
+
+        return $this->success(null, 'Cập nhật giỏ hàng thành công');
+    }
+
+    public function getProductVariants(Request $request, $productId)
+    {
+        $variants = VariantProduct::where('product_id', $productId)
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->with(['size', 'color'])
+            ->get()
+            ->map(function ($variant) {
+                return [
+                    'id' => $variant->id,
+                    'name' => $variant->name,
+                    'size' => $variant->size->name ?? null,
+                    'color' => $variant->color->name ?? null,
+                    'quantity' => $variant->quantity,
+];
+            });
+
+        return $this->success($variants, 'Lấy danh sách biến thể thành công');
     }
 
     public function destroy($itemId)
