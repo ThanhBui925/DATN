@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuthController,
@@ -21,6 +22,7 @@ use App\Http\Controllers\Api\Client\ProductController as ClientProductController
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
+use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 
 
 Route::prefix('client')->group(function () {
@@ -35,21 +37,25 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
     Route::prefix('cart')->group(function () {
-        Route::get('/', [ClientCartController::class, 'index']); 
-        Route::post('/items', [ClientCartController::class, 'store']); 
-        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); 
+        Route::get('/', [ClientCartController::class, 'index']);
+        Route::post('/items', [ClientCartController::class, 'store']);
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
     Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
-        Route::get('/', [ClientOrderController::class, 'index']); 
-        Route::post('/', [ClientOrderController::class, 'store']); 
+        Route::get('/', [ClientOrderController::class, 'index']);
+        Route::post('/', [ClientOrderController::class, 'store']);
         Route::get('/{id}', [ClientOrderController::class, 'show']);
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
     });
     Route::prefix('blogs')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); 
-        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']); 
+        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']);
+    });
+    Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+        Route::get('/', [ClientReviewController::class, 'index']);     // Lấy danh sách đánh giá sản phẩm
+        Route::post('/', [ClientReviewController::class, 'store']);    // Gửi đánh giá sản phẩm
     });
 });
 
@@ -104,7 +110,11 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
 });
 
 Route::apiResource('customers', CustomerController::class)->only([
-    'index', 'store', 'update', 'destroy', 'show'
+    'index',
+    'store',
+    'update',
+    'destroy',
+    'show'
 ]);
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
