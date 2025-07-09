@@ -133,23 +133,32 @@ export const Checkout = () => {
             setCouponError("Vui lòng nhập mã giảm giá");
             return;
         }
+
         try {
             const res = await axiosInstance.post("/api/client/checkout/apply_coupon", {
-                coupon_code: couponCode,
+                voucher_code: couponCode,
             });
+
             if (res.data.status) {
                 setAppliedCoupon(res.data.data);
                 setCouponError("");
-                notification.success({message: res.data.message || "Áp mã giảm giá thành công"});
+                notification.success({ message: res.data.message || "Áp mã giảm giá thành công" });
             } else {
                 setCouponError(res.data.message || "Mã giảm giá không hợp lệ");
-                notification.error({message: res.data.message || "Mã giảm giá không hợp lệ"});
+                notification.error({ message: res.data.message || "Mã giảm giá không hợp lệ" });
             }
         } catch (e: any) {
-            setCouponError(e.message || "Lỗi khi áp mã giảm giá");
-            notification.error({message: e.message || "Lỗi khi áp mã giảm giá"});
+            const errorMessage =
+                e.response?.data?.errors?.voucher_code?.[0] ||
+                e.response?.data?.message ||
+                e.message ||
+                "Lỗi khi áp mã giảm giá";
+
+            setCouponError(errorMessage);
+            notification.error({ message: errorMessage });
         }
     };
+
 
     const cancelCoupon = () => {
         setAppliedCoupon(null);
