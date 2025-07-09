@@ -98,7 +98,7 @@ export const Checkout = () => {
     const fetchProfile = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/client/profile");
+            const res = await axiosInstance.get("/api/profile");
             if (res.data.status) {
                 setProfile(res.data.data);
             } else {
@@ -115,6 +115,18 @@ export const Checkout = () => {
         getCartData();
         fetchProfile();
     }, []);
+
+    useEffect(() => {
+        if (profile) {
+            setFormData((prev) => ({
+                ...prev,
+                recipient_name: profile.name || "",
+                recipient_phone: profile.customer?.phone || "",
+                recipient_email: profile.email || "",
+                shipping_address: profile.customer?.address || "",
+            }));
+        }
+    }, [profile]);
 
     const applyCoupon = async () => {
         if (!couponCode) {
@@ -207,10 +219,10 @@ export const Checkout = () => {
 
         try {
             const payload = {
-                recipient_name: formData.recipient_name,
-                recipient_phone: formData.recipient_phone,
-                recipient_email: formData.recipient_email,
-                shipping_address: formData.shipping_address,
+                recipient_name: formData.recipient_name ?? profile.name,
+                recipient_phone: formData.recipient_phone ?? profile.customer.phone,
+                recipient_email: formData.recipient_email ?? profile.email,
+                shipping_address: formData.shipping_address ?? profile.customer.address,
                 note: formData.note,
                 payment_method: formData.payment_method,
                 coupon_code: appliedCoupon ? appliedCoupon.coupon_code : "",
@@ -266,7 +278,7 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     name="recipient_name"
-                                                                    value={formData.recipient_name ?? profile.name}
+                                                                    value={formData.recipient_name}
                                                                     onChange={handleInputChange}
                                                                     placeholder={`Họ và tên`}
                                                                 />
@@ -286,7 +298,7 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     name="recipient_phone"
-                                                                    value={formData.recipient_phone ?? profile.customer.phone}
+                                                                    value={formData.recipient_phone}
                                                                     onChange={handleInputChange}
                                                                     placeholder={`Số điện thoại`}
                                                                 />
@@ -305,7 +317,7 @@ export const Checkout = () => {
                                                                     type="email"
                                                                     className="form-control"
                                                                     name="recipient_email"
-                                                                    value={formData.recipient_email ?? profile.email}
+                                                                    value={formData.recipient_email}
                                                                     onChange={handleInputChange}
                                                                     placeholder="Nhập email"
                                                                 />
@@ -325,7 +337,7 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     name="shipping_address"
-                                                                    value={formData.shipping_address ?? profile.customer.address}
+                                                                    value={formData.shipping_address}
                                                                     onChange={handleInputChange}
                                                                     placeholder="Nhập đầy đủ địa chỉ"
                                                                 />
