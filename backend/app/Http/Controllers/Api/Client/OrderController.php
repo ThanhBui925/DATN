@@ -18,6 +18,7 @@ use App\Models\Size;
 use App\Models\Color;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\ApplyVoucherRequest;
 use App\Models\Cart;
 
 class OrderController extends Controller
@@ -132,10 +133,12 @@ class OrderController extends Controller
 
                 if (!$voucher) {
                     throw new \Exception('Mã giảm giá không tồn tại hoặc đã hết hạn.');
+                    return $this->errorResponse('Mã giảm giá không tồn tại hoặc đã hết hạn.', null, 404);
                 }
 
                 if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
                     throw new \Exception('Mã giảm giá đã hết lượt sử dụng.');
+                    return $this->errorResponse('Mã giảm giá đã hết lượt sử dụng.', null, 400);
                 }
 
                 if ($voucher->usage_limit_per_user !== null) {
@@ -146,11 +149,13 @@ class OrderController extends Controller
 
                     if ($used >= $voucher->usage_limit_per_user) {
                         throw new \Exception('Bạn đã sử dụng mã giảm giá này rồi.');
+                        return $this->errorResponse('Bạn đã sử dụng mã giảm giá này rồi.', null, 400);
                     }
                 }
 
                 if ($voucher->min_order_amount && $totalPrice < $voucher->min_order_amount) {
                     throw new \Exception('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.');
+                    return $this->errorResponse('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.', null, 400);
                 }
 
                 if ($voucher->discount_type === 'percentage') {
@@ -187,83 +192,36 @@ class OrderController extends Controller
 
 
 
-    public function applyVoucher(Request $request)
+    public function applyVoucher(ApplyVoucherRequest $request)
     {
-        $request->validate([
-            'voucher_code' => 'required|string|exists:vouchers,code',
-        ]);
-
         $userId = $request->user()->id;
 
-        try {
-            $voucher = Voucher::where('code', $request->voucher_code)
-                ->where('status', 1)
-                ->where(function ($q) {
-                    $now = now();
-                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
-                })
-                ->where(function ($q) {
-                    $now = now();
-                    $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', $now);
-                })
-                ->first();
+        $voucher = Voucher::where('code', $request->voucher_code)->first();
 
-            if (!$voucher) {
-                return $this->errorResponse('Mã giảm giá không tồn tại hoặc đã hết hạn.', null, 404);
+        $cart = Cart::with('items.product')->where('user_id', $userId)->first();
+        $totalPrice = $cart->items->sum(fn($item) => $item->product->price * $item->quantity);
+
+        $discountAmount = 0;
+        if ($voucher->discount_type === 'percentage') {
+            $discountAmount = $totalPrice * ($voucher->discount / 100);
+            if ($voucher->max_discount_amount) {
+                $discountAmount = min($discountAmount, $voucher->max_discount_amount);
             }
-
-            if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
-                return $this->errorResponse('Mã giảm giá đã hết lượt sử dụng.', null, 400);
-            }
-
-            if ($voucher->usage_limit_per_user !== null) {
-                $used = Order::where('user_id', $userId)
-                    ->where('voucher_code', $voucher->code)
-                    ->whereIn('order_status', ['pending', 'confirmed', 'shipped', 'delivered'])
-                    ->count();
-
-                if ($used >= $voucher->usage_limit_per_user) {
-                    return $this->errorResponse('Bạn đã dùng mã giảm giá này rồi.', null, 400);
-                }
-            }
-
-            $cart = Cart::with('items.product')->where('user_id', $userId)->first();
-
-            if (!$cart || $cart->items->isEmpty()) {
-                return $this->errorResponse('Giỏ hàng trống.', null, 400);
-            }
-
-            $totalPrice = $cart->items->sum(function ($item) {
-                return $item->product->price * $item->quantity;
-            });
-
-            if ($voucher->min_order_amount && $totalPrice < $voucher->min_order_amount) {
-                return $this->errorResponse('Đơn hàng chưa đủ giá trị tối thiểu để áp dụng mã.', null, 400);
-            }
-
-            $discountAmount = 0;
-            if ($voucher->discount_type === 'percentage') {
-                $discountAmount = $totalPrice * ($voucher->discount / 100);
-                if ($voucher->max_discount_amount) {
-                    $discountAmount = min($discountAmount, $voucher->max_discount_amount);
-                }
-            } else {
-                $discountAmount = $voucher->discount;
-            }
-
-            $discountAmount = min($discountAmount, $totalPrice);
-
-            return $this->successResponse([
-                'voucher_code'    => $voucher->code,
-                'discount_type'   => $voucher->discount_type,
-                'discount_amount' => round($discountAmount, 0),
-                'original_price'  => $totalPrice,
-                'final_price'     => $totalPrice - $discountAmount,
-            ], 'Mã giảm giá hợp lệ');
-        } catch (\Exception $e) {
-            return $this->errorResponse('Lỗi khi áp mã giảm giá: ' . $e->getMessage(), null, 500);
+        } else {
+            $discountAmount = $voucher->discount;
         }
+
+        $discountAmount = min($discountAmount, $totalPrice);
+
+        return $this->successResponse([
+            'voucher_code'    => $voucher->code,
+            'discount_type'   => $voucher->discount_type,
+            'discount_amount' => round($discountAmount, 0),
+            'original_price'  => $totalPrice,
+            'final_price'     => $totalPrice - $discountAmount,
+        ], 'Mã giảm giá hợp lệ');
     }
+
 
 
     /**
