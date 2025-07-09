@@ -18,9 +18,9 @@ export const HeaderTop = () => {
             const fetchProfile = async () => {
                 setLoading(true);
                 try {
-                    const res = await axiosInstance.get("/api/client/profile");
+                    const res = await axiosInstance.get("/api/profile");
                     if (res.data.status) {
-                        setProfile({ name: res.data.data.name });
+                        setProfile(res.data.data);
                     } else {
                         notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
                     }
