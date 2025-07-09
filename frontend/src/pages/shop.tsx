@@ -1,9 +1,6 @@
 import {Sidebar} from "../components/shop/Sidebar";
 import {ProductList} from "../components/shop/ProductList";
 import {Breadcrumb} from "../components/Breadcrumb";
-import {useEffect, useState} from "react";
-import {axiosInstance} from "../utils/axios";
-import {notification} from "antd";
 
 export const Shop = () => {
     const breadcrumb = {
