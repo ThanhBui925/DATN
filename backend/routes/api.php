@@ -26,8 +26,8 @@ use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 
 
 Route::prefix('client')->group(function () {
-    Route::get('/', [ClientProductController::class, 'index']);
     // Các route public (không cần đăng nhập)
+    Route::get('/new-products', [ClientProductController::class, 'index']);
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
@@ -36,6 +36,8 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
+
+    // Các route cần đăng nhập
     Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
         Route::get('/', [ClientCartController::class, 'index']);
         Route::post('/items', [ClientCartController::class, 'store']);
@@ -49,16 +51,14 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientOrderController::class, 'show']);
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
     });
-    Route::prefix('blogs')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']);
-        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']);
-    });
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
-        Route::get('/', [ClientReviewController::class, 'index']);     // Lấy danh sách đánh giá sản phẩm
-        Route::post('/', [ClientReviewController::class, 'store']);    // Gửi đánh giá sản phẩm
+        Route::get('/', [ClientReviewController::class, 'index']);
+        Route::post('/', [ClientReviewController::class, 'store']);
         Route::put('/{id}', [ClientReviewController::class, 'update']);
         Route::delete('/{id}', [ClientReviewController::class, 'destroy']);
     });
+    Route::middleware('auth:sanctum')->post('/checkout/apply_coupon', [ClientOrderController::class, 'applyVoucher']);
+
 });
 
 Route::controller(AuthController::class)->group(function () {

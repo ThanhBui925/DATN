@@ -60,22 +60,22 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|regex:/^0[0-9]{9}$/',
-            'address' => 'required|string|max:255',
+            'phone' => 'nullable|string|regex:/^0[0-9]{9}$/',
+            'address' => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'status' => 'active',
+            'status' => '1',
             'role' => 'client',
         ]);
 
         $customer = Customer::create([
             'user_id' => $user->id,
-            'phone' => $data['phone'],
-            'address' => $data['address'],
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
         ]);
 
         Mail::to($user->email)->queue(new WelcomeMail($user));
