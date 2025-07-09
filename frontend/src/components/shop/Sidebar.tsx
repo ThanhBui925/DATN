@@ -1,4 +1,28 @@
+import {useEffect, useState} from "react";
+import {axiosInstance} from "../../utils/axios";
+import {notification, Skeleton} from "antd";
+
 export const Sidebar = () => {
+    const [categories, setCategories] = useState([])
+    const [loading, setLoading] = useState(false)
+    const fetchCategories = async () => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get('/api/client/categories')
+            if (res.data.status) {
+                setCategories(res.data.data);
+            } else {
+                notification.error({message: res.data.message});
+            }
+        } catch (e) {
+            notification.error({message: (e as Error).message});
+        } finally {
+            setLoading(false);
+        }
+    }
+    useEffect(() => {
+        fetchCategories();
+    }, []);
     return (
         <div className="col-lg-3 order-2 order-lg-1">
             <div className="sidebar-categores-box">
@@ -53,9 +77,19 @@ export const Sidebar = () => {
                     <div className="categori-checkbox">
                         <form action="#">
                             <ul>
-                                <li><input type="checkbox" name="product-categori"/><a href="#">Cotton (5)</a></li>
-                                <li><input type="checkbox" name="product-categori"/><a href="#">Polyester (4)</a></li>
-                                <li><input type="checkbox" name="product-categori"/><a href="#">Viscose (4)</a></li>
+                                {
+                                    loading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        categories && categories.length > 0 ? (
+                                            categories.map((category: any) => (
+                                                <li key={category.id}><input type="checkbox" name="product-categori"/><a href="#">{ category.name }</a></li>
+                                            ))
+                                        ) : (
+                                            <li>Chưa có danh mục nào !</li>
+                                        )
+                                    )
+                                }
                             </ul>
                         </form>
                     </div>

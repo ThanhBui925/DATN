@@ -18,6 +18,7 @@ export const HeaderMid = () => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState([])
 
     const getCartData = async () => {
         setLoading(true);
@@ -28,6 +29,22 @@ export const HeaderMid = () => {
                     items: res.data.data.items,
                     total: res.data.data.total,
                 });
+            } else {
+                notify({message: res.data.message});
+            }
+        } catch (e) {
+            notify({message: (e as Error).message});
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const fetchCategories = async () => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get('/api/client/categories')
+            if (res.data.status) {
+                setCategories(res.data.data);
             } else {
                 notify({message: res.data.message});
             }
@@ -51,6 +68,7 @@ export const HeaderMid = () => {
 
     useEffect(() => {
         getCartData();
+        fetchCategories();
     }, [])
 
     return (
@@ -130,29 +148,13 @@ export const HeaderMid = () => {
                         <div className="searchbox">
                             <form action="#">
                                 <div className="search-form-input">
-                                    <select id="select" name="select" className="nice-select">
+                                    <select id="select" name="category" className="nice-select">
                                         <option value="">Tất cả danh mục</option>
-                                        <option value="12">Uncategorized</option>
-                                        <option value="22">Electronics</option>
-                                        <option value="26">Accessories</option>
-                                        <option value="27">Cap HDMI</option>
-                                        <option value="28">Headphone</option>
-                                        <option value="29">Keyboard</option>
-                                        <option value="23">Mouse</option>
-                                        <option value="30">Laptops & Tablets</option>
-                                        <option value="31">Laptop</option>
-                                        <option value="31">Macbook</option>
-                                        <option value="31">Smartphone</option>
-                                        <option value="31">Tablets</option>
-                                        <option value="32">Tvs & Audios</option>
-                                        <option value="33">Amply</option>
-                                        <option value="24">Smart TV</option>
-                                        <option value="34">Speaker</option>
-                                        <option value="35">TV</option>
-                                        <option value="36">Fashion & Jewelry</option>
-                                        <option value="37">Accessories</option>
-                                        <option value="25">Rings</option>
-                                        <option value="38">Watches</option>
+                                        {
+                                            categories && categories.map((category: any) => (
+                                                <option key={category.id} value={category.id}>{ category.name }</option>
+                                            ))
+                                        }
                                     </select>
                                     <input type="text" placeholder="Nhập từ khóa sản phẩm ... "/>
                                     <button className="top-search-btn" type="submit">Tìm kiếm</button>

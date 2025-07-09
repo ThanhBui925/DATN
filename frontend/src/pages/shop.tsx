@@ -10,13 +10,14 @@ export const Shop = () => {
     return (
         <>
             <Breadcrumb {...breadcrumb} />
-            <div className="content-wraper">
+            <div className="content-wraper mb-5">
                 <div className="container-fluid">
                     <div className="row">
-                        <Sidebar />
-                        <ProductList />
+                        <Sidebar/>
+                        <ProductList/>
                     </div>
                 </div>
-            </div>        </>
+            </div>
+        </>
     )
 }
