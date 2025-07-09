@@ -10,9 +10,11 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
 use Illuminate\Support\Facades\Log;
+use App\Traits\ApiResponseTrait;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -82,30 +84,14 @@ class AuthController extends Controller
 
         return response()->json(['token' => $token, 'user' => $user, 'customer' => $customer], 201);
     }
-    // Lấy thông tin user cơ bản
-    public function user(Request $request)
-    {
-        return response()->json($request->user());
-    }
-
-    // Lấy profile chi tiết của user (kèm quan hệ nếu là client)
-    public function profile(Request $request)
-    {
+    public function profile(Request $request) {
         $user = $request->user();
-
         if (!$user) {
-            return response()->json([
-                'error' => 'Người dùng chưa đăng nhập'
-            ], 401);
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
-
-        if ($user->role === 'client') {
-            $user = User::with('customer')->find($user->id);
+        if ($user->role == 'client') {
+            $user = User::with('customer')->where('id', $user->id)->first();
         }
-
-        return response()->json([
-            'message' => 'success',
-            'user' => $user
-        ]);
+        return $this->successResponse($user, 'success');
     }
 }
