@@ -54,8 +54,10 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']);
     });
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
-        Route::get('/', [ClientReviewController::class, 'index']);
-        Route::post('/', [ClientReviewController::class, 'store']);
+        Route::get('/', [ClientReviewController::class, 'index']);     // Lấy danh sách đánh giá sản phẩm
+        Route::post('/', [ClientReviewController::class, 'store']);    // Gửi đánh giá sản phẩm
+        Route::put('/{id}', [ClientReviewController::class, 'update']);
+        Route::delete('/{id}', [ClientReviewController::class, 'destroy']);
     });
 });
 
