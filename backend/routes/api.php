@@ -62,7 +62,8 @@ Route::prefix('client')->group(function () {
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/register', 'register');
-    Route::get('/user', 'user');
+    Route::get('/user', 'user')->middleware('auth:sanctum');
+    Route::get('/profile', 'profile')->middleware('auth:sanctum');
 });
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
