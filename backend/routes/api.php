@@ -36,7 +36,7 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
-    Route::prefix('cart')->group(function () {
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
         Route::get('/', [ClientCartController::class, 'index']);
         Route::post('/items', [ClientCartController::class, 'store']);
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
@@ -54,15 +54,16 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']);
     });
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
-        Route::get('/', [ClientReviewController::class, 'index']);     // Lấy danh sách đánh giá sản phẩm
-        Route::post('/', [ClientReviewController::class, 'store']);    // Gửi đánh giá sản phẩm
+        Route::get('/', [ClientReviewController::class, 'index']);
+        Route::post('/', [ClientReviewController::class, 'store']);
     });
 });
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/register', 'register');
-    Route::get('/user', 'user');
+    Route::get('/user', 'user')->middleware('auth:sanctum');
+    Route::get('/profile', 'profile')->middleware('auth:sanctum');
 });
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
@@ -154,11 +155,4 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
     Route::put('/comments/{commentId}/restore', 'restoreComment');
-});
-
-Route::prefix('cart')->controller(CartController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::put('/', 'update');
-    Route::delete('/', 'destroy');
 });

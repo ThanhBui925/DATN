@@ -69,7 +69,7 @@ class OrderController extends Controller
             $query->where('user_id', $request->input('user_id'));
         }
 
-        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+        $orders = $query->orderBy('created_at', 'desc')->get();
 
         return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
     }

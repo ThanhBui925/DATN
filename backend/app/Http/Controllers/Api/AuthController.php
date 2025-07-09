@@ -75,11 +75,37 @@ class AuthController extends Controller
             'phone' => $data['phone'],
             'address' => $data['address'],
         ]);
-        
+
         Mail::to($user->email)->queue(new WelcomeMail($user));
 
         $token = $user->createToken('API Token')->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $user, 'customer' => $customer], 201);
+    }
+    // Lấy thông tin user cơ bản
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    // Lấy profile chi tiết của user (kèm quan hệ nếu là client)
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'Người dùng chưa đăng nhập'
+            ], 401);
+        }
+
+        if ($user->role === 'client') {
+            $user = User::with('customer')->find($user->id);
+        }
+
+        return response()->json([
+            'message' => 'success',
+            'user' => $user
+        ]);
     }
 }
