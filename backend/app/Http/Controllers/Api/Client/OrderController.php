@@ -18,6 +18,7 @@ use App\Models\Size;
 use App\Models\Color;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreOrderRequest;
+use App\Models\Cart;
 
 class OrderController extends Controller
 {
@@ -56,157 +57,89 @@ class OrderController extends Controller
     /**
      * Tạo đơn hàng mới
      */
+
     public function store(StoreOrderRequest $request)
     {
-        $user = $request->user();
-
-        if (!$user) {
-            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
-        }
-
         DB::beginTransaction();
+
         try {
-            // Tính tổng tiền và kiểm tra tồn kho
+            // Lấy giỏ hàng
+            $cart = Cart::with('items')->where('user_id', $request->user()->id)->first();
+
+            if (!$cart || $cart->items->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Giỏ hàng trống hoặc không tồn tại',
+                ], 400);
+            }
+
             $totalPrice = 0;
-            $orderItems = [];
 
-            foreach ($request->input('items') as $item) {
-                $product = Product::find($item['product_id']);
-                if (!$product || (int)$product->status !== 1) {
-                    throw new \Exception('Sản phẩm không tồn tại hoặc đã bị vô hiệu hóa');
-                }
-
-                $variant = null;
-                if (isset($item['variant_id'])) {
-                    $variant = VariantProduct::find($item['variant_id']);
-                    if (!$variant || $variant->product_id !== $product->id) {
-                        throw new \Exception('Biến thể sản phẩm không hợp lệ');
-                    }
-                    if ($variant->status !== 'active' && $variant->status != 1) {
-                        throw new \Exception('Biến thể sản phẩm đã bị vô hiệu hóa');
-                    }
-                    // Kiểm tra tồn kho đúng trường quantity
-                    if ($variant->quantity < $item['quantity']) {
-                        throw new \Exception("Sản phẩm {$variant->name} không đủ tồn kho");
-                    }
-                }
-
-                // Kiểm tra tồn kho
-                $availableStock = $variant ? $variant->quantity : null; // Không kiểm tra tồn kho cho product nếu không có trường quantity
-                if ($availableStock < $item['quantity']) {
-                    throw new \Exception("Sản phẩm {$product->name} không đủ tồn kho");
-                }
-
-                // Lấy giá sản phẩm/biến thể, đảm bảo không null
-                if ($variant) {
-                    $itemPrice = $variant->price ?? $product->sale_price ?? $product->price;
-                } else {
-                    $itemPrice = $product->sale_price ?? $product->price;
-                }
-                if ($itemPrice === null) {
-                    throw new \Exception('Không xác định được giá sản phẩm!');
-                }
-                $totalPrice += $itemPrice * $item['quantity'];
-
-                $orderItems[] = [
-                    'product_id' => $product->id,
-                    'variant_id' => $variant ? $variant->id : null,
-                    'quantity' => $item['quantity'],
-                    'price' => $itemPrice,
-                ];
-            }
-
-            // Xử lý voucher
-            $discountAmount = 0;
-            $voucher = null;
-            if ($request->has('voucher_code')) {
-                $voucher = Voucher::where('code', $request->input('voucher_code'))
-                    ->where(function($q){
-                        $q->where('status', 1)->orWhere('status', 'active');
-                    })
-                    ->where('expiry_date', '>=', Carbon::now())
-                    ->first();
-
-                if ($voucher) {
-                    // Kiểm tra xem user đã sử dụng voucher này chưa
-                    $usedVoucher = VoucherUser::where('user_id', $user->id)
-                        ->where('voucher_id', $voucher->id)
-                        ->first();
-
-                    if (!$usedVoucher) {
-                        if ($voucher->discount_type === 'percentage') {
-                            $discountAmount = ($totalPrice * $voucher->discount) / 100;
-                        } else {
-                            $discountAmount = $voucher->discount;
-                        }
-                        // Nếu có usage_limit, kiểm tra số lần sử dụng
-                        if ($voucher->usage_limit && $voucher->usage_count >= $voucher->usage_limit) {
-                            $discountAmount = 0;
-                        }
-                    }
-                }
-            }
-
-            $finalTotal = $totalPrice - $discountAmount;
+            // Lấy danh sách sản phẩm để tra giá
+            $productIds = $cart->items->pluck('product_id')->toArray();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
             // Tạo đơn hàng
             $order = Order::create([
-                'user_id' => $user->id,
-                'customer_id' => $user->id, // tạm thời gán user_id nếu chưa có bảng customers riêng
-                'shipping_id' => 1, // luôn truyền id hợp lệ hiện có trong bảng shipping
-                'total_price' => $finalTotal,
-                'order_status' => 'pending',
-                'payment_status' => 'unpaid',
-                'shipping_address' => $request->input('shipping_address'),
-                'payment_method' => $request->input('payment_method'),
-                'recipient_name' => $request->input('recipient_name'),
-                'recipient_phone' => $request->input('recipient_phone'),
-                'voucher_id' => $voucher ? $voucher->id : null,
-                'discount_amount' => $discountAmount,
-                'date_order' => now(),
+                'date_order'        => now(),
+                'total_price'       => 0, // cập nhật lại sau
+                'order_status'      => 'pending',
+                'payment_status'    => 'unpaid',
+                'shipping_address'  => $request->shipping_address,
+                'payment_method'    => $request->payment_method,
+                'user_id'           => $request->user()->id,
+                'shipping_id'       => $request->shipping_id ?? 1,
+                'recipient_name'    => $request->recipient_name,
+                'recipient_phone'   => $request->recipient_phone,
+                'recipient_email'   => $request->recipient_email,
             ]);
 
-            // Tạo order items
-            foreach ($orderItems as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'variant_id' => $item['variant_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ]);
+            foreach ($cart->items as $item) {
+                $product = $products[$item->product_id] ?? null;
 
-                // Cập nhật tồn kho đúng trường quantity cho variant
-                if ($item['variant_id']) {
-                    $variant = VariantProduct::find($item['variant_id']);
-                    $variant->decrement('quantity', $item['quantity']);
+                if (!$product) {
+                    throw new \Exception("Không tìm thấy sản phẩm với ID {$item->product_id}");
                 }
-            }
 
-            // Đánh dấu voucher đã sử dụng
-            if ($voucher) {
-                VoucherUser::create([
-                    'user_id' => $user->id,
-                    'voucher_id' => $voucher->id,
-                    'used_at' => Carbon::now(),
+                $price = $product->price;
+                $lineTotal = $price * $item->quantity;
+                $totalPrice += $lineTotal;
+
+                OrderItem::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity'   => $item->quantity,
+                    'price'      => $price,
+                    'variant_id' => $item->variant_id,
                 ]);
             }
+
+            // Cập nhật lại tổng tiền đơn hàng
+            $order->update(['total_price' => $totalPrice]);
+
+            // Xoá giỏ hàng sau khi đặt
+            $cart->items()->delete();
+            $cart->delete();
 
             DB::commit();
 
-            $order->load(['orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color', 'voucher']);
-
-            return $this->successResponse($order, 'Tạo đơn hàng thành công');
+            return response()->json([
+                'status' => true,
+                'message' => 'Tạo đơn hàng thành công từ giỏ hàng',
+                'data' => $order->load('orderItems'),
+            ], 201);
         } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Failed to create order', [
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Lỗi khi tạo đơn hàng',
                 'error' => $e->getMessage(),
-                'user_id' => $user ? $user->id : null,
-                'request' => $request->all()
-            ]);
-            return $this->errorResponse('Tạo đơn hàng thất bại: ' . $e->getMessage(), null, 500);
+            ], 500);
         }
     }
+
+
 
     /**
      * Xem chi tiết đơn hàng của user
