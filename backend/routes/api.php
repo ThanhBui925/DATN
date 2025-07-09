@@ -36,7 +36,7 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
-    Route::prefix('cart')->group(function () {
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
         Route::get('/', [ClientCartController::class, 'index']);
         Route::post('/items', [ClientCartController::class, 'store']);
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
@@ -157,11 +157,4 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
     Route::put('/comments/{commentId}/restore', 'restoreComment');
-});
-
-Route::prefix('cart')->controller(CartController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::post('/', 'store');
-    Route::put('/', 'update');
-    Route::delete('/', 'destroy');
 });
