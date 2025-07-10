@@ -50,7 +50,7 @@ export const Checkout = () => {
     const navigate = useNavigate();
     const [cartData, setCartData] = useState<CartData>({items: [], total: "0"});
     const [loading, setLoading] = useState<boolean>(false);
-    const [couponCode, setCouponCode] = useState<string>("");
+    const [voucherCode, setVoucherCode] = useState<string>("");
     const [appliedCoupon, setAppliedCoupon] = useState<CouponResponse | null>(null);
     const [couponError, setCouponError] = useState<string>("");
     const [profile, setProfile] = useState<any | null>(null);
@@ -130,14 +130,14 @@ export const Checkout = () => {
     }, [profile]);
 
     const applyCoupon = async () => {
-        if (!couponCode) {
+        if (!voucherCode) {
             setCouponError("Vui lòng nhập mã giảm giá");
             return;
         }
 
         try {
             const res = await axiosInstance.post("/api/client/checkout/apply_coupon", {
-                voucher_code: couponCode,
+                voucher_code: voucherCode,
             });
 
             if (res.data.status) {
@@ -163,7 +163,7 @@ export const Checkout = () => {
 
     const cancelCoupon = () => {
         setAppliedCoupon(null);
-        setCouponCode("");
+        setVoucherCode("");
         setCouponError("");
         notification.success({message: "Đã hủy mã giảm giá"});
     };
@@ -235,7 +235,7 @@ export const Checkout = () => {
                 shipping_address: formData.shipping_address ?? profile.customer.address,
                 note: formData.note,
                 payment_method: formData.payment_method,
-                coupon_code: appliedCoupon ? appliedCoupon.voucher_code : "",
+                voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
             };
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
@@ -513,8 +513,8 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     placeholder="Nhập mã giảm giá"
-                                                                    value={couponCode}
-                                                                    onChange={(e) => setCouponCode(e.target.value)}
+                                                                    value={voucherCode}
+                                                                    onChange={(e) => setVoucherCode(e.target.value)}
                                                                     disabled={!!appliedCoupon}
                                                                 />
                                                                 {appliedCoupon ? (
