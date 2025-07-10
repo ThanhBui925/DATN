@@ -20,7 +20,7 @@ export const ProfileSidebar = () => {
     };
 
     return (
-        <div className="col-md-12 col-lg-2">
+        <div className="col-md-12 col-lg-2 shadow-lg bg-white rounded-3">
             <ul className="nav flex-column dashboard-list" role="tablist">
                 <li>
                     <Link

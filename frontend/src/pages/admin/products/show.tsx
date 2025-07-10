@@ -136,7 +136,7 @@ export const ProductsShow = () => {
                         title={<Title level={4} style={{margin: 0}}>Ảnh đại diện sản phẩm</Title>}
                     >
                         {record?.image ? (
-                            <Image src={record.image} width={200}/>
+                            <Image src={record.image} width={300}/>
                         ) : (
                             <TextField value="Chưa có ảnh"/>
                         )}
@@ -148,8 +148,8 @@ export const ProductsShow = () => {
                                         <Col>
                                             <Image src={url.url}
                                                    style={{
-                                                       width: 50,
-                                                       height: 50,
+                                                       width: 80,
+                                                       height: 80,
                                                        objectFit: "cover",
                                                        borderRadius: 4,
                                                    }}

@@ -1,10 +1,10 @@
-import { DateField, Show, TextField, EditButton } from "@refinedev/antd";
-import { useShow, useUpdate } from "@refinedev/core";
+import {DateField, Show, TextField, EditButton} from "@refinedev/antd";
+import {useShow, useUpdate} from "@refinedev/core";
 import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message} from "antd";
-import { useState } from "react";
+import {useState} from "react";
 import {convertToInt} from "../../../helpers/common";
 
-const { Title, Text } = Typography;
+const {Title, Text} = Typography;
 
 const validTransitions: Record<string, string[]> = {
     pending: ["confirming", "canceled"],
@@ -18,35 +18,35 @@ const validTransitions: Record<string, string[]> = {
 };
 
 export const OrdersShow = () => {
-    const { queryResult } = useShow({});
-    const { data, isLoading } = queryResult;
+    const {queryResult} = useShow({});
+    const {data, isLoading} = queryResult;
     const record = data?.data;
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
-    const { mutate } = useUpdate();
+    const {mutate} = useUpdate();
 
     const statusMap: Record<string, { color: string; label: string }> = {
-        confirming: { color: "gold", label: "Đang xác nhận" },
-        confirmed: { color: "blue", label: "Đã xác nhận" },
-        preparing: { color: "orange", label: "Đang chuẩn bị" },
-        shipping: { color: "cyan", label: "Đang giao hàng" },
-        delivered: { color: "green", label: "Đã giao hàng" },
-        completed: { color: "purple", label: "Hoàn tất" },
-        canceled: { color: "red", label: "Đã hủy" },
-        pending: { color: "default", label: "Chờ xử lý" },
+        confirming: {color: "gold", label: "Đang xác nhận"},
+        confirmed: {color: "blue", label: "Đã xác nhận"},
+        preparing: {color: "orange", label: "Đang chuẩn bị"},
+        shipping: {color: "cyan", label: "Đang giao hàng"},
+        delivered: {color: "green", label: "Đã giao hàng"},
+        completed: {color: "purple", label: "Hoàn tất"},
+        canceled: {color: "red", label: "Đã hủy"},
+        pending: {color: "default", label: "Chờ xử lý"},
     };
 
     const paymentStatusMap: Record<string, { color: string; label: string }> = {
-        unpaid: { color: "red", label: "Chưa thanh toán" },
-        paid: { color: "green", label: "Đã thanh toán" },
+        unpaid: {color: "red", label: "Chưa thanh toán"},
+        paid: {color: "green", label: "Đã thanh toán"},
     };
 
-    const paymentMethodMap: Record<string, string> = {
-        cash: "Tiền mặt",
-        card: "Thẻ",
-        paypal: "PayPal",
-        vnpay: "VNPay",
+    const paymentMethodMap: Record<string, { label: string; color: string }> = {
+        cash: {label: "Tiền mặt", color: "gold"},
+        card: {label: "Thẻ tín dụng", color: "purple"},
+        paypal: {label: "PayPal", color: "blue"},
+        vnpay: {label: "VNPay", color: "red"}
     };
 
     const handleUpdateStatus = () => {
@@ -65,7 +65,7 @@ export const OrdersShow = () => {
                 return mutate({
                     resource: "orders",
                     id: record?.id,
-                    values: { order_status: values.order_status },
+                    values: {order_status: values.order_status},
                 }, {
                     onSuccess: () => {
                         setIsModalVisible(false);
@@ -77,7 +77,6 @@ export const OrdersShow = () => {
                 message.error("Vui lòng kiểm tra lại thông tin!");
             });
     };
-
 
 
     const handleModalCancel = () => {
@@ -102,161 +101,157 @@ export const OrdersShow = () => {
                     <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                 )}
             >
-                <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                <Row gutter={[24, 24]} style={{marginBottom: 24}}>
+                    <Col xs={24}>
+                        <Row gutter={[24, 24]}>
+                            <Col xs={24} md={12}>
+                                <Card
+                                    title={<Title level={4} style={{margin: 0}}>Thông tin người đặt hàng</Title>}
+                                    style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.06)"}}
+                                    bodyStyle={{padding: 16}}
+                                >
+                                    <Col>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Tên người đặt:</Text>
+                                            <TextField value={record?.user?.name || "-"} style={{marginLeft: 8}}/>
+                                        </div>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Số điện thoại:</Text>
+                                            <TextField value={record?.user?.customer?.phone || "-"}
+                                                       style={{marginLeft: 8}}/>
+                                        </div>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Email:</Text>
+                                            <TextField value={record?.user?.email || "-"} style={{marginLeft: 8}}/>
+                                        </div>
+                                    </Col>
+                                </Card>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Card
+                                    title={<Title level={4} style={{margin: 0}}>Thông tin người nhận hàng</Title>}
+                                    style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.06)"}}
+                                    bodyStyle={{padding: 16}}
+                                >
+                                    <Col>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Tên người nhận:</Text>
+                                            <TextField value={record?.recipient_name || "-"} style={{marginLeft: 8}}/>
+                                        </div>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Số điện thoại:</Text>
+                                            <TextField value={record?.recipient_phone || "-"} style={{marginLeft: 8}}/>
+                                        </div>
+                                        <div style={{marginBottom: 12}}>
+                                            <Text strong>Email:</Text>
+                                            <TextField value={record?.recipient_email || "-"} style={{marginLeft: 8}}/>
+                                        </div>
+                                    </Col>
+                                </Card>
+                            </Col>
+                        </Row>
+                    </Col>
                     <Col xs={24}>
                         <Card
-                            title={<Title level={4} style={{ margin: 0 }}>Thông tin giao hàng</Title>}
-                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+                            title={<Title level={4} style={{margin: 0}}>Địa chỉ giao hàng</Title>}
+                            style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
                         >
-                            <Row gutter={[16, 16]}>
-                                <Col xs={24}>
-                                    <Title level={5} style={{ marginTop: 0 }}>Thông tin người đặt hàng</Title>
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người đặt</Text>
-                                    <TextField
-                                        value={record?.user?.name || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người đặt</Text>
-                                    <TextField
-                                        value={record?.user?.customer?.phone || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người đặt</Text>
-                                    <TextField
-                                        value={record?.user?.email || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24}>
-                                    <Title level={5} style={{ marginTop: 24 }}>Thông tin người nhận</Title>
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên người nhận</Text>
-                                    <TextField
-                                        value={record?.recipient_name || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Số điện thoại người nhận</Text>
-                                    <TextField
-                                        value={record?.recipient_phone || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={8}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Email người nhận</Text>
-                                    <TextField
-                                        value={record?.recipient_email || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={24}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Địa chỉ giao hàng</Text>
-                                    <TextField
-                                        value={record?.shipping_address || "-"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày giao hàng</Text>
-                                    <DateField
-                                        value={record?.shipped_at}
-                                        format="DD/MM/YYYY HH:mm"
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Phương thức thanh toán</Text>
-                                    <TextField
-                                        value={
-                                            record?.payment_method
-                                                ? paymentMethodMap[record.payment_method] || record.payment_method
-                                                : "-"
-                                        }
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                            </Row>
+                            <TextField value={record?.shipping_address || "-"}/>
                         </Card>
                     </Col>
                     <Col xs={24}>
                         <Card
-                            title={<Title level={4} style={{ margin: 0 }}>Thông tin đơn hàng</Title>}
-                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+                            title={<Title level={4} style={{margin: 0}}>Thông tin đơn hàng</Title>}
+                            style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
                         >
                             <Row gutter={[16, 16]}>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Mã đơn hàng</Text>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Mã đơn hàng</Text>
                                     <TextField
                                         value={`#${record?.id || "-"}`}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngày đặt hàng</Text>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Ngày đặt hàng</Text>
                                     <DateField
                                         value={record?.date_order}
                                         format="DD/MM/YYYY HH:mm"
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Tổng tiền</Text>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Tổng tiền</Text>
                                     <TextField
                                         value={
                                             record?.total_price
-                                                ? `${ convertToInt(record.total_price) } VNĐ`
+                                                ? `${convertToInt(record.total_price)} VNĐ`
                                                 : "0.00 VNĐ"
                                         }
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Trạng thái đơn hàng</Text>
-                                    <div style={{ marginTop: 8 }}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái đơn hàng</Text>
+                                    <div style={{marginTop: 8}}>
                                         {record?.order_status ? (
                                             <Tag
                                                 color={statusMap[record.order_status]?.color}
-                                                style={{ padding: "4px 12px", fontSize: 14, borderRadius: 4 }}
+                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                             >
                                                 {statusMap[record.order_status]?.label || record.order_status}
                                             </Tag>
                                         ) : (
                                             <TextField
                                                 value="Không có trạng thái"
-                                                style={{ display: "block", fontSize: 16, color: "#262626" }}
+                                                style={{display: "block", fontSize: 16, color: "#262626"}}
                                             />
                                         )}
                                     </div>
                                 </Col>
+                                {
+                                    record?.status == 'canceled' && (
+                                        <Col xs={24} sm={12}>
+                                            <Text strong style={{color: "#595959", fontSize: 14}}>Lý do hủy</Text>
+                                            <TextField
+                                                value={record?.cancel_reason || "Không có"}
+                                                style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                            />
+                                        </Col>
+                                    )
+                                }
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Lý do hủy</Text>
-                                    <TextField
-                                        value={record?.cancel_reason || "Không có"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
-                                    />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Trạng thái thanh toán</Text>
-                                    <div style={{ marginTop: 8 }}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
+                                    <div style={{marginTop: 8}}>
                                         {record?.payment_status ? (
                                             <Tag
                                                 color={paymentStatusMap[record.payment_status]?.color}
-                                                style={{ padding: "4px 12px", fontSize: 14, borderRadius: 4 }}
+                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                             >
                                                 {paymentStatusMap[record.payment_status]?.label || record.payment_status}
                                             </Tag>
                                         ) : (
                                             <TextField
                                                 value="-"
-                                                style={{ display: "block", fontSize: 16, color: "#262626" }}
+                                                style={{display: "block", fontSize: 16, color: "#262626"}}
+                                            />
+                                        )}
+                                    </div>
+                                </Col>
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Phương thức thanh toán</Text>
+                                    <div style={{marginTop: 8}}>
+                                        {record?.payment_method ? (
+                                            <Tag
+                                                color={paymentMethodMap[record.payment_method]?.color}
+                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                            >
+                                                {paymentMethodMap[record.payment_method]?.label || record.payment_method}
+                                            </Tag>
+                                        ) : (
+                                            <TextField
+                                                value="-"
+                                                style={{display: "block", fontSize: 16, color: "#262626"}}
                                             />
                                         )}
                                     </div>
@@ -266,19 +261,19 @@ export const OrdersShow = () => {
                     </Col>
                     <Col xs={24}>
                         <Card
-                            title={<Title level={4} style={{ margin: 0 }}>Mã giảm giá</Title>}
-                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+                            title={<Title level={4} style={{margin: 0}}>Mã giảm giá</Title>}
+                            style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
                         >
                             <Row gutter={[16, 16]}>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Mã voucher</Text>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Mã voucher</Text>
                                     <TextField
                                         value={record?.voucher?.code || "Không sử dụng"}
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{ color: "#595959", fontSize: 14 }}>Giá trị giảm</Text>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Giá trị giảm</Text>
                                     <TextField
                                         value={
                                             record?.voucher?.discount
@@ -289,7 +284,7 @@ export const OrdersShow = () => {
                                                         : "Miễn phí vận chuyển"
                                                 : "0 VNĐ"
                                         }
-                                        style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                             </Row>
@@ -297,15 +292,15 @@ export const OrdersShow = () => {
                     </Col>
                     <Col xs={24}>
                         <Card
-                            title={<Title level={4} style={{ margin: 0 }}>Sản phẩm trong đơn hàng</Title>}
-                            style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+                            title={<Title level={4} style={{margin: 0}}>Sản phẩm trong đơn hàng</Title>}
+                            style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
                         >
                             {record?.items && record.items.length > 0 ? (
                                 <Table
                                     dataSource={record.items}
                                     rowKey="id"
                                     pagination={false}
-                                    style={{ marginTop: 16 }}
+                                    style={{marginTop: 16}}
                                     rowClassName={() => "ant-table-row-hover"}
                                 >
                                     <Table.Column
@@ -314,7 +309,7 @@ export const OrdersShow = () => {
                                         render={(value) => (
                                             <TextField
                                                 value={value || "-"}
-                                                style={{ fontSize: 14, color: "#262626" }}
+                                                style={{fontSize: 14, color: "#262626"}}
                                             />
                                         )}
                                     />
@@ -325,12 +320,12 @@ export const OrdersShow = () => {
                                             variant ? (
                                                 <TextField
                                                     value={`${variant.size?.name || ""} ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
-                                                    style={{ fontSize: 14, color: "#262626" }}
+                                                    style={{fontSize: 14, color: "#262626"}}
                                                 />
                                             ) : (
                                                 <TextField
                                                     value="Không có biến thể"
-                                                    style={{ fontSize: 14, color: "#262626" }}
+                                                    style={{fontSize: 14, color: "#262626"}}
                                                 />
                                             )
                                         }
@@ -341,7 +336,7 @@ export const OrdersShow = () => {
                                         render={(value) => (
                                             <TextField
                                                 value={value || 0}
-                                                style={{ fontSize: 14, color: "#262626" }}
+                                                style={{fontSize: 14, color: "#262626"}}
                                             />
                                         )}
                                     />
@@ -350,8 +345,8 @@ export const OrdersShow = () => {
                                         dataIndex="price"
                                         render={(value) => (
                                             <TextField
-                                                value={value ? `${ convertToInt(value) } VNĐ` : "0 VNĐ"}
-                                                style={{ fontSize: 14, color: "#262626" }}
+                                                value={value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"}
+                                                style={{fontSize: 14, color: "#262626"}}
                                             />
                                         )}
                                     />
@@ -364,7 +359,7 @@ export const OrdersShow = () => {
                                                         ? `${convertToInt(item.price * item.quantity)} VNĐ`
                                                         : "0 VNĐ"
                                                 }
-                                                style={{ fontSize: 14, color: "#262626" }}
+                                                style={{fontSize: 14, color: "#262626"}}
                                             />
                                         )}
                                     />
@@ -372,7 +367,7 @@ export const OrdersShow = () => {
                             ) : (
                                 <TextField
                                     value="Không có sản phẩm"
-                                    style={{ fontSize: 16, color: "#595959" }}
+                                    style={{fontSize: 16, color: "#595959"}}
                                 />
                             )}
                         </Card>
@@ -380,25 +375,25 @@ export const OrdersShow = () => {
                 </Row>
             </Show>
             <Modal
-                title={<Title level={4} style={{ margin: 0 }}>Cập nhật trạng thái đơn hàng</Title>}
+                title={<Title level={4} style={{margin: 0}}>Cập nhật trạng thái đơn hàng</Title>}
                 open={isModalVisible}
                 onOk={handleModalOk}
                 onCancel={handleModalCancel}
                 okText="Lưu"
                 cancelText="Hủy"
-                okButtonProps={{ style: { backgroundColor: "#1d39c4", color: "#fff", borderRadius: 6 } }}
-                cancelButtonProps={{ style: { borderRadius: 6 } }}
+                okButtonProps={{style: {backgroundColor: "#1d39c4", color: "#fff", borderRadius: 6}}}
+                cancelButtonProps={{style: {borderRadius: 6}}}
             >
                 <Form form={form}
                       layout="vertical"
-                      initialValues={{ order_status: record?.order_status }}>
+                      initialValues={{order_status: record?.order_status}}>
                     <Form.Item
                         name="order_status"
                         label="Trạng thái đơn hàng"
-                        rules={[{ required: true, message: "Vui lòng chọn trạng thái đơn hàng" }]}
+                        rules={[{required: true, message: "Vui lòng chọn trạng thái đơn hàng"}]}
                     >
-                        <Select placeholder="Chọn trạng thái" style={{ width: "100%" }}>
-                            {Object.entries(statusMap).map(([key, { label }]) => (
+                        <Select placeholder="Chọn trạng thái" style={{width: "100%"}}>
+                            {Object.entries(statusMap).map(([key, {label}]) => (
                                 <Select.Option
                                     key={key}
                                     value={key}

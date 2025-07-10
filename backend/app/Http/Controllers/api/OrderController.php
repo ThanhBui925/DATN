@@ -69,9 +69,9 @@ class OrderController extends Controller
             $query->where('user_id', $request->input('user_id'));
         }
 
-        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+        $orders = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json($orders, 200);
+        return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
     }
 
     /**
@@ -165,7 +165,7 @@ class OrderController extends Controller
 
         if (!in_array($newStatus, $this->validTransitions[$currentStatus] ?? [])) {
             return $this->errorResponse(
-                'Invalid status transition from ' . $currentStatus . ' to ' . $newStatus,
+                'Chuyển trạng thái không hợp lệ từ ' . $currentStatus . ' sang ' . $newStatus,
                 null,
                 400
             );
@@ -175,9 +175,7 @@ class OrderController extends Controller
 
         if ($request->has('payment_status')) {
             if ($newStatus === 'canceled' && $request->input('payment_status') === 'paid') {
-                return response()->json([
-                    'error' => 'Cannot set payment_status to paid for a canceled order'
-                ], 400);
+                return $this->errorResponse('Không thể đặt trạng thái thanh toán là paid cho đơn đã hủy', null, 400);
             }
             $order->payment_status = $request->input('payment_status');
         }
@@ -201,16 +199,15 @@ class OrderController extends Controller
                 'new_status' => $newStatus
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to update order status', ['error' => $e->getMessage()]);
-            return response()->json([
-                'error' => 'Failed to update order: ' . $e->getMessage()
-            ], 500);
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'order_id' => $id,
+                'new_status' => $newStatus
+            ]);
+            return $this->errorResponse('Cập nhật trạng thái đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
 
-        return response()->json([
-            'message' => 'Order status updated successfully',
-            'order' => $order->load(['customer', 'shipping', 'user'])
-        ], 200);
+        return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
     }
 
     /**
@@ -230,7 +227,7 @@ class OrderController extends Controller
 
         $orders = $query->paginate(10);
 
-        return response()->json($orders, 200);
+        return $this->successResponse($orders, 'Tìm kiếm đơn hàng thành công');
     }
 
     /**

@@ -17,6 +17,9 @@ use App\Traits\ApiResponseTrait;
 use App\Models\Size;
 use App\Models\Color;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\ApplyVoucherRequest;
+use App\Models\Cart;
 
 class OrderController extends Controller
 {
@@ -28,7 +31,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
@@ -55,155 +58,172 @@ class OrderController extends Controller
     /**
      * Tạo đơn hàng mới
      */
-    public function store(Request $request)
+
+    public function store(StoreOrderRequest $request)
     {
-        $user = $request->user();
-        
-        if (!$user) {
-            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.variant_id' => 'nullable|exists:variant_products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'shipping_address' => 'required|string',
-            'recipient_name' => 'required|string',
-            'recipient_phone' => 'required|string',
-            'payment_method' => 'required|in:cash,cod,online',
-            'voucher_code' => 'nullable|string|exists:vouchers,code',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse('Dữ liệu không hợp lệ', $validator->errors(), 422);
-        }
-
         DB::beginTransaction();
         try {
-            // Tính tổng tiền và kiểm tra tồn kho
+            $userId = $request->user()->id;
+
+            $cart = Cart::with('items')->where('user_id', $userId)->first();
+            if (!$cart || $cart->items->isEmpty()) {
+                return $this->errorResponse('Giỏ hàng trống hoặc không tồn tại.', null, 400);
+            }
+
             $totalPrice = 0;
-            $orderItems = [];
+            $productIds = $cart->items->pluck('product_id')->toArray();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-            foreach ($request->input('items') as $item) {
-                $product = Product::find($item['product_id']);
-                if (!$product || $product->status !== 'active') {
-                    throw new \Exception('Sản phẩm không tồn tại hoặc đã bị vô hiệu hóa');
-                }
-
-                $variant = null;
-                if (isset($item['variant_id'])) {
-                    $variant = VariantProduct::find($item['variant_id']);
-                    if (!$variant || $variant->product_id !== $product->id) {
-                        throw new \Exception('Biến thể sản phẩm không hợp lệ');
-                    }
-                }
-
-                // Kiểm tra tồn kho
-                $availableStock = $variant ? $variant->stock : $product->stock;
-                if ($availableStock < $item['quantity']) {
-                    throw new \Exception("Sản phẩm {$product->name} không đủ tồn kho");
-                }
-
-                $itemPrice = $variant ? $variant->price : $product->sale_price ?: $product->price;
-                $totalPrice += $itemPrice * $item['quantity'];
-
-                $orderItems[] = [
-                    'product_id' => $product->id,
-                    'variant_id' => $variant ? $variant->id : null,
-                    'quantity' => $item['quantity'],
-                    'price' => $itemPrice,
-                ];
-            }
-
-            // Xử lý voucher
-            $discountAmount = 0;
-            $voucher = null;
-            if ($request->has('voucher_code')) {
-                $voucher = Voucher::where('code', $request->input('voucher_code'))
-                    ->where('status', 'active')
-                    ->where('start_date', '<=', Carbon::now())
-                    ->where('end_date', '>=', Carbon::now())
-                    ->first();
-
-                if ($voucher) {
-                    // Kiểm tra xem user đã sử dụng voucher này chưa
-                    $usedVoucher = VoucherUser::where('user_id', $user->id)
-                        ->where('voucher_id', $voucher->id)
-                        ->first();
-
-                    if (!$usedVoucher) {
-                        if ($voucher->type === 'percentage') {
-                            $discountAmount = ($totalPrice * $voucher->value) / 100;
-                        } else {
-                            $discountAmount = $voucher->value;
-                        }
-                        
-                        // Giới hạn số tiền giảm tối đa
-                        if ($voucher->max_discount && $discountAmount > $voucher->max_discount) {
-                            $discountAmount = $voucher->max_discount;
-                        }
-                    }
-                }
-            }
-
-            $finalTotal = $totalPrice - $discountAmount;
-
-            // Tạo đơn hàng
             $order = Order::create([
-                'user_id' => $user->id,
-                'total_price' => $finalTotal,
-                'order_status' => 'pending',
-                'payment_status' => 'unpaid',
-                'shipping_address' => $request->input('shipping_address'),
-                'payment_method' => $request->input('payment_method'),
-                'recipient_name' => $request->input('recipient_name'),
-                'recipient_phone' => $request->input('recipient_phone'),
-                'voucher_id' => $voucher ? $voucher->id : null,
-                'discount_amount' => $discountAmount,
+                'date_order'        => now(),
+                'total_price'       => 0,
+                'order_status'      => 'pending',
+                'payment_status'    => 'unpaid',
+                'shipping_address'  => $request->shipping_address,
+                'payment_method'    => $request->payment_method,
+                'user_id'           => $userId,
+                'shipping_id'       => $request->shipping_id ?? 1,
+                'recipient_name'    => $request->recipient_name,
+                'recipient_phone'   => $request->recipient_phone,
+                'recipient_email'   => $request->recipient_email,
+                'discount_amount'   => 0,
             ]);
 
-            // Tạo order items
-            foreach ($orderItems as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'variant_id' => $item['variant_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ]);
-
-                // Cập nhật tồn kho
-                if ($item['variant_id']) {
-                    $variant = VariantProduct::find($item['variant_id']);
-                    $variant->decrement('stock', $item['quantity']);
-                } else {
-                    $product = Product::find($item['product_id']);
-                    $product->decrement('stock', $item['quantity']);
+            foreach ($cart->items as $item) {
+                $product = $products[$item->product_id] ?? null;
+                if (!$product) {
+                    throw new \Exception("Không tìm thấy sản phẩm với ID {$item->product_id}");
+                    return $this->errorResponse("Không tìm thấy sản phẩm với ID {$item->product_id}", null, 404);
                 }
-            }
 
-            // Đánh dấu voucher đã sử dụng
-            if ($voucher) {
-                VoucherUser::create([
-                    'user_id' => $user->id,
-                    'voucher_id' => $voucher->id,
-                    'used_at' => Carbon::now(),
+                $price = $product->price;
+                $lineTotal = $price * $item->quantity;
+                $totalPrice += $lineTotal;
+
+                $variant = VariantProduct::where('id', $item->variant_id)->lockForUpdate()->first();
+                if (!$variant || $variant->quantity < $item->quantity) {
+                    throw new \Exception("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.");
+                    return $this->errorResponse("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.", null, 400);
+                }
+
+                $variant->decrement('quantity', $item->quantity);
+
+                OrderItem::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity'   => $item->quantity,
+                    'price'      => $price,
+                    'variant_id' => $item->variant_id,
                 ]);
             }
+
+            $discountAmount = 0;
+
+            if ($request->filled('voucher_code')) {
+                $voucher = Voucher::where('code', $request->voucher_code)
+                    ->where('status', 1)
+                    ->where(function ($q) {
+                        $now = now();
+                        $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                    })
+                    ->where(function ($q) {
+                        $now = now();
+                        $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', $now);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$voucher) {
+                    throw new \Exception('Mã giảm giá không tồn tại hoặc đã hết hạn.');
+                    return $this->errorResponse('Mã giảm giá không tồn tại hoặc đã hết hạn.', null, 404);
+                }
+
+                if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
+                    throw new \Exception('Mã giảm giá đã hết lượt sử dụng.');
+                    return $this->errorResponse('Mã giảm giá đã hết lượt sử dụng.', null, 400);
+                }
+
+                if ($voucher->usage_limit_per_user !== null) {
+                    $used = Order::where('user_id', $userId)
+                        ->where('voucher_code', $voucher->code)
+                        ->whereIn('order_status', ['pending', 'confirmed', 'shipped', 'delivered'])
+                        ->count();
+
+                    if ($used >= $voucher->usage_limit_per_user) {
+                        throw new \Exception('Bạn đã sử dụng mã giảm giá này rồi.');
+                        return $this->errorResponse('Bạn đã sử dụng mã giảm giá này rồi.', null, 400);
+                    }
+                }
+
+                if ($voucher->min_order_amount && $totalPrice < $voucher->min_order_amount) {
+                    throw new \Exception('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.');
+                    return $this->errorResponse('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.', null, 400);
+                }
+
+                if ($voucher->discount_type === 'percentage') {
+                    $discountAmount = $totalPrice * ($voucher->discount / 100);
+                    if ($voucher->max_discount_amount) {
+                        $discountAmount = min($discountAmount, $voucher->max_discount_amount);
+                    }
+                } else {
+                    $discountAmount = $voucher->discount;
+                }
+
+                $discountAmount = min($discountAmount, $totalPrice);
+                $voucher->increment('usage_count');
+
+                $order->update([
+                    'voucher_code'    => $voucher->code,
+                    'discount_amount' => $discountAmount,
+                ]);
+            }
+
+            $order->update(['total_price' => $totalPrice - $discountAmount]);
+
+            $cart->items()->delete();
+            $cart->delete();
 
             DB::commit();
-
-            $order->load(['orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color', 'voucher']);
-
-            return $this->successResponse($order, 'Tạo đơn hàng thành công');
-
+            return $this->successResponse($order->load('orderItems'), 'Tạo đơn hàng thành công từ giỏ hàng', 201);
         } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Failed to create order', ['error' => $e->getMessage()]);
-            return $this->errorResponse('Tạo đơn hàng thất bại: ' . $e->getMessage(), null, 500);
+            DB::rollBack();
+            return $this->errorResponse('Lỗi khi tạo đơn hàng: ' . $e->getMessage(), null, 500);
         }
     }
+
+
+
+    public function applyVoucher(ApplyVoucherRequest $request)
+    {
+        $userId = $request->user()->id;
+
+        $voucher = Voucher::where('code', $request->voucher_code)->first();
+
+        $cart = Cart::with('items.product')->where('user_id', $userId)->first();
+        $totalPrice = $cart->items->sum(fn($item) => $item->product->price * $item->quantity);
+
+        $discountAmount = 0;
+        if ($voucher->discount_type === 'percentage') {
+            $discountAmount = $totalPrice * ($voucher->discount / 100);
+            if ($voucher->max_discount_amount) {
+                $discountAmount = min($discountAmount, $voucher->max_discount_amount);
+            }
+        } else {
+            $discountAmount = $voucher->discount;
+        }
+
+        $discountAmount = min($discountAmount, $totalPrice);
+
+        return $this->successResponse([
+            'voucher_code'    => $voucher->code,
+            'discount_type'   => $voucher->discount_type,
+            'discount_amount' => round($discountAmount, 0),
+            'original_price'  => $totalPrice,
+            'final_price'     => $totalPrice - $discountAmount,
+        ], 'Mã giảm giá hợp lệ');
+    }
+
+
 
     /**
      * Xem chi tiết đơn hàng của user
@@ -211,11 +231,9 @@ class OrderController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
-
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->with([
@@ -227,11 +245,9 @@ class OrderController extends Controller
                 'orderItems.variant.size',
                 'orderItems.variant.color',
             ])->first();
-
         if (!$order) {
-            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập', null, 404);
         }
-
         $result = [
             'id' => $order->id,
             'date_order' => $order->created_at,
@@ -255,7 +271,7 @@ class OrderController extends Controller
             'recipient_phone' => $order->recipient_phone,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher, 
+            'voucher' => $order->voucher,
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -288,74 +304,50 @@ class OrderController extends Controller
                 ];
             }),
         ];
-
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 
     /**
-     * Hủy đơn hàng
+     * Hủy đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
      */
     public function cancel(Request $request, $id)
     {
         $user = $request->user();
-        
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
-
-        $validator = Validator::make($request->all(), [
-            'cancel_reason' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse('Dữ liệu không hợp lệ', $validator->errors(), 422);
-        }
-
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
-
         if (!$order) {
-            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền hủy', null, 404);
         }
-
-        // Chỉ cho phép hủy đơn hàng ở trạng thái pending hoặc confirming
         if (!in_array($order->order_status, ['pending', 'confirming'])) {
-            return $this->errorResponse('Không thể hủy đơn hàng ở trạng thái này', null, 400);
+            return $this->errorResponse('Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đang xác nhận', null, 400);
         }
-
-        DB::beginTransaction();
+        $request->validate([
+            'cancel_reason' => 'required|string|max:500',
+        ], [
+            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
+            'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
+        ]);
         try {
             $order->order_status = 'canceled';
             $order->cancel_reason = $request->input('cancel_reason');
             $order->save();
-
-            // Hoàn trả tồn kho
-            foreach ($order->orderItems as $item) {
-                if ($item->variant_id) {
-                    $variant = VariantProduct::find($item->variant_id);
-                    $variant->increment('stock', $item->quantity);
-                } else {
-                    $product = Product::find($item->product_id);
-                    $product->increment('stock', $item->quantity);
-                }
-            }
-
-            // Hoàn trả voucher nếu có
-            if ($order->voucher_id) {
-                VoucherUser::where('user_id', $user->id)
-                    ->where('voucher_id', $order->voucher_id)
-                    ->delete();
-            }
-
-            DB::commit();
-
+            Log::info('Order canceled by user', [
+                'order_id' => $order->id,
+                'user_id' => $user->id,
+                'reason' => $order->cancel_reason
+            ]);
             return $this->successResponse($order, 'Hủy đơn hàng thành công');
-
         } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Failed to cancel order', ['error' => $e->getMessage()]);
+            Log::error('Failed to cancel order', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'user_id' => $user->id
+            ]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
     }
-} 
+}
