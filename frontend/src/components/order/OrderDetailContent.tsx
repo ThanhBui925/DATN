@@ -171,20 +171,21 @@ export const OrderDetailContent = () => {
                             </div>
                             <div className="col-md-6">
                                 <div className="bg-light p-3 rounded">
-                                    <p className="mb-1"><strong>Đơn vị vận
-                                        chuyển:</strong> {order.shipping?.name || "N/A"}</p>
-                                    <p className="mb-1"><strong>Trạng thái vận
-                                        chuyển:</strong> {order.shipping?.status || "N/A"}</p>
-                                    <p className="mb-1"><strong>Ngày giao
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        hàng:</strong> {convertDate(order.delivered_at) || "N/A"}</p>
-                                    <p className="mb-0"><strong>Ngày xuất
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        kho:</strong> {convertDate(order.shipped_at) || "N/A"}</p>
+                                    <p className="mb-1">
+                                        <strong>Đơn vị vận chuyển:</strong> {order.shipping_name || "N/A"}
+                                    </p>
+                                    {/* <p className="mb-1">
+                                        <strong>Trạng thái vận chuyển:</strong> {order.shipping?.status || "N/A"}
+                                    </p> */}
+                                    <p className="mb-1">
+                                        <strong>Ngày giao hàng:</strong> {convertDate(order.delivered_at) || "N/A"}
+                                    </p>
+                                    <p className="mb-0">
+                                        <strong>Ngày xuất kho:</strong> {convertDate(order.shipped_at) || "N/A"}
+                                    </p>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
