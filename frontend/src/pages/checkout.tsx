@@ -35,7 +35,8 @@ interface CartData {
 interface CouponResponse {
     final_price: string;
     discount_amount: string;
-    coupon_code: string;
+    voucher_code: string;
+    original_price: string,
 }
 
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -234,7 +235,7 @@ export const Checkout = () => {
                 shipping_address: formData.shipping_address ?? profile.customer.address,
                 note: formData.note,
                 payment_method: formData.payment_method,
-                coupon_code: appliedCoupon ? appliedCoupon.coupon_code : "",
+                coupon_code: appliedCoupon ? appliedCoupon.voucher_code : "",
             };
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
@@ -475,13 +476,13 @@ export const Checkout = () => {
                                                                     </th>
                                                                     <td className="text-end">
                                                                         <span
-                                                                            className="fw-bold">{convertToInt(cartData.total)}₫</span>
+                                                                                className="fw-bold">{convertToInt(cartData.total)}₫</span>
                                                                     </td>
                                                                 </tr>
                                                                 {appliedCoupon && (
                                                                     <tr>
                                                                         <th className="text-start">Giảm giá
-                                                                            ({appliedCoupon.coupon_code})
+                                                                            ({appliedCoupon.voucher_code})
                                                                         </th>
                                                                         <td className="text-end">
                                                                         <span className="text-success">
