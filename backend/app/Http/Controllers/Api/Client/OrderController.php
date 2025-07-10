@@ -93,15 +93,17 @@ class OrderController extends Controller
                 $product = $products[$item->product_id] ?? null;
                 if (!$product) {
                     throw new \Exception("Không tìm thấy sản phẩm với ID {$item->product_id}");
+                    return $this->errorResponse("Không tìm thấy sản phẩm với ID {$item->product_id}", null, 404);
                 }
 
                 $price = $product->price;
                 $lineTotal = $price * $item->quantity;
                 $totalPrice += $lineTotal;
 
-                $variant = \App\Models\VariantProduct::where('id', $item->variant_id)->lockForUpdate()->first();
+                $variant = VariantProduct::where('id', $item->variant_id)->lockForUpdate()->first();
                 if (!$variant || $variant->quantity < $item->quantity) {
                     throw new \Exception("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.");
+                    return $this->errorResponse("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.", null, 400);
                 }
 
                 $variant->decrement('quantity', $item->quantity);
@@ -178,7 +180,6 @@ class OrderController extends Controller
 
             $order->update(['total_price' => $totalPrice - $discountAmount]);
 
-            // Xoá giỏ hàng
             $cart->items()->delete();
             $cart->delete();
 
