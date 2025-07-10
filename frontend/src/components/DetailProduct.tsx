@@ -4,6 +4,7 @@ import { convertToInt } from "../helpers/common";
 import { axiosInstance } from "../utils/axios";
 import { TOKEN_KEY } from "../providers/authProvider";
 import {Col, Image, notification, Row} from "antd";
+import emitter from "../utils/eventBus";
 
 export const DetailProduct = () => {
     const { id } = useParams();
@@ -109,6 +110,7 @@ export const DetailProduct = () => {
             };
             await axiosInstance.post(`${BASE_URL}/client/cart/items`, payload);
             setErrorQty('');
+            emitter.emit('addToCart');
             notification.success({message: "Sản phẩm đã được thêm vào giỏ hàng!"});
         } catch (err) {
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
@@ -376,29 +378,6 @@ export const DetailProduct = () => {
                             </tr>
                             </tbody>
                         </table>
-                        <h4 className="mt-4">Viết đánh giá</h4>
-                        <form>
-                            <div className="mb-3">
-                                <label className="form-label">Tên của bạn</label>
-                                <input type="text" className="form-control"/>
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Đánh giá của bạn</label>
-                                <textarea className="form-control"></textarea>
-                                <div className="form-text text-danger">Lưu ý: HTML không được dịch!</div>
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Đánh giá</label>
-                                <div>
-                                    Xấu
-                                    {[...Array(5)].map((_, i) => (
-                                        <input key={i} type="radio" value={i + 1} name="rating" className="ms-2"/>
-                                    ))}
-                                    Tốt
-                                </div>
-                            </div>
-                            <button type="button" className="btn btn-danger">Tiếp tục</button>
-                        </form>
                     </div>
                 </div>
             </div>
