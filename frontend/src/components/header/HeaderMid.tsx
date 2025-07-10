@@ -4,6 +4,7 @@ import useNotify from "../Notification";
 import {axiosInstance} from "../../utils/axios";
 import {notification, Skeleton} from "antd";
 import {convertToInt} from "../../helpers/common";
+import emitter from "../../utils/eventBus";
 
 export const HeaderMid = () => {
 
@@ -69,6 +70,11 @@ export const HeaderMid = () => {
     useEffect(() => {
         getCartData();
         fetchCategories();
+        emitter.on('addToCart', getCartData);
+
+        return () => {
+            emitter.off('addToCart', getCartData);
+        };
     }, [])
 
     return (

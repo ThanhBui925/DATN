@@ -37,6 +37,11 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
 
+    Route::prefix('banners')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
+    });
+
     // Các route cần đăng nhập
     Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
         Route::get('/', [ClientCartController::class, 'index']);
@@ -58,7 +63,6 @@ Route::prefix('client')->group(function () {
         Route::delete('/{id}', [ClientReviewController::class, 'destroy']);
     });
     Route::middleware('auth:sanctum')->post('/checkout/apply_coupon', [ClientOrderController::class, 'applyVoucher']);
-
 });
 
 Route::controller(AuthController::class)->group(function () {
