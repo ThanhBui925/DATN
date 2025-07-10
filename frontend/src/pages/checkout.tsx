@@ -33,7 +33,7 @@ interface CartData {
 }
 
 interface CouponResponse {
-    total: string;
+    final_price: string;
     discount_amount: string;
     coupon_code: string;
 }
@@ -248,7 +248,7 @@ export const Checkout = () => {
         }
     };
 
-    const displayTotal = appliedCoupon ? appliedCoupon.total : cartData.total;
+    const displayTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
 
     return (
         <>

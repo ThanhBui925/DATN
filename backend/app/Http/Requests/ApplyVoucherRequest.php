@@ -10,7 +10,7 @@ class ApplyVoucherRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // Đảm bảo đã xác thực Sanctum
+        return true;
     }
 
     public function rules()
