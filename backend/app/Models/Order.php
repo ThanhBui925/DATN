@@ -11,10 +11,19 @@ class Order extends Model
     protected $table = 'shop_order';
 
     protected $fillable = [
-        'slug', 'date_order', 'total_price', 'order_status', 'cancel_reason',
-        'payment_status', 'shipping_address', 'payment_method', 'shipped_at',
-        'delivered_at', 'user_id', 'customer_id', 'shipping_id',
-        'recipient_name', 'recipient_phone', 'voucher_id'
+        'date_order',
+        'total_price',
+        'discount_amount',
+        'voucher_code',
+        'order_status',
+        'payment_status',
+        'shipping_address',
+        'payment_method',
+        'user_id',
+        'shipping_id',
+        'recipient_name',
+        'recipient_phone',
+        'recipient_email',
     ];
 
     protected $casts = [

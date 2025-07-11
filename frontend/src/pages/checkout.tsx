@@ -1,10 +1,13 @@
 import { MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined } from "@ant-design/icons";
-import React, {useEffect, useState} from "react";
-import {useNavigate, Link} from "react-router-dom";
-import {notification, Skeleton} from "antd";
-import {axiosInstance} from "../utils/axios";
-import {convertToInt} from "../helpers/common";
-import {TOKEN_KEY} from "../providers/authProvider";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { notification, Skeleton, Select } from "antd";
+import { axiosInstance } from "../utils/axios";
+import { convertToInt } from "../helpers/common";
+import { TOKEN_KEY } from "../providers/authProvider";
+import axios from "axios";
+
+const { Option } = Select;
 
 interface Variant {
     id: number;
@@ -33,9 +36,29 @@ interface CartData {
 }
 
 interface CouponResponse {
-    total: string;
+    final_price: string;
     discount_amount: string;
-    coupon_code: string;
+    voucher_code: string;
+    original_price: string;
+}
+
+interface Province {
+    PROVINCE_ID: string;
+    PROVINCE_NAME: string;
+    PROVINCE_CODE: string;
+}
+
+interface District {
+    DISTRICT_ID: string;
+    DISTRICT_NAME: string;
+    DISTRICT_VALUE: string;
+    PROVINCE_ID: number
+}
+
+interface Ward {
+    WARDS_ID: string;
+    WARDS_NAME: string;
+    DISTRICT_ID: number;
 }
 
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -47,17 +70,23 @@ const paymentMethodMap: Record<string, { label: string; color: string; icon: Rea
 
 export const Checkout = () => {
     const navigate = useNavigate();
-    const [cartData, setCartData] = useState<CartData>({items: [], total: "0"});
+    const [cartData, setCartData] = useState<CartData>({ items: [], total: "0" });
     const [loading, setLoading] = useState<boolean>(false);
-    const [couponCode, setCouponCode] = useState<string>("");
+    const [voucherCode, setVoucherCode] = useState<string>("");
     const [appliedCoupon, setAppliedCoupon] = useState<CouponResponse | null>(null);
     const [couponError, setCouponError] = useState<string>("");
     const [profile, setProfile] = useState<any | null>(null);
+    const [provinces, setProvinces] = useState<Province[]>([]);
+    const [districts, setDistricts] = useState<District[]>([]);
+    const [wards, setWards] = useState<Ward[]>([]);
     const [formData, setFormData] = useState({
         recipient_name: "",
         recipient_phone: "",
         recipient_email: "",
-        shipping_address: "",
+        province: "",
+        district: "",
+        ward: "",
+        detailed_address: "",
         note: "",
         payment_method: "",
     });
@@ -65,13 +94,16 @@ export const Checkout = () => {
         recipient_name: "",
         recipient_phone: "",
         recipient_email: "",
-        shipping_address: "",
+        province: "",
+        district: "",
+        ward: "",
+        detailed_address: "",
         payment_method: "",
     });
 
     useEffect(() => {
         if (!localStorage.getItem(TOKEN_KEY)) {
-            notification.error({message: "Vui lòng đăng nhập."});
+            notification.error({ message: "Vui lòng đăng nhập." });
             navigate("/dang-nhap");
         }
     }, [navigate]);
@@ -86,10 +118,10 @@ export const Checkout = () => {
                     total: res.data.data.total,
                 });
             } else {
-                notification.error({message: res.data.message});
+                notification.error({ message: res.data.message });
             }
         } catch (e: any) {
-            notification.error({message: e.message || "Lỗi khi tải giỏ hàng"});
+            notification.error({ message: e.message || "Lỗi khi tải giỏ hàng" });
         } finally {
             setLoading(false);
         }
@@ -98,7 +130,7 @@ export const Checkout = () => {
     const fetchProfile = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/client/profile");
+            const res = await axiosInstance.get("/api/profile");
             if (res.data.status) {
                 setProfile(res.data.data);
             } else {
@@ -111,50 +143,121 @@ export const Checkout = () => {
         }
     };
 
+    const fetchProvinces = async () => {
+        try {
+            const res = await axios.get("https://partner.viettelpost.vn/v2/categories/listProvince");
+            if (res.data.status) {
+                setProvinces(res.data.data);
+            }
+        } catch (e) {
+            notification.error({ message: "Lỗi khi tải danh sách tỉnh/thành phố" });
+        }
+    };
+
+    const fetchDistricts = async (provinceId: string) => {
+        try {
+            const res = await axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${provinceId}`);
+            if (res.data.status) {
+                setDistricts(res.data.data);
+                setWards([]);
+            }
+        } catch (e) {
+            notification.error({ message: "Lỗi khi tải danh sách quận/huyện" });
+        }
+    };
+
+    const fetchWards = async (districtId: string) => {
+        try {
+            const res = await axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${districtId}`);
+            if (res.data.status) {
+                setWards(res.data.data);
+            }
+        } catch (e) {
+            notification.error({ message: "Lỗi khi tải danh sách phường/xã" });
+        }
+    };
+
     useEffect(() => {
         getCartData();
         fetchProfile();
+        fetchProvinces();
     }, []);
 
+    useEffect(() => {
+        if (profile) {
+            setFormData((prev) => ({
+                ...prev,
+                recipient_name: profile.name || "",
+                recipient_phone: profile.customer?.phone || "",
+                recipient_email: profile.email || "",
+                detailed_address: profile.customer?.address || "",
+            }));
+        }
+    }, [profile]);
+
     const applyCoupon = async () => {
-        if (!couponCode) {
+        if (!voucherCode) {
             setCouponError("Vui lòng nhập mã giảm giá");
             return;
         }
+
         try {
             const res = await axiosInstance.post("/api/client/checkout/apply_coupon", {
-                coupon_code: couponCode,
+                voucher_code: voucherCode,
             });
+
             if (res.data.status) {
                 setAppliedCoupon(res.data.data);
                 setCouponError("");
-                notification.success({message: res.data.message || "Áp mã giảm giá thành công"});
+                notification.success({ message: res.data.message || "Áp mã giảm giá thành công" });
             } else {
                 setCouponError(res.data.message || "Mã giảm giá không hợp lệ");
-                notification.error({message: res.data.message || "Mã giảm giá không hợp lệ"});
+                notification.error({ message: res.data.message || "Mã giảm giá không hợp lệ" });
             }
         } catch (e: any) {
-            setCouponError(e.message || "Lỗi khi áp mã giảm giá");
-            notification.error({message: e.message || "Lỗi khi áp mã giảm giá"});
+            const errorMessage =
+                e.response?.data?.errors?.voucher_code?.[0] ||
+                e.response?.data?.message ||
+                e.message ||
+                "Lỗi khi áp mã giảm giá";
+
+            setCouponError(errorMessage);
+            notification.error({ message: errorMessage });
         }
     };
 
     const cancelCoupon = () => {
         setAppliedCoupon(null);
-        setCouponCode("");
+        setVoucherCode("");
         setCouponError("");
-        notification.success({message: "Đã hủy mã giảm giá"});
+        notification.success({ message: "Đã hủy mã giảm giá" });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const {name, value} = e.target;
-        setFormData((prev) => ({...prev, [name]: value}));
-        setFormErrors((prev) => ({...prev, [name]: ""}));
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    };
+
+    const handleSelectChange = (name: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormErrors((prev) => ({ ...prev, [name]: "" }));
+
+        if (name === "province") {
+            setFormData((prev) => ({ ...prev, district: "", ward: "" }));
+            setDistricts([]);
+            setWards([]);
+            if (value) fetchDistricts(value);
+        } else if (name === "district") {
+            setFormData((prev) => ({ ...prev, ward: "" }));
+            setWards([]);
+            if (value) fetchWards(value);
+        }
     };
 
     const handlePaymentMethodChange = (value: string) => {
-        setFormData((prev) => ({...prev, payment_method: value}));
-        setFormErrors((prev) => ({...prev, payment_method: ""}));
+        setFormData((prev) => ({ ...prev, payment_method: value }));
+        setFormErrors((prev) => ({ ...prev, payment_method: "" }));
     };
 
     const validateForm = (data: any) => {
@@ -162,7 +265,10 @@ export const Checkout = () => {
             recipient_name: "",
             recipient_phone: "",
             recipient_email: "",
-            shipping_address: "",
+            province: "",
+            district: "",
+            ward: "",
+            detailed_address: "",
             payment_method: "",
         };
         let isValid = true;
@@ -185,49 +291,66 @@ export const Checkout = () => {
             errors.recipient_email = "Email không hợp lệ";
             isValid = false;
         }
-        if (!data.shipping_address.trim()) {
-            errors.shipping_address = "Vui lòng nhập địa chỉ nhận hàng";
+        if (!data.province) {
+            errors.province = "Vui lòng chọn tỉnh/thành phố";
+            isValid = false;
+        }
+        if (!data.district) {
+            errors.district = "Vui lòng chọn quận/huyện";
+            isValid = false;
+        }
+        if (!data.ward) {
+            errors.ward = "Vui lòng chọn phường/xã";
+            isValid = false;
+        }
+        if (!data.detailed_address.trim()) {
+            errors.detailed_address = "Vui lòng nhập địa chỉ chi tiết";
             isValid = false;
         }
         if (!data.payment_method) {
             errors.payment_method = "Vui lòng chọn phương thức thanh toán";
             isValid = false;
         }
-        return {isValid, errors};
+        return { isValid, errors };
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        const {isValid, errors} = validateForm(formData);
+        const { isValid, errors } = validateForm(formData);
         if (!isValid) {
             setFormErrors(errors);
-            notification.error({message: "Vui lòng kiểm tra thông tin nhập"});
+            notification.error({ message: "Vui lòng kiểm tra thông tin nhập" });
             return;
         }
 
+        const provinceName = provinces.find((p) => p.PROVINCE_ID === formData.province)?.PROVINCE_NAME || "";
+        const districtName = districts.find((d) => d.DISTRICT_ID === formData.district)?.DISTRICT_NAME || "";
+        const wardName = wards.find((w) => w.WARDS_ID === formData.ward)?.WARDS_NAME || "";
+        const shipping_address = `${formData.detailed_address}, ${wardName}, ${districtName}, ${provinceName}`;
+
         try {
             const payload = {
-                recipient_name: formData.recipient_name,
-                recipient_phone: formData.recipient_phone,
-                recipient_email: formData.recipient_email,
-                shipping_address: formData.shipping_address,
+                recipient_name: formData.recipient_name ?? profile.name,
+                recipient_phone: formData.recipient_phone ?? profile.customer.phone,
+                recipient_email: formData.recipient_email ?? profile.email,
+                shipping_address,
                 note: formData.note,
                 payment_method: formData.payment_method,
-                coupon_code: appliedCoupon ? appliedCoupon.coupon_code : "",
+                voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
             };
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
-                notification.success({message: res.data.message || "Đặt hàng thành công"});
-                navigate("/don-hang");
+                notification.success({ message: res.data.message || "Đặt hàng thành công" });
+                navigate("/don-hang-cua-toi");
             } else {
-                notification.error({message: res.data.message || "Lỗi khi đặt hàng"});
+                notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
             }
         } catch (e: any) {
-            notification.error({message: e.message || "Lỗi khi đặt hàng"});
+            notification.error({ message: e.message || "Lỗi khi đặt hàng" });
         }
     };
 
-    const displayTotal = appliedCoupon ? appliedCoupon.total : cartData.total;
+    const displayTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
 
     return (
         <>
@@ -237,7 +360,7 @@ export const Checkout = () => {
                         <div className="col-lg-12">
                             <div className="d-flex gap-4">
                                 <a className={`d-sm-block d-none`} href="/trang-chu">
-                                    <img className={`mt-2`} src="/img/logo/logo.png" alt=""/>
+                                    <img className={`mt-2`} src="/img/logo/logo.png" alt="" />
                                 </a>
                                 <h1 className="cE_Tbx text-original-base">Thanh toán</h1>
                             </div>
@@ -266,33 +389,30 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     name="recipient_name"
-                                                                    value={formData.recipient_name ?? profile.name}
+                                                                    value={formData.recipient_name}
                                                                     onChange={handleInputChange}
                                                                     placeholder={`Họ và tên`}
                                                                 />
                                                                 {formErrors.recipient_name && (
-                                                                    <div
-                                                                        className="text-danger small">{formErrors.recipient_name}</div>
+                                                                    <div className="text-danger small">{formErrors.recipient_name}</div>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <div className="col-lg-6">
                                                             <div className="form-group">
                                                                 <label className="form-label fw-medium">
-                                                                    Số điện thoại <span
-                                                                    className="text-danger">*</span>
+                                                                    Số điện thoại <span className="text-danger">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     className="form-control"
                                                                     name="recipient_phone"
-                                                                    value={formData.recipient_phone ?? profile.customer.phone}
+                                                                    value={formData.recipient_phone}
                                                                     onChange={handleInputChange}
                                                                     placeholder={`Số điện thoại`}
                                                                 />
                                                                 {formErrors.recipient_phone && (
-                                                                    <div
-                                                                        className="text-danger small">{formErrors.recipient_phone}</div>
+                                                                    <div className="text-danger small">{formErrors.recipient_phone}</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -305,40 +425,116 @@ export const Checkout = () => {
                                                                     type="email"
                                                                     className="form-control"
                                                                     name="recipient_email"
-                                                                    value={formData.recipient_email ?? profile.email}
+                                                                    value={formData.recipient_email}
                                                                     onChange={handleInputChange}
                                                                     placeholder="Nhập email"
                                                                 />
                                                                 {formErrors.recipient_email && (
-                                                                    <div
-                                                                        className="text-danger small">{formErrors.recipient_email}</div>
+                                                                    <div className="text-danger small">{formErrors.recipient_email}</div>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <div className="col-lg-12">
                                                             <div className="form-group">
                                                                 <label className="form-label fw-medium">
-                                                                    Địa chỉ nhận hàng <span
-                                                                    className="text-danger">*</span>
+                                                                    Tỉnh/Thành phố <span className="text-danger">*</span>
                                                                 </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    name="shipping_address"
-                                                                    value={formData.shipping_address ?? profile.customer.address}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder="Nhập đầy đủ địa chỉ"
-                                                                />
-                                                                {formErrors.shipping_address && (
-                                                                    <div
-                                                                        className="text-danger small">{formErrors.shipping_address}</div>
+                                                                <Select
+                                                                    className="w-100"
+                                                                    placeholder="Chọn tỉnh/thành phố"
+                                                                    value={formData.province || undefined}
+                                                                    onChange={(value) => handleSelectChange("province", value)}
+                                                                    showSearch
+                                                                    filterOption={(input, option) =>
+                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                    }
+                                                                >
+                                                                    {provinces.map((province) => (
+                                                                        <Option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>
+                                                                            {province.PROVINCE_NAME}
+                                                                        </Option>
+                                                                    ))}
+                                                                </Select>
+                                                                {formErrors.province && (
+                                                                    <div className="text-danger small">{formErrors.province}</div>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <div className="col-lg-12">
                                                             <div className="form-group">
-                                                                <label className="form-label fw-medium">Ghi
-                                                                    chú</label>
+                                                                <label className="form-label fw-medium">
+                                                                    Quận/Huyện <span className="text-danger">*</span>
+                                                                </label>
+                                                                <Select
+                                                                    className="w-100"
+                                                                    placeholder="Chọn quận/huyện"
+                                                                    value={formData.district || undefined}
+                                                                    onChange={(value) => handleSelectChange("district", value)}
+                                                                    showSearch
+                                                                    filterOption={(input, option) =>
+                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                    }
+                                                                    disabled={!formData.province}
+                                                                >
+                                                                    {districts.map((district) => (
+                                                                        <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>
+                                                                            {district.DISTRICT_NAME}
+                                                                        </Option>
+                                                                    ))}
+                                                                </Select>
+                                                                {formErrors.district && (
+                                                                    <div className="text-danger small">{formErrors.district}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-lg-12">
+                                                            <div className="form-group">
+                                                                <label className="form-label fw-medium">
+                                                                    Phường/Xã <span className="text-danger">*</span>
+                                                                </label>
+                                                                <Select
+                                                                    className="w-100"
+                                                                    placeholder="Chọn phường/xã"
+                                                                    value={formData.ward || undefined}
+                                                                    onChange={(value) => handleSelectChange("ward", value)}
+                                                                    showSearch
+                                                                    filterOption={(input, option) =>
+                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                    }
+                                                                    disabled={!formData.district}
+                                                                >
+                                                                    {wards.map((ward) => (
+                                                                        <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>
+                                                                            {ward.WARDS_NAME}
+                                                                        </Option>
+                                                                    ))}
+                                                                </Select>
+                                                                {formErrors.ward && (
+                                                                    <div className="text-danger small">{formErrors.ward}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-lg-12">
+                                                            <div className="form-group">
+                                                                <label className="form-label fw-medium">
+                                                                    Địa chỉ chi tiết <span className="text-danger">*</span>
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    name="detailed_address"
+                                                                    value={formData.detailed_address}
+                                                                    onChange={handleInputChange}
+                                                                    placeholder="Nhập địa chỉ chi tiết"
+                                                                />
+                                                                {formErrors.detailed_address && (
+                                                                    <div className="text-danger small">{formErrors.detailed_address}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-lg-12">
+                                                            <div className="form-group">
+                                                                <label className="form-label fw-medium">Ghi chú</label>
                                                                 <textarea
                                                                     className="form-control"
                                                                     name="note"
@@ -352,8 +548,7 @@ export const Checkout = () => {
                                                         <div className="col-lg-12">
                                                             <div className="form-group">
                                                                 <label className="form-label fw-medium">
-                                                                    Phương thức thanh toán <span
-                                                                    className="text-danger">*</span>
+                                                                    Phương thức thanh toán <span className="text-danger">*</span>
                                                                 </label>
                                                                 <div className="d-flex flex-column gap-2">
                                                                     {Object.entries(paymentMethodMap).map(([key, { label, color, icon }]) => (
@@ -380,8 +575,7 @@ export const Checkout = () => {
                                                                     ))}
                                                                 </div>
                                                                 {formErrors.payment_method && (
-                                                                    <div
-                                                                        className="text-danger small">{formErrors.payment_method}</div>
+                                                                    <div className="text-danger small">{formErrors.payment_method}</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -396,34 +590,27 @@ export const Checkout = () => {
                                             <div className="card-body p-4">
                                                 <h3 className="fw-bold mb-4 text-dark">Thông tin đơn hàng</h3>
                                                 {loading ? (
-                                                    <Skeleton active/>
+                                                    <Skeleton active />
                                                 ) : cartData.items.length > 0 ? (
                                                     <>
                                                         <div className="table-responsive">
                                                             <table className="table table-borderless">
                                                                 <thead className="bg-light">
                                                                 <tr>
-                                                                    <th className="fw-medium text-start">Sản phẩm
-                                                                    </th>
-                                                                    <th className="fw-medium text-end">Tổng tiền
-                                                                    </th>
+                                                                    <th className="fw-medium text-start">Sản phẩm</th>
+                                                                    <th className="fw-medium text-end">Tổng tiền</th>
                                                                 </tr>
                                                                 </thead>
                                                                 <tbody>
                                                                 {cartData.items.map((item) => (
                                                                     <tr key={item.id} className="align-middle">
                                                                         <td className="text-start">
-                                                                            <div
-                                                                                className="d-flex align-items-center gap-3">
+                                                                            <div className="d-flex align-items-center gap-3">
                                                                                 <img
                                                                                     src={item.image || "/path/to/fallback-image.jpg"}
                                                                                     alt={item.product_name}
                                                                                     className="rounded"
-                                                                                    style={{
-                                                                                        width: "60px",
-                                                                                        height: "60px",
-                                                                                        objectFit: "cover"
-                                                                                    }}
+                                                                                    style={{ width: "60px", height: "60px", objectFit: "cover" }}
                                                                                 />
                                                                                 <div>
                                                                                     <Link
@@ -433,39 +620,30 @@ export const Checkout = () => {
                                                                                         {item.product_name}
                                                                                     </Link>
                                                                                     <p className="text-muted small mb-0">
-                                                                                        Phân
-                                                                                        loại: {item.size}, {item.color}
+                                                                                        Phân loại: {item.size}, {item.color}
                                                                                     </p>
-                                                                                    <p className="text-muted small mb-0">Số
-                                                                                        lượng: {item.quantity}</p>
+                                                                                    <p className="text-muted small mb-0">Số lượng: {item.quantity}</p>
                                                                                 </div>
                                                                             </div>
                                                                         </td>
                                                                         <td className="text-end">
-                                                                            <span
-                                                                                className="fw-bold">{convertToInt(item.total)}₫</span>
+                                                                            <span className="fw-bold">{convertToInt(item.total)}₫</span>
                                                                         </td>
                                                                     </tr>
                                                                 ))}
                                                                 </tbody>
                                                                 <tfoot>
                                                                 <tr>
-                                                                    <th className="text-start">Tổng tiền sản phẩm
-                                                                    </th>
+                                                                    <th className="text-start">Tổng tiền sản phẩm</th>
                                                                     <td className="text-end">
-                                                                        <span
-                                                                            className="fw-bold">{convertToInt(cartData.total)}₫</span>
+                                                                        <span className="fw-bold">{convertToInt(cartData.total)}₫</span>
                                                                     </td>
                                                                 </tr>
                                                                 {appliedCoupon && (
                                                                     <tr>
-                                                                        <th className="text-start">Giảm giá
-                                                                            ({appliedCoupon.coupon_code})
-                                                                        </th>
+                                                                        <th className="text-start">Giảm giá ({appliedCoupon.voucher_code})</th>
                                                                         <td className="text-end">
-                                                                        <span className="text-success">
-                                                                          -{convertToInt(appliedCoupon.discount_amount)}₫
-                                                                        </span>
+                                                                            <span className="text-success">-{convertToInt(appliedCoupon.discount_amount)}₫</span>
                                                                         </td>
                                                                     </tr>
                                                                 )}
@@ -476,8 +654,7 @@ export const Checkout = () => {
                                                                 <tr>
                                                                     <th className="text-start">Tổng cộng</th>
                                                                     <td className="text-end">
-                                                                        <strong
-                                                                            className="text-original-base fs-5">{convertToInt(displayTotal)}₫</strong>
+                                                                        <strong className="text-original-base fs-5">{convertToInt(displayTotal)}₫</strong>
                                                                     </td>
                                                                 </tr>
                                                                 </tfoot>
@@ -491,16 +668,12 @@ export const Checkout = () => {
                                                                     type="text"
                                                                     className="form-control"
                                                                     placeholder="Nhập mã giảm giá"
-                                                                    value={couponCode}
-                                                                    onChange={(e) => setCouponCode(e.target.value)}
+                                                                    value={voucherCode}
+                                                                    onChange={(e) => setVoucherCode(e.target.value)}
                                                                     disabled={!!appliedCoupon}
                                                                 />
                                                                 {appliedCoupon ? (
-                                                                    <button
-                                                                        className="btn btn-outline-danger"
-                                                                        type="button"
-                                                                        onClick={cancelCoupon}
-                                                                    >
+                                                                    <button className="btn btn-outline-danger" type="button" onClick={cancelCoupon}>
                                                                         Hủy
                                                                     </button>
                                                                 ) : (
@@ -513,9 +686,7 @@ export const Checkout = () => {
                                                                     </button>
                                                                 )}
                                                             </div>
-                                                            {couponError &&
-                                                                <div
-                                                                    className="text-danger mb-3">{couponError}</div>}
+                                                            {couponError && <div className="text-danger mb-3">{couponError}</div>}
                                                         </div>
 
                                                         <button
@@ -526,8 +697,7 @@ export const Checkout = () => {
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    <p className="mt-3 fs-6">Chưa có sản phẩm nào trong giỏ
-                                                        hàng!</p>
+                                                    <p className="mt-3 fs-6">Chưa có sản phẩm nào trong giỏ hàng!</p>
                                                 )}
                                             </div>
                                         </div>
@@ -540,4 +710,4 @@ export const Checkout = () => {
             </div>
         </>
     );
-}
+};

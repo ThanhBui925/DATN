@@ -171,20 +171,21 @@ export const OrderDetailContent = () => {
                             </div>
                             <div className="col-md-6">
                                 <div className="bg-light p-3 rounded">
-                                    <p className="mb-1"><strong>Đơn vị vận
-                                        chuyển:</strong> {order.shipping?.name || "N/A"}</p>
-                                    <p className="mb-1"><strong>Trạng thái vận
-                                        chuyển:</strong> {order.shipping?.status || "N/A"}</p>
-                                    <p className="mb-1"><strong>Ngày giao
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        hàng:</strong> {convertDate(order.delivered_at) || "N/A"}</p>
-                                    <p className="mb-0"><strong>Ngày xuất
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        kho:</strong> {convertDate(order.shipped_at) || "N/A"}</p>
+                                    <p className="mb-1">
+                                        <strong>Đơn vị vận chuyển:</strong> {order.shipping_name || "N/A"}
+                                    </p>
+                                    {/* <p className="mb-1">
+                                        <strong>Trạng thái vận chuyển:</strong> {order.shipping?.status || "N/A"}
+                                    </p> */}
+                                    <p className="mb-1">
+                                        <strong>Ngày giao hàng:</strong> {convertDate(order.delivered_at) || "N/A"}
+                                    </p>
+                                    <p className="mb-0">
+                                        <strong>Ngày xuất kho:</strong> {convertDate(order.shipped_at) || "N/A"}
+                                    </p>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -232,14 +233,18 @@ export const OrderDetailContent = () => {
                         <div>
                             <h6 className="fw-bold mb-1 text-dark">
                                 Tổng tiền: <span
-                                className="text-original-base fs-4">{convertToInt(order.total_price)}₫</span>
+                                className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
                             </h6>
                             {order.discount_amount && (
                                 <p className="text-muted small mb-1">
                                     Giảm giá: <span
-                                    className="text-success">{convertToInt(order.discount_amount)}₫</span>
+                                    className="text-success">{convertToInt(order.discount_amount)} ₫</span>
                                 </p>
                             )}
+                            <h6 className="fw-bold mb-1 text-dark">
+                                Tổng tiền sau giảm giá: <span
+                                className="text-original-base fs-4">{convertToInt(order.total_price)} ₫</span>
+                            </h6>
                             {order.voucher && (
                                 <p className="text-muted small mb-1">
                                     Voucher: <span className="text-success">{order.voucher}</span>
