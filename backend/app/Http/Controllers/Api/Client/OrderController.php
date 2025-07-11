@@ -252,6 +252,7 @@ class OrderController extends Controller
             'id' => $order->id,
             'date_order' => $order->created_at,
             'total_price' => $order->total_price,
+            'voucher_code' => $order->voucher_code,
             'order_status' => $order->order_status,
             'cancel_reason' => $order->cancel_reason,
             'payment_status' => $order->payment_status,
@@ -271,7 +272,6 @@ class OrderController extends Controller
             'recipient_name' => $order->recipient_name,
             'recipient_phone' => $order->recipient_phone,
             'recipient_email' => $order->recipient_email,
-
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
             'voucher' => $order->voucher,
@@ -280,7 +280,6 @@ class OrderController extends Controller
                     'id' => $item->id,
                     'product' => [
                         'id' => $item->product->id,
-                        'slug' => $item->product->slug,
                         'category_id' => $item->product->category_id,
                         'name' => $item->product->name,
                         'description' => $item->product->description,
@@ -306,7 +305,11 @@ class OrderController extends Controller
                     'price' => $item->price,
                 ];
             }),
+            'subtotal' => $order->orderItems->reduce(function ($carry, $item) {
+                return $carry + ($item->price * $item->quantity);
+            }, 0),
         ];
+
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 

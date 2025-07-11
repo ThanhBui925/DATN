@@ -240,7 +240,7 @@ export const Checkout = () => {
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
                 notification.success({message: res.data.message || "Đặt hàng thành công"});
-                navigate("/don-hang");
+                navigate("/don-hang-cua-toi");
             } else {
                 notification.error({message: res.data.message || "Lỗi khi đặt hàng"});
             }
