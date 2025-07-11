@@ -233,14 +233,18 @@ export const OrderDetailContent = () => {
                         <div>
                             <h6 className="fw-bold mb-1 text-dark">
                                 Tổng tiền: <span
-                                className="text-original-base fs-4">{convertToInt(order.total_price)}₫</span>
+                                className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
                             </h6>
                             {order.discount_amount && (
                                 <p className="text-muted small mb-1">
                                     Giảm giá: <span
-                                    className="text-success">{convertToInt(order.discount_amount)}₫</span>
+                                    className="text-success">{convertToInt(order.discount_amount)} ₫</span>
                                 </p>
                             )}
+                            <h6 className="fw-bold mb-1 text-dark">
+                                Tổng tiền sau giảm giá: <span
+                                className="text-original-base fs-4">{convertToInt(order.total_price)} ₫</span>
+                            </h6>
                             {order.voucher && (
                                 <p className="text-muted small mb-1">
                                     Voucher: <span className="text-success">{order.voucher}</span>
