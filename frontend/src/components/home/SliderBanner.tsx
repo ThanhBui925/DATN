@@ -13,12 +13,36 @@ interface Banner {
     link_url?: string;
 }
 
+const mockApi: Banner[] = [
+    {
+        id: 1,
+        title: "Summer Sale",
+        description: "Enjoy up to 50% off on selected items.",
+        image_url: "https://thietke6d.com/wp-content/uploads/2021/05/banner-quang-cao-giay-3.webp",
+        link_url: "https://example.com/sale"
+    },
+    {
+        id: 2,
+        title: "New Arrivals",
+        description: "Check out the latest products in our collection.",
+        image_url: "https://thietke6d.com/wp-content/uploads/2021/05/banner-quang-cao-giay-4.webp",
+        link_url: "https://example.com/new"
+    },
+    {
+        id: 3,
+        title: "Free Shipping",
+        description: "Free shipping on orders over $100.",
+        image_url: "https://thietke6d.com/wp-content/uploads/2021/05/banner-quang-cao-giay-6.webp",
+        link_url: "https://example.com/shipping-info"
+    },
+];
+
 export const SliderBanner: React.FC = () => {
     const [banners, setBanners] = useState<Banner[]>([]);
 
     const fetchBanners = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_APP_API_URL}/api/banners`);
+            const res = await axios.get(`${import.meta.env.VITE_APP_API_URL}/api/client/banners`);
             setBanners(res.data.data || []);
         } catch (e) {
             console.error(e);
@@ -83,26 +107,33 @@ export const SliderBanner: React.FC = () => {
                         </div>
                     ))
                 ) : (
-                    <>
+                    mockApi.map((banner: Banner) => (
                         <div
+                            key={banner.id}
                             className="slider-wrapper"
-                            style={{
-                                backgroundImage: "url(/img/slider/home-1-01.jpg)",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                            }}
                         >
-                            <div className="container-fluid">
+                            <div className="container-fluid"
+                                 style={{
+                                     backgroundImage: `url(${banner.image_url || "/img/slider/home-1-01.jpg"})`,
+                                     backgroundSize: "cover",
+                                     backgroundPosition: "center",
+                                     backgroundRepeat: "no-repeat",
+                                     height: "500px",
+                                     width: "100%",
+                                 }}>
                                 <div className="row justify-content-end">
                                     <div className="col-lg-11 col-md-11">
                                         <div className="slider-text-info style-1 slider-text-animation">
-                                            <h4 className="title1">Khuyến mãi lên đến 20%</h4>
-                                            <h1 className="title2">
-                                                <span>Nike</span> Black
-                                            </h1>
-                                            <p>Bộ sưu tập tháng lịch sử 2018</p>
-                                            <div className="slier-btn-1">
-                                                <a title="Mua sắm ngay" href="#" className="shop-btn">
+                                            <h4 className="title1">
+                                                {banner.description || "Khuyến mãi đặc biệt"}
+                                            </h4>
+                                            <h1 className="title2">{banner.title}</h1>
+                                            <div className="slier-btn-1" style={{ marginTop: "20px" }}>
+                                                <a
+                                                    title="Mua sắm ngay"
+                                                    href={banner.link_url || "#"}
+                                                    className="shop-btn"
+                                                >
                                                     Mua sắm ngay
                                                 </a>
                                             </div>
@@ -111,61 +142,7 @@ export const SliderBanner: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div
-                            className="slider-wrapper"
-                            style={{
-                                backgroundImage: "url(/img/slider/home-1-02.jpg)",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                            }}
-                        >
-                            <div className="container-fluid">
-                                <div className="row justify-content-end">
-                                    <div className="col-lg-11 col-md-11">
-                                        <div className="slider-text-info style-1 slider-text-animation">
-                                            <h4 className="title1">Sản phẩm nổi bật 2018</h4>
-                                            <h1 className="title2">
-                                                <span>Mới</span> Lookbook
-                                            </h1>
-                                            <p>Cửa hàng Juta | Quần áo & Thiết bị thể thao</p>
-                                            <div className="slier-btn-1">
-                                                <a title="Mua sắm ngay" href="#" className="shop-btn">
-                                                    Mua sắm ngay
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            className="slider-wrapper"
-                            style={{
-                                backgroundImage: "url(/img/slider/home-1-03.jpg)",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                            }}
-                        >
-                            <div className="container-fluid">
-                                <div className="row justify-content-end">
-                                    <div className="col-lg-11 col-md-11">
-                                        <div className="slider-text-info style-1 slider-text-animation">
-                                            <h4 className="title1">Áo khoác hàng đầu của Juta</h4>
-                                            <h1 className="title2">
-                                                <span>Mới</span> Áo khoác
-                                            </h1>
-                                            <p>Áo khoác Aurora Shell sẵn sàng cho mọi cuộc phiêu lưu.</p>
-                                            <div className="slier-btn-1">
-                                                <a title="Mua sắm ngay" href="#" className="shop-btn">
-                                                    Mua sắm ngay
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </>
+                    ))
                 )}
             </Slider>
         </div>
