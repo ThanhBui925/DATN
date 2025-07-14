@@ -68,6 +68,8 @@ interface Order {
     updated_at: string;
     voucher: string | null;
     items: Item[];
+    shipping_name: string,
+    subtotal: number
 }
 
 const statusMap: Record<string, { color: string; label: string }> = {
