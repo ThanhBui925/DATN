@@ -17,6 +17,7 @@ class Order extends Model
         'voucher_code',
         'order_status',
         'payment_status',
+        'address_id',
         'shipping_address',
         'payment_method',
         'user_id',
@@ -56,5 +57,9 @@ class Order extends Model
     public function voucher()
     {
         return $this->belongsTo(Voucher::class);
+    }
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
     }
 }

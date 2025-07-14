@@ -122,7 +122,6 @@ class OrderController extends Controller
                     'id' => $item->id,
                     'product' => [
                         'id' => $item->product->id,
-                        'slug' => $item->product->slug,
                         'category_id' => $item->product->category_id,
                         'name' => $item->product->name,
                         'description' => $item->product->description,
