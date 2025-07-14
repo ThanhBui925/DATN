@@ -1,13 +1,13 @@
-import { MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined } from "@ant-design/icons";
-import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { notification, Skeleton, Select } from "antd";
-import { axiosInstance } from "../utils/axios";
-import { convertToInt } from "../helpers/common";
-import { TOKEN_KEY } from "../providers/authProvider";
+import {MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined} from "@ant-design/icons";
+import React, {useEffect, useState} from "react";
+import {useNavigate, Link} from "react-router-dom";
+import {notification, Skeleton, Select} from "antd";
+import {axiosInstance} from "../utils/axios";
+import {convertToInt} from "../helpers/common";
+import {TOKEN_KEY} from "../providers/authProvider";
 import axios from "axios";
 
-const { Option } = Select;
+const {Option} = Select;
 
 interface Variant {
     id: number;
@@ -52,7 +52,7 @@ interface District {
     DISTRICT_ID: string;
     DISTRICT_NAME: string;
     DISTRICT_VALUE: string;
-    PROVINCE_ID: number
+    PROVINCE_ID: number;
 }
 
 interface Ward {
@@ -61,16 +61,25 @@ interface Ward {
     DISTRICT_ID: number;
 }
 
+interface Address {
+    id: number;
+    recipient_name: string;
+    recipient_phone: string;
+    recipient_email: string;
+    address: string;
+    is_default: boolean;
+}
+
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    cash: { label: "Tiền mặt", color: "black", icon: <MoneyCollectOutlined /> },
-    card: { label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined /> },
-    paypal: { label: "PayPal", color: "black", icon: <WalletOutlined /> },
-    vnpay: { label: "VNPay", color: "black", icon: <BankOutlined /> },
+    cash: {label: "Tiền mặt", color: "black", icon: <MoneyCollectOutlined/>},
+    card: {label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined/>},
+    paypal: {label: "PayPal", color: "black", icon: <WalletOutlined/>},
+    vnpay: {label: "VNPay", color: "black", icon: <BankOutlined/>},
 };
 
 export const Checkout = () => {
     const navigate = useNavigate();
-    const [cartData, setCartData] = useState<CartData>({ items: [], total: "0" });
+    const [cartData, setCartData] = useState<CartData>({items: [], total: "0"});
     const [loading, setLoading] = useState<boolean>(false);
     const [voucherCode, setVoucherCode] = useState<string>("");
     const [appliedCoupon, setAppliedCoupon] = useState<CouponResponse | null>(null);
@@ -79,6 +88,9 @@ export const Checkout = () => {
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [districts, setDistricts] = useState<District[]>([]);
     const [wards, setWards] = useState<Ward[]>([]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+    const [useNewAddress, setUseNewAddress] = useState<boolean>(false);
     const [formData, setFormData] = useState({
         recipient_name: "",
         recipient_phone: "",
@@ -99,11 +111,12 @@ export const Checkout = () => {
         ward: "",
         detailed_address: "",
         payment_method: "",
+        address_selection: "",
     });
 
     useEffect(() => {
         if (!localStorage.getItem(TOKEN_KEY)) {
-            notification.error({ message: "Vui lòng đăng nhập." });
+            notification.error({message: "Vui lòng đăng nhập."});
             navigate("/dang-nhap");
         }
     }, [navigate]);
@@ -118,10 +131,10 @@ export const Checkout = () => {
                     total: res.data.data.total,
                 });
             } else {
-                notification.error({ message: res.data.message });
+                notification.error({message: res.data.message});
             }
         } catch (e: any) {
-            notification.error({ message: e.message || "Lỗi khi tải giỏ hàng" });
+            notification.error({message: e.message || "Lỗi khi tải giỏ hàng"});
         } finally {
             setLoading(false);
         }
@@ -134,10 +147,32 @@ export const Checkout = () => {
             if (res.data.status) {
                 setProfile(res.data.data);
             } else {
-                notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
+                notification.error({message: res.data.message || "Lỗi khi tải thông tin profile"});
             }
         } catch (e) {
-            notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
+            notification.error({message: (e as Error).message || "Lỗi khi tải thông tin profile"});
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchAddresses = async () => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get("/api/client/addresses");
+            if (res.data.status) {
+                setAddresses(res.data.data);
+                const addressData: Address[] = res.data.data;
+                addressData.map((item: Address) => {
+                    if (item.is_default) {
+                        setSelectedAddressId(item.id);
+                    }
+                })
+            } else {
+                notification.error({message: res.data.message || "Lỗi khi tải danh sách địa chỉ"});
+            }
+        } catch (e) {
+            notification.error({message: (e as Error).message || "Lỗi khi tải danh sách địa chỉ"});
         } finally {
             setLoading(false);
         }
@@ -150,7 +185,7 @@ export const Checkout = () => {
                 setProvinces(res.data.data);
             }
         } catch (e) {
-            notification.error({ message: "Lỗi khi tải danh sách tỉnh/thành phố" });
+            notification.error({message: "Lỗi khi tải danh sách tỉnh/thành phố"});
         }
     };
 
@@ -162,7 +197,7 @@ export const Checkout = () => {
                 setWards([]);
             }
         } catch (e) {
-            notification.error({ message: "Lỗi khi tải danh sách quận/huyện" });
+            notification.error({message: "Lỗi khi tải danh sách quận/huyện"});
         }
     };
 
@@ -173,7 +208,7 @@ export const Checkout = () => {
                 setWards(res.data.data);
             }
         } catch (e) {
-            notification.error({ message: "Lỗi khi tải danh sách phường/xã" });
+            notification.error({message: "Lỗi khi tải danh sách phường/xã"});
         }
     };
 
@@ -181,6 +216,7 @@ export const Checkout = () => {
         getCartData();
         fetchProfile();
         fetchProvinces();
+        fetchAddresses();
     }, []);
 
     useEffect(() => {
@@ -209,10 +245,10 @@ export const Checkout = () => {
             if (res.data.status) {
                 setAppliedCoupon(res.data.data);
                 setCouponError("");
-                notification.success({ message: res.data.message || "Áp mã giảm giá thành công" });
+                notification.success({message: res.data.message || "Áp mã giảm giá thành công"});
             } else {
                 setCouponError(res.data.message || "Mã giảm giá không hợp lệ");
-                notification.error({ message: res.data.message || "Mã giảm giá không hợp lệ" });
+                notification.error({message: res.data.message || "Mã giảm giá không hợp lệ"});
             }
         } catch (e: any) {
             const errorMessage =
@@ -222,7 +258,7 @@ export const Checkout = () => {
                 "Lỗi khi áp mã giảm giá";
 
             setCouponError(errorMessage);
-            notification.error({ message: errorMessage });
+            notification.error({message: errorMessage});
         }
     };
 
@@ -230,37 +266,60 @@ export const Checkout = () => {
         setAppliedCoupon(null);
         setVoucherCode("");
         setCouponError("");
-        notification.success({ message: "Đã hủy mã giảm giá" });
+        notification.success({message: "Đã hủy mã giảm giá"});
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        setFormErrors((prev) => ({ ...prev, [name]: "" }));
+        const {name, value} = e.target;
+        setFormData((prev) => ({...prev, [name]: value}));
+        setFormErrors((prev) => ({...prev, [name]: ""}));
     };
 
     const handleSelectChange = (name: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        setFormErrors((prev) => ({ ...prev, [name]: "" }));
+        setFormData((prev) => ({...prev, [name]: value}));
+        setFormErrors((prev) => ({...prev, [name]: ""}));
 
         if (name === "province") {
-            setFormData((prev) => ({ ...prev, district: "", ward: "" }));
+            setFormData((prev) => ({...prev, district: "", ward: ""}));
             setDistricts([]);
             setWards([]);
             if (value) fetchDistricts(value);
         } else if (name === "district") {
-            setFormData((prev) => ({ ...prev, ward: "" }));
+            setFormData((prev) => ({...prev, ward: ""}));
             setWards([]);
             if (value) fetchWards(value);
         }
     };
 
-    const handlePaymentMethodChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, payment_method: value }));
-        setFormErrors((prev) => ({ ...prev, payment_method: "" }));
+    const handleAddressChange = (addressId: number | null) => {
+        setSelectedAddressId(addressId);
+        setFormErrors((prev) => ({...prev, address_selection: ""}));
+        if (addressId === null) {
+            setUseNewAddress(true);
+        } else {
+            setUseNewAddress(false);
+            const selectedAddress = addresses.find((addr) => addr.id === addressId);
+            if (selectedAddress) {
+                setFormData((prev) => ({
+                    ...prev,
+                    recipient_name: selectedAddress.recipient_name,
+                    recipient_phone: selectedAddress.recipient_phone,
+                    recipient_email: selectedAddress.recipient_email,
+                    detailed_address: "",
+                    province: "",
+                    district: "",
+                    ward: "",
+                }));
+            }
+        }
     };
 
-    const validateForm = (data: any) => {
+    const handlePaymentMethodChange = (value: string) => {
+        setFormData((prev) => ({...prev, payment_method: value}));
+        setFormErrors((prev) => ({...prev, payment_method: ""}));
+    };
+
+    const validateForm = (data: any, useNewAddress: boolean) => {
         const errors = {
             recipient_name: "",
             recipient_phone: "",
@@ -270,83 +329,92 @@ export const Checkout = () => {
             ward: "",
             detailed_address: "",
             payment_method: "",
+            address_selection: "",
         };
         let isValid = true;
 
-        if (!data.recipient_name.trim()) {
-            errors.recipient_name = "Vui lòng nhập họ và tên";
-            isValid = false;
-        }
-        if (!data.recipient_phone.trim()) {
-            errors.recipient_phone = "Vui lòng nhập số điện thoại";
-            isValid = false;
-        } else if (!/^\d{10}$/.test(data.recipient_phone.trim())) {
-            errors.recipient_phone = "Số điện thoại không hợp lệ";
-            isValid = false;
-        }
-        if (!data.recipient_email.trim()) {
-            errors.recipient_email = "Vui lòng nhập email";
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.recipient_email.trim())) {
-            errors.recipient_email = "Email không hợp lệ";
-            isValid = false;
-        }
-        if (!data.province) {
-            errors.province = "Vui lòng chọn tỉnh/thành phố";
-            isValid = false;
-        }
-        if (!data.district) {
-            errors.district = "Vui lòng chọn quận/huyện";
-            isValid = false;
-        }
-        if (!data.ward) {
-            errors.ward = "Vui lòng chọn phường/xã";
-            isValid = false;
-        }
-        if (!data.detailed_address.trim()) {
-            errors.detailed_address = "Vui lòng nhập địa chỉ chi tiết";
+        if (useNewAddress) {
+            if (!data.province) {
+                errors.province = "Vui lòng chọn tỉnh/thành phố";
+                isValid = false;
+            }
+            if (!data.district) {
+                errors.district = "Vui lòng chọn quận/huyện";
+                isValid = false;
+            }
+            if (!data.ward) {
+                errors.ward = "Vui lòng chọn phường/xã";
+                isValid = false;
+            }
+            if (!data.detailed_address.trim()) {
+                errors.detailed_address = "Vui lòng nhập địa chỉ chi tiết";
+                isValid = false;
+            }
+            if (!data.recipient_name.trim()) {
+                errors.recipient_name = "Vui lòng nhập họ và tên";
+                isValid = false;
+            }
+            if (!data.recipient_phone.trim()) {
+                errors.recipient_phone = "Vui lòng nhập số điện thoại";
+                isValid = false;
+            } else if (!/^\d{10}$/.test(data.recipient_phone.trim())) {
+                errors.recipient_phone = "Số điện thoại không hợp lệ";
+                isValid = false;
+            }
+            if (!data.recipient_email.trim()) {
+                errors.recipient_email = "Vui lòng nhập email";
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.recipient_email.trim())) {
+                errors.recipient_email = "Email không hợp lệ";
+                isValid = false;
+            }
+        } else if (!selectedAddressId) {
+            errors.address_selection = "Vui lòng chọn địa chỉ giao hàng";
             isValid = false;
         }
         if (!data.payment_method) {
             errors.payment_method = "Vui lòng chọn phương thức thanh toán";
             isValid = false;
         }
-        return { isValid, errors };
+        return {isValid, errors};
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        const { isValid, errors } = validateForm(formData);
+        const {isValid, errors} = validateForm(formData, useNewAddress);
         if (!isValid) {
             setFormErrors(errors);
-            notification.error({ message: "Vui lòng kiểm tra thông tin nhập" });
+            notification.error({message: "Vui lòng kiểm tra thông tin nhập"});
             return;
         }
 
-        const provinceName = provinces.find((p) => p.PROVINCE_ID === formData.province)?.PROVINCE_NAME || "";
-        const districtName = districts.find((d) => d.DISTRICT_ID === formData.district)?.DISTRICT_NAME || "";
-        const wardName = wards.find((w) => w.WARDS_ID === formData.ward)?.WARDS_NAME || "";
-        const shipping_address = `${formData.detailed_address}, ${wardName}, ${districtName}, ${provinceName}`;
+        let shipping_address = "";
+        if (useNewAddress) {
+            const provinceName = provinces.find((p) => p.PROVINCE_ID === formData.province)?.PROVINCE_NAME || "";
+            const districtName = districts.find((d) => d.DISTRICT_ID === formData.district)?.DISTRICT_NAME || "";
+            const wardName = wards.find((w) => w.WARDS_ID === formData.ward)?.WARDS_NAME || "";
+            shipping_address = `${formData.detailed_address}, ${wardName}, ${districtName}, ${provinceName}`;
+        }
 
         try {
             const payload = {
                 recipient_name: formData.recipient_name ?? profile.name,
                 recipient_phone: formData.recipient_phone ?? profile.customer.phone,
                 recipient_email: formData.recipient_email ?? profile.email,
-                shipping_address,
+                ...(useNewAddress ? {shipping_address} : {address_id: selectedAddressId}),
                 note: formData.note,
                 payment_method: formData.payment_method,
                 voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
             };
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
-                notification.success({ message: res.data.message || "Đặt hàng thành công" });
+                notification.success({message: res.data.message || "Đặt hàng thành công"});
                 navigate("/don-hang-cua-toi");
             } else {
-                notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
+                notification.error({message: res.data.message || "Lỗi khi đặt hàng"});
             }
         } catch (e: any) {
-            notification.error({ message: e.message || "Lỗi khi đặt hàng" });
+            notification.error({message: e.message || "Lỗi khi đặt hàng"});
         }
     };
 
@@ -360,7 +428,7 @@ export const Checkout = () => {
                         <div className="col-lg-12">
                             <div className="d-flex gap-4">
                                 <a className={`d-sm-block d-none`} href="/trang-chu">
-                                    <img className={`mt-2`} src="/img/logo/logo.png" alt="" />
+                                    <img className={`mt-2`} src="/img/logo/logo.png" alt=""/>
                                 </a>
                                 <h1 className="cE_Tbx text-original-base">Thanh toán</h1>
                             </div>
@@ -379,205 +447,280 @@ export const Checkout = () => {
                                             <div className="card-body p-4">
                                                 <h3 className="fw-bold mb-4 text-dark">Thông tin giao hàng</h3>
                                                 <div>
-                                                    <div className="row g-3">
-                                                        <div className="col-lg-6">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Họ và tên <span className="text-danger">*</span>
-                                                                </label>
+                                                    <div className="form-group mb-3">
+                                                        <label className="form-label fw-medium">
+                                                            Chọn địa chỉ giao hàng <span
+                                                            className="text-danger">*</span>
+                                                        </label>
+                                                        <div className="d-flex flex-column gap-2">
+                                                            {loading ? (
+                                                                <Skeleton active/>
+                                                            ) : addresses.length > 0 ? (
+                                                                addresses.map((address) => (
+                                                                    <div key={address.id} className="form-check">
+                                                                        <input
+                                                                            className="form-check-input"
+                                                                            type="radio"
+                                                                            name="address"
+                                                                            id={`address_${address.id}`}
+                                                                            value={address.id}
+                                                                            checked={selectedAddressId === address.id}
+                                                                            onChange={() => handleAddressChange(address.id)}
+                                                                        />
+                                                                        <label
+                                                                            className="form-check-label"
+                                                                            htmlFor={`address_${address.id}`}
+                                                                        >
+                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}
+                                                                        </label>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <p className="text-muted">Chưa có địa chỉ nào được
+                                                                    lưu.</p>
+                                                            )}
+                                                            <div className="form-check">
                                                                 <input
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    name="recipient_name"
-                                                                    value={formData.recipient_name}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder={`Họ và tên`}
+                                                                    className="form-check-input"
+                                                                    type="radio"
+                                                                    name="address"
+                                                                    id="new_address"
+                                                                    checked={useNewAddress}
+                                                                    onChange={() => handleAddressChange(null)}
                                                                 />
-                                                                {formErrors.recipient_name && (
-                                                                    <div className="text-danger small">{formErrors.recipient_name}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-6">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Số điện thoại <span className="text-danger">*</span>
+                                                                <label className="form-check-label"
+                                                                       htmlFor="new_address">
+                                                                    Nhập địa chỉ khác
                                                                 </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    name="recipient_phone"
-                                                                    value={formData.recipient_phone}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder={`Số điện thoại`}
-                                                                />
-                                                                {formErrors.recipient_phone && (
-                                                                    <div className="text-danger small">{formErrors.recipient_phone}</div>
-                                                                )}
                                                             </div>
                                                         </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Email <span className="text-danger">*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="email"
-                                                                    className="form-control"
-                                                                    name="recipient_email"
-                                                                    value={formData.recipient_email}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder="Nhập email"
-                                                                />
-                                                                {formErrors.recipient_email && (
-                                                                    <div className="text-danger small">{formErrors.recipient_email}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Tỉnh/Thành phố <span className="text-danger">*</span>
-                                                                </label>
-                                                                <Select
-                                                                    className="w-100"
-                                                                    placeholder="Chọn tỉnh/thành phố"
-                                                                    value={formData.province || undefined}
-                                                                    onChange={(value) => handleSelectChange("province", value)}
-                                                                    showSearch
-                                                                    filterOption={(input, option) =>
-                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                                                                    }
-                                                                >
-                                                                    {provinces.map((province) => (
-                                                                        <Option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>
-                                                                            {province.PROVINCE_NAME}
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                                {formErrors.province && (
-                                                                    <div className="text-danger small">{formErrors.province}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Quận/Huyện <span className="text-danger">*</span>
-                                                                </label>
-                                                                <Select
-                                                                    className="w-100"
-                                                                    placeholder="Chọn quận/huyện"
-                                                                    value={formData.district || undefined}
-                                                                    onChange={(value) => handleSelectChange("district", value)}
-                                                                    showSearch
-                                                                    filterOption={(input, option) =>
-                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                                                                    }
-                                                                    disabled={!formData.province}
-                                                                >
-                                                                    {districts.map((district) => (
-                                                                        <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>
-                                                                            {district.DISTRICT_NAME}
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                                {formErrors.district && (
-                                                                    <div className="text-danger small">{formErrors.district}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Phường/Xã <span className="text-danger">*</span>
-                                                                </label>
-                                                                <Select
-                                                                    className="w-100"
-                                                                    placeholder="Chọn phường/xã"
-                                                                    value={formData.ward || undefined}
-                                                                    onChange={(value) => handleSelectChange("ward", value)}
-                                                                    showSearch
-                                                                    filterOption={(input, option) =>
-                                                                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
-                                                                    }
-                                                                    disabled={!formData.district}
-                                                                >
-                                                                    {wards.map((ward) => (
-                                                                        <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>
-                                                                            {ward.WARDS_NAME}
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                                {formErrors.ward && (
-                                                                    <div className="text-danger small">{formErrors.ward}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Địa chỉ chi tiết <span className="text-danger">*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    name="detailed_address"
-                                                                    value={formData.detailed_address}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder="Nhập địa chỉ chi tiết"
-                                                                />
-                                                                {formErrors.detailed_address && (
-                                                                    <div className="text-danger small">{formErrors.detailed_address}</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">Ghi chú</label>
-                                                                <textarea
-                                                                    className="form-control"
-                                                                    name="note"
-                                                                    rows={3}
-                                                                    value={formData.note}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder="Ghi chú đơn hàng"
-                                                                ></textarea>
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-12">
-                                                            <div className="form-group">
-                                                                <label className="form-label fw-medium">
-                                                                    Phương thức thanh toán <span className="text-danger">*</span>
-                                                                </label>
-                                                                <div className="d-flex flex-column gap-2">
-                                                                    {Object.entries(paymentMethodMap).map(([key, { label, color, icon }]) => (
-                                                                        <div key={key} className="form-check">
-                                                                            <input
-                                                                                className="form-check-input"
-                                                                                type="radio"
-                                                                                name="payment_method"
-                                                                                id={`payment_${key}`}
-                                                                                value={key}
-                                                                                disabled={key !== "cash"}
-                                                                                checked={formData.payment_method === key}
-                                                                                onChange={() => handlePaymentMethodChange(key)}
-                                                                            />
-                                                                            <label
-                                                                                className="form-check-label d-flex align-items-center gap-2"
-                                                                                htmlFor={`payment_${key}`}
-                                                                                style={{ color }}
-                                                                            >
-                                                                                {icon}
-                                                                                {label}
-                                                                            </label>
-                                                                        </div>
-                                                                    ))}
+                                                        {formErrors.address_selection && (
+                                                            <div
+                                                                className="text-danger small">{formErrors.address_selection}</div>
+                                                        )}
+                                                    </div>
+
+                                                    {useNewAddress && (
+                                                        <div className="row g-3">
+                                                            <div className="col-lg-6">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Họ và tên <span className="text-danger">*</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="form-control"
+                                                                        name="recipient_name"
+                                                                        value={formData.recipient_name}
+                                                                        onChange={handleInputChange}
+                                                                        placeholder="Họ và tên"
+                                                                    />
+                                                                    {formErrors.recipient_name && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.recipient_name}</div>
+                                                                    )}
                                                                 </div>
-                                                                {formErrors.payment_method && (
-                                                                    <div className="text-danger small">{formErrors.payment_method}</div>
-                                                                )}
                                                             </div>
+                                                            <div className="col-lg-6">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Số điện thoại <span
+                                                                        className="text-danger">*</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="form-control"
+                                                                        name="recipient_phone"
+                                                                        value={formData.recipient_phone}
+                                                                        onChange={handleInputChange}
+                                                                        placeholder="Số điện thoại"
+                                                                    />
+                                                                    {formErrors.recipient_phone && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.recipient_phone}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-12">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Email <span className="text-danger">*</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="email"
+                                                                        className="form-control"
+                                                                        name="recipient_email"
+                                                                        value={formData.recipient_email}
+                                                                        onChange={handleInputChange}
+                                                                        placeholder="Nhập email"
+                                                                    />
+                                                                    {formErrors.recipient_email && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.recipient_email}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-12">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Tỉnh/Thành phố <span
+                                                                        className="text-danger">*</span>
+                                                                    </label>
+                                                                    <Select
+                                                                        className="w-100"
+                                                                        placeholder="Chọn tỉnh/thành phố"
+                                                                        value={formData.province || undefined}
+                                                                        onChange={(value) => handleSelectChange("province", value)}
+                                                                        showSearch
+                                                                        filterOption={(input, option) =>
+                                                                            (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                        }
+                                                                    >
+                                                                        {provinces.map((province) => (
+                                                                            <Option key={province.PROVINCE_ID}
+                                                                                    value={province.PROVINCE_ID}>
+                                                                                {province.PROVINCE_NAME}
+                                                                            </Option>
+                                                                        ))}
+                                                                    </Select>
+                                                                    {formErrors.province && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.province}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-12">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Quận/Huyện <span
+                                                                        className="text-danger">*</span>
+                                                                    </label>
+                                                                    <Select
+                                                                        className="w-100"
+                                                                        placeholder="Chọn quận/huyện"
+                                                                        value={formData.district || undefined}
+                                                                        onChange={(value) => handleSelectChange("district", value)}
+                                                                        showSearch
+                                                                        filterOption={(input, option) =>
+                                                                            (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                        }
+                                                                        disabled={!formData.province}
+                                                                    >
+                                                                        {districts.map((district) => (
+                                                                            <Option key={district.DISTRICT_ID}
+                                                                                    value={district.DISTRICT_ID}>
+                                                                                {district.DISTRICT_NAME}
+                                                                            </Option>
+                                                                        ))}
+                                                                    </Select>
+                                                                    {formErrors.district && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.district}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-12">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Phường/Xã <span className="text-danger">*</span>
+                                                                    </label>
+                                                                    <Select
+                                                                        className="w-100"
+                                                                        placeholder="Chọn phường/xã"
+                                                                        value={formData.ward || undefined}
+                                                                        onChange={(value) => handleSelectChange("ward", value)}
+                                                                        showSearch
+                                                                        filterOption={(input, option) =>
+                                                                            (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                                                                        }
+                                                                        disabled={!formData.district}
+                                                                    >
+                                                                        {wards.map((ward) => (
+                                                                            <Option key={ward.WARDS_ID}
+                                                                                    value={ward.WARDS_ID}>
+                                                                                {ward.WARDS_NAME}
+                                                                            </Option>
+                                                                        ))}
+                                                                    </Select>
+                                                                    {formErrors.ward && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.ward}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-lg-12">
+                                                                <div className="form-group">
+                                                                    <label className="form-label fw-medium">
+                                                                        Địa chỉ chi tiết <span
+                                                                        className="text-danger">*</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="form-control"
+                                                                        name="detailed_address"
+                                                                        value={formData.detailed_address}
+                                                                        onChange={handleInputChange}
+                                                                        placeholder="Nhập địa chỉ chi tiết"
+                                                                    />
+                                                                    {formErrors.detailed_address && (
+                                                                        <div
+                                                                            className="text-danger small">{formErrors.detailed_address}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className="col-lg-12 mt-3">
+                                                        <div className="form-group">
+                                                            <label className="form-label fw-medium">Ghi chú</label>
+                                                            <textarea
+                                                                className="form-control"
+                                                                name="note"
+                                                                rows={3}
+                                                                value={formData.note}
+                                                                onChange={handleInputChange}
+                                                                placeholder="Ghi chú đơn hàng"
+                                                            ></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-12">
+                                                        <div className="form-group">
+                                                            <label className="form-label fw-medium">
+                                                                Phương thức thanh toán <span
+                                                                className="text-danger">*</span>
+                                                            </label>
+                                                            <div className="d-flex flex-column gap-2">
+                                                                {Object.entries(paymentMethodMap).map(([key, {
+                                                                    label,
+                                                                    color,
+                                                                    icon
+                                                                }]) => (
+                                                                    <div key={key} className="form-check">
+                                                                        <input
+                                                                            className="form-check-input"
+                                                                            type="radio"
+                                                                            name="payment_method"
+                                                                            id={`payment_${key}`}
+                                                                            value={key}
+                                                                            disabled={key !== "cash"}
+                                                                            checked={formData.payment_method === key}
+                                                                            onChange={() => handlePaymentMethodChange(key)}
+                                                                        />
+                                                                        <label
+                                                                            className="form-check-label d-flex align-items-center gap-2"
+                                                                            htmlFor={`payment_${key}`}
+                                                                            style={{color}}
+                                                                        >
+                                                                            {icon}
+                                                                            {label}
+                                                                        </label>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            {formErrors.payment_method && (
+                                                                <div
+                                                                    className="text-danger small">{formErrors.payment_method}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -590,7 +733,7 @@ export const Checkout = () => {
                                             <div className="card-body p-4">
                                                 <h3 className="fw-bold mb-4 text-dark">Thông tin đơn hàng</h3>
                                                 {loading ? (
-                                                    <Skeleton active />
+                                                    <Skeleton active/>
                                                 ) : cartData.items.length > 0 ? (
                                                     <>
                                                         <div className="table-responsive">

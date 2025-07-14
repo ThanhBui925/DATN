@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\ApplyVoucherRequest;
 use App\Models\Cart;
+use App\Models\Address;
 
 class OrderController extends Controller
 {
@@ -70,6 +71,25 @@ class OrderController extends Controller
                 return $this->errorResponse('Giỏ hàng trống hoặc không tồn tại.', null, 400);
             }
 
+            if ($request->filled('address_id')) {
+                $address = Address::where('id', $request->address_id)
+                    ->where('user_id', $userId)
+                    ->first();
+
+                if (!$address) {
+                    return $this->errorResponse('Địa chỉ không tồn tại hoặc không thuộc về bạn.', null, 404);
+                }
+            } else {
+                $address = Address::create([
+                    'user_id'         => $userId,
+                    'address'         => $request->shipping_address,
+                    'recipient_name'  => $request->recipient_name,
+                    'recipient_phone' => $request->recipient_phone,
+                    'recipient_email' => $request->recipient_email,
+                    'is_default'      => 0,
+                ]);
+            }
+
             $totalPrice = 0;
             $productIds = $cart->items->pluck('product_id')->toArray();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
@@ -79,13 +99,14 @@ class OrderController extends Controller
                 'total_price'       => 0,
                 'order_status'      => 'pending',
                 'payment_status'    => 'unpaid',
-                'shipping_address'  => $request->shipping_address,
+                'address_id'        => $address->id,
+                'shipping_address'  => $address->address,
                 'payment_method'    => $request->payment_method,
                 'user_id'           => $userId,
                 'shipping_id'       => $request->shipping_id ?? 1,
-                'recipient_name'    => $request->recipient_name,
-                'recipient_phone'   => $request->recipient_phone,
-                'recipient_email'   => $request->recipient_email,
+                'recipient_name'    => $address->recipient_name,
+                'recipient_phone'   => $address->recipient_phone,
+                'recipient_email'   => $address->recipient_email,
                 'discount_amount'   => 0,
             ]);
 
@@ -93,7 +114,6 @@ class OrderController extends Controller
                 $product = $products[$item->product_id] ?? null;
                 if (!$product) {
                     throw new \Exception("Không tìm thấy sản phẩm với ID {$item->product_id}");
-                    return $this->errorResponse("Không tìm thấy sản phẩm với ID {$item->product_id}", null, 404);
                 }
 
                 $price = $product->price;
@@ -103,7 +123,6 @@ class OrderController extends Controller
                 $variant = VariantProduct::where('id', $item->variant_id)->lockForUpdate()->first();
                 if (!$variant || $variant->quantity < $item->quantity) {
                     throw new \Exception("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.");
-                    return $this->errorResponse("Sản phẩm '{$product->name}' không đủ số lượng tồn kho.", null, 400);
                 }
 
                 $variant->decrement('quantity', $item->quantity);
@@ -135,12 +154,10 @@ class OrderController extends Controller
 
                 if (!$voucher) {
                     throw new \Exception('Mã giảm giá không tồn tại hoặc đã hết hạn.');
-                    return $this->errorResponse('Mã giảm giá không tồn tại hoặc đã hết hạn.', null, 404);
                 }
 
                 if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
                     throw new \Exception('Mã giảm giá đã hết lượt sử dụng.');
-                    return $this->errorResponse('Mã giảm giá đã hết lượt sử dụng.', null, 400);
                 }
 
                 if ($voucher->usage_limit_per_user !== null) {
@@ -151,13 +168,11 @@ class OrderController extends Controller
 
                     if ($used >= $voucher->usage_limit_per_user) {
                         throw new \Exception('Bạn đã sử dụng mã giảm giá này rồi.');
-                        return $this->errorResponse('Bạn đã sử dụng mã giảm giá này rồi.', null, 400);
                     }
                 }
 
                 if ($voucher->min_order_amount && $totalPrice < $voucher->min_order_amount) {
                     throw new \Exception('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.');
-                    return $this->errorResponse('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.', null, 400);
                 }
 
                 if ($voucher->discount_type === 'percentage') {
@@ -190,6 +205,7 @@ class OrderController extends Controller
             return $this->errorResponse('Lỗi khi tạo đơn hàng: ' . $e->getMessage(), null, 500);
         }
     }
+
 
 
 
