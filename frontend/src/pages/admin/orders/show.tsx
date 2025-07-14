@@ -180,17 +180,17 @@ export const OrdersShow = () => {
                                         style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{color: "#595959", fontSize: 14}}>Tổng tiền</Text>
-                                    <TextField
-                                        value={
-                                            record?.total_price
-                                                ? `${convertToInt(record.total_price)} VNĐ`
-                                                : "0.00 VNĐ"
-                                        }
-                                        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                    />
-                                </Col>
+                                {/*<Col xs={24} sm={12}>*/}
+                                {/*    <Text strong style={{color: "#595959", fontSize: 14}}>Tổng tiền</Text>*/}
+                                {/*    <TextField*/}
+                                {/*        value={*/}
+                                {/*            record?.total_price*/}
+                                {/*                ? `${convertToInt(record.total_price)} VNĐ`*/}
+                                {/*                : "0.00 VNĐ"*/}
+                                {/*        }*/}
+                                {/*        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}*/}
+                                {/*    />*/}
+                                {/*</Col>*/}
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái đơn hàng</Text>
                                     <div style={{marginTop: 8}}>
@@ -302,6 +302,28 @@ export const OrdersShow = () => {
                                     pagination={false}
                                     style={{marginTop: 16}}
                                     rowClassName={() => "ant-table-row-hover"}
+                                    summary={(pageData) => {
+                                        const totalSum = pageData.reduce(
+                                            (sum, item: any) => sum + (item.price * item.quantity || 0),
+                                            0
+                                        );
+                                        return (
+                                            <Table.Summary.Row>
+                                                <Table.Summary.Cell index={0} colSpan={4}>
+                                                    <TextField
+                                                        value="Tổng cộng"
+                                                        style={{ fontSize: 14, fontWeight: "bold", color: "#262626" }}
+                                                    />
+                                                </Table.Summary.Cell>
+                                                <Table.Summary.Cell index={4}>
+                                                    <TextField
+                                                        value={`${convertToInt(totalSum)} VNĐ`}
+                                                        style={{ fontSize: 14, fontWeight: "bold", color: "#262626" }}
+                                                    />
+                                                </Table.Summary.Cell>
+                                            </Table.Summary.Row>
+                                        );
+                                    }}
                                 >
                                     <Table.Column
                                         title="Tên sản phẩm"
@@ -373,6 +395,20 @@ export const OrdersShow = () => {
                         </Card>
                     </Col>
                 </Row>
+                <Row style={{ display: 'flex', justifyContent: "end"}}>
+                    <Col xs={24} md={8}>
+                        <Card title={<Title level={4} style={{margin: 0}}>Tổng tiền đơn hàng</Title>} style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
+                            <TextField
+                                value={
+                                    record?.total_price
+                                        ? `${convertToInt(record.total_price)} VNĐ`
+                                        : "0.00 VNĐ"
+                                }
+                                style={{display: "block", fontSize: 16, color: "#262626"}}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
             </Show>
             <Modal
                 title={<Title level={4} style={{margin: 0}}>Cập nhật trạng thái đơn hàng</Title>}
@@ -400,7 +436,7 @@ export const OrdersShow = () => {
                                     disabled={
                                         record?.order_status
                                             ? !validTransitions[record.order_status]?.includes(key)
-                                            : true // chưa có trạng thái thì disable hết (hoặc chỉnh theo nhu cầu)
+                                            : true
                                     }
                                 >
                                     {label}
