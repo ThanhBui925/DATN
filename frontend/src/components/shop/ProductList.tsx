@@ -57,7 +57,7 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
 
     const handleFilterChange = (newFilters: any) => {
         setFilters((prev) => ({...prev, ...newFilters}));
-        setCurrentPage(1); // Reset to first page when filters change
+        setCurrentPage(1);
     };
 
     const handleSortChange = (e: any) => {

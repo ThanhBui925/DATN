@@ -15,8 +15,8 @@ export const HeaderMid = () => {
     });
     const [loading, setLoading] = useState(true);
     const [categories, setCategories] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(""); // State for search input
-    const [selectedCategory, setSelectedCategory] = useState(""); // State for category
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const getCartData = async () => {
         setLoading(true);
