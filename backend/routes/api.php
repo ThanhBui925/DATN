@@ -45,7 +45,7 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
     });
 
-    Route::post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
+    Route::middleware('auth:sanctum')->post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
 
     // Các route cần đăng nhập
     Route::middleware('auth:sanctum')->prefix('cart')->group(function () {

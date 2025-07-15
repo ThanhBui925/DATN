@@ -24,6 +24,9 @@ class StoreAddressRequest extends FormRequest
     {
         return [
             'address' => 'required|string|max:255',
+            'province_name' => 'required|string|max:100',
+            'district_name' => 'required|string|max:100',
+            'ward_name' => 'required|string|max:100',
             'recipient_name' => 'required|string|max:100',
             'recipient_phone' => 'required|string|max:20',
             'recipient_email' => 'required|string|max:100',

@@ -108,6 +108,7 @@ class OrderController extends Controller
                 'recipient_phone'   => $address->recipient_phone,
                 'recipient_email'   => $address->recipient_email,
                 'discount_amount'   => 0,
+                'shipping_fee'      => $request->shipping_fee ?? 0,
             ]);
 
             foreach ($cart->items as $item) {

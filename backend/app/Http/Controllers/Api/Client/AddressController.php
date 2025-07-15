@@ -13,30 +13,29 @@ class AddressController extends Controller
     use ApiResponseTrait;
     public function store(StoreAddressRequest $request)
     {
-        $validatedData = $request->validated();
-        $userId = $request->user()->id;
-        $validatedData['user_id'] = $userId;
+        $user = $request->user();
+        $validated = $request->validated();
 
-        // Check xem địa chỉ này đã tồn tại chưa
-        $exists = \App\Models\Address::where('user_id', $userId)
-            ->where('address', $validatedData['address'])
-            ->where('recipient_phone', $validatedData['recipient_phone'])
-            ->where('recipient_name', $validatedData['recipient_name'])
+        $validated['user_id'] = $user->id;
+
+        $isDuplicate = Address::where('user_id', $user->id)
+            ->where('address', $validated['address'])
+            ->where('recipient_name', $validated['recipient_name'])
+            ->where('recipient_phone', $validated['recipient_phone'])
             ->exists();
 
-        if ($exists) {
+        if ($isDuplicate) {
             return response()->json([
                 'message' => 'Địa chỉ này đã tồn tại.',
             ], 422);
         }
 
-        // Nếu là mặc định thì reset lại
-        if ($validatedData['is_default'] ?? false) {
-            \App\Models\Address::where('user_id', $userId)
-                ->update(['is_default' => false]);
+        if (!empty($validated['is_default'])) {
+            Address::where('user_id', $user->id)->update(['is_default' => false]);
         }
 
-        $address = \App\Models\Address::create($validatedData);
+        $address = Address::create($validated);
+
         return $this->successResponse($address, 'Thêm địa chỉ thành công');
     }
 
