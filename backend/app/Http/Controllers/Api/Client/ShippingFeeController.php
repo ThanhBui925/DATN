@@ -79,16 +79,17 @@ class ShippingFeeController extends Controller
         $weight = $weightPerShoe * $shoesInBox;
 
         if ($shoesInBox <= 1) {
-            [$length, $width, $height] = [20, 20, 20];
+            [$length, $width, $height] = [35, 24, 14];
         } elseif ($shoesInBox <= 3) {
-            [$length, $width, $height] = [30, 30, 20];
+            [$length, $width, $height] = [40, 30, 16];
         } elseif ($shoesInBox <= 5) {
-            [$length, $width, $height] = [40, 30, 25];
+            [$length, $width, $height] = [50, 35, 18];
         } elseif ($shoesInBox <= 7) {
-            [$length, $width, $height] = [50, 40, 25];
+            [$length, $width, $height] = [60, 40, 20];
         } else {
-            [$length, $width, $height] = [60, 40, 30];
+            [$length, $width, $height] = [70, 45, 25];
         }
+
 
         $res = Http::withHeaders([
             'Token' => env('GHN_TOKEN'),
