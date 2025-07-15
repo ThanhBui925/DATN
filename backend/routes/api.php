@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Api\Client\AddressController;
+use App\Http\Controllers\Api\Client\ShippingFeeController;
 
 
 Route::prefix('client')->group(function () {
@@ -43,6 +44,8 @@ Route::prefix('client')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
     });
+
+    Route::post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
 
     // Các route cần đăng nhập
     Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
