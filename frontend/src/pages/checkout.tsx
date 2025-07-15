@@ -158,26 +158,39 @@ export const Checkout = () => {
         }
     };
 
-    const fetchShippingFee = async (addressId: number | null, provinceId?: string, districtId?: string, wardCode?: string) => {
+    const fetchShippingFee = async (
+        addressId: number | null,
+        provinceId?: string,
+        districtId?: string,
+        wardCode?: string
+    ) => {
         try {
-            const payload = addressId ? { address_id: addressId } : {
-                province_id: provinceId,
-                district_id: districtId,
-                ward_code: wardCode
-            };
+            const payload = addressId
+                ? { address_id: addressId }
+                : {
+                    province_id: provinceId,
+                    district_id: districtId,
+                    ward_code: wardCode,
+                };
 
             const res = await axiosInstance.post("/api/client/shipping-fee", payload);
-            if (res.data.message === 'Success') {
-                setShippingFee(res.data.data.total || 0);
+
+            if (res.status === 200 && typeof res.data.total_shipping_fee === "number") {
+                setShippingFee(res.data.total_shipping_fee);
             } else {
                 setShippingFee(0);
-                notification.error({ message: res.data.message || "Lỗi khi tính phí vận chuyển" });
+                notification.error({
+                    message: res.data.message || "Lỗi khi tính phí vận chuyển",
+                });
             }
         } catch (e: any) {
             setShippingFee(0);
-            notification.error({ message: e.message || "Lỗi khi tính phí vận chuyển" });
+            notification.error({
+                message: e?.response?.data?.message || e.message || "Lỗi khi tính phí vận chuyển",
+            });
         }
     };
+
 
     const fetchAddresses = async () => {
         setLoading(true);
@@ -454,7 +467,8 @@ export const Checkout = () => {
         }
     };
 
-    const displayTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
+    const baseTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
+    const displayTotal = baseTotal + shippingFee;
 
     return (
         <>
@@ -829,7 +843,7 @@ export const Checkout = () => {
                                                                 <tr>
                                                                     <th className="text-start">Phí vận chuyển</th>
                                                                     <td className="text-end">
-                                                                        <span className="fw-bold">{shippingFee > 0 ? convertToInt(shippingFee.toString()) + "₫" : "Miễn phí"}</span>
+                                                                        <span className="fw-bold">{shippingFee > 0 ? convertToInt(shippingFee.toString()) + "₫" : "Đang tính phí vận chuyển"}</span>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
