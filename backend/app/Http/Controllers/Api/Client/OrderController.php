@@ -21,6 +21,8 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\ApplyVoucherRequest;
 use App\Models\Cart;
 use App\Models\Address;
+use App\Services\ShippingFeeService;
+
 
 class OrderController extends Controller
 {
@@ -79,37 +81,56 @@ class OrderController extends Controller
                 if (!$address) {
                     return $this->errorResponse('Địa chỉ không tồn tại hoặc không thuộc về bạn.', null, 404);
                 }
+
+                $recipientName = $address->recipient_name;
+                $recipientPhone = $address->recipient_phone;
+                $recipientEmail = $address->recipient_email;
+                $shippingAddress = implode(', ', array_filter([
+                    $address->address,
+                    $address->ward_name ?? null,
+                    $address->district_name ?? null,
+                    $address->province_name ?? null,
+                ]));
+                $addressId = $address->id;
+                $shippingFee = ShippingFeeService::calculate($userId, ['address_id' => $address->id]);
             } else {
-                $address = Address::create([
-                    'user_id'         => $userId,
-                    'address'         => $request->shipping_address,
-                    'recipient_name'  => $request->recipient_name,
-                    'recipient_phone' => $request->recipient_phone,
-                    'recipient_email' => $request->recipient_email,
-                    'is_default'      => 0,
+                $recipientName = $request->recipient_name;
+                $recipientPhone = $request->recipient_phone;
+                $recipientEmail = $request->recipient_email;
+                $shippingAddress = $request->shipping_address;
+                $addressId = null;
+                $shippingFee = ShippingFeeService::calculate($userId, [
+                    'province_id' => $request->province_id,
+                    'district_id' => $request->district_id,
+                    'ward_code'   => $request->ward_code,
                 ]);
             }
 
             $totalPrice = 0;
+            $discountAmount = 0;
             $productIds = $cart->items->pluck('product_id')->toArray();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+           
 
             $order = Order::create([
                 'date_order'        => now(),
                 'total_price'       => 0,
                 'order_status'      => 'pending',
                 'payment_status'    => 'unpaid',
-                'address_id'        => $address->id,
-                'shipping_address'  => $address->address,
+                'address_id'        => $addressId,
+                'shipping_address'  => $shippingAddress,
                 'payment_method'    => $request->payment_method,
                 'user_id'           => $userId,
                 'shipping_id'       => $request->shipping_id ?? 1,
-                'recipient_name'    => $address->recipient_name,
-                'recipient_phone'   => $address->recipient_phone,
-                'recipient_email'   => $address->recipient_email,
+                'recipient_name'    => $recipientName,
+                'recipient_phone'   => $recipientPhone,
+                'recipient_email'   => $recipientEmail,
                 'discount_amount'   => 0,
-                'shipping_fee'      => $request->shipping_fee ?? 0,
+                'shipping_fee'      => $shippingFee,
+                'final_amount'      => 0,
+
             ]);
+
 
             foreach ($cart->items as $item) {
                 $product = $products[$item->product_id] ?? null;
@@ -194,7 +215,11 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order->update(['total_price' => $totalPrice - $discountAmount]);
+            $order->update([
+                'total_price'   => $totalPrice,
+                'discount_amount' => $discountAmount,
+                'final_amount'  => $totalPrice - $discountAmount + $shippingFee,
+            ]);
 
             $cart->items()->delete();
             $cart->delete();
@@ -268,6 +293,7 @@ class OrderController extends Controller
         $result = [
             'id' => $order->id,
             'date_order' => $order->created_at,
+            'final_amount' => $order->final_amount,
             'total_price' => $order->total_price,
             'voucher_code' => $order->voucher_code,
             'order_status' => $order->order_status,
@@ -285,13 +311,14 @@ class OrderController extends Controller
             ] : null,
             'customer_id' => $order->customer_id,
             'shipping_id' => $order->shipping_id,
+            'shipping_fee' => $order->shipping_fee,
             'shipping_name' => optional($order->shipping)->name,
             'recipient_name' => $order->recipient_name,
             'recipient_phone' => $order->recipient_phone,
             'recipient_email' => $order->recipient_email,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher,
+            'voucher_code' => $order->voucher_code,
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,

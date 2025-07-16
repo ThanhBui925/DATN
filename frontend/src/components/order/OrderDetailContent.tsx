@@ -49,6 +49,7 @@ interface Shipping {
 interface Order {
     id: number;
     date_order: string;
+    final_amount: string;
     total_price: string;
     order_status: string;
     cancel_reason: string | null;
@@ -63,10 +64,12 @@ interface Order {
     user: User;
     customer_id: number | null;
     shipping_id: number;
+    shipping_fee: number;
+    recipient_email: string | null;
     shipping: Shipping;
     created_at: string;
     updated_at: string;
-    voucher: string | null;
+    voucher_code: string | null;
     items: Item[];
     shipping_name: string,
     subtotal: number
@@ -234,24 +237,25 @@ export const OrderDetailContent = () => {
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 border-top pt-3">
                         <div>
                             <h6 className="fw-bold mb-1 text-dark">
-                                Tổng tiền: <span
+                                Tạm Tính : <span
                                 className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
                             </h6>
-                            {order.discount_amount && (
+                            {order.shipping_fee && (
                                 <p className="text-muted small mb-1">
-                                    Giảm giá: <span
-                                    className="text-success">{convertToInt(order.discount_amount)} ₫</span>
+                                    Phí vận chuyển : <span
+                                    className="text-danger">{convertToInt(order.shipping_fee)} ₫</span>
+                                </p>
+                            )}
+                            {order.voucher_code && order.discount_amount && (
+                                <p className="text-muted small mb-1">
+                                    Voucher : <span className="text-success">{order.voucher_code}</span> — Giảm :{" "}
+                                    <span className="text-success">{convertToInt(order.discount_amount)} ₫</span>
                                 </p>
                             )}
                             <h6 className="fw-bold mb-1 text-dark">
-                                Tổng tiền sau giảm giá: <span
-                                className="text-original-base fs-4">{convertToInt(order.total_price)} ₫</span>
+                                Tổng Cộng : <span
+                                className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
                             </h6>
-                            {order.voucher && (
-                                <p className="text-muted small mb-1">
-                                    Voucher: <span className="text-success">{order.voucher}</span>
-                                </p>
-                            )}
                             <p className="text-muted small mb-0">
                                 Thanh toán: {paymentMethodMap[order.payment_method]?.label || "Không xác định"} (
                                 {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"})

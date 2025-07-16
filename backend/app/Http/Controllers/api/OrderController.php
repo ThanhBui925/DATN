@@ -114,6 +114,7 @@ class OrderController extends Controller
             'shipping_id' => $order->shipping_id,
             'recipient_name' => $order->recipient_name,
             'recipient_phone' => $order->recipient_phone,
+            'recipient_email' => $order->recipient_email,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
             'voucher' => $order->voucher, 
