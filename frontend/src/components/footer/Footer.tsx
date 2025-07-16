@@ -29,7 +29,7 @@ export const Footer = () => {
                         <div className="col-lg-8 col-md-12">
                             <div className="footer-info-inner">
                                 <div className="row">
-                                    <div className="col-lg-2 col-md-6 col-sm-6">
+                                    <div className="col-lg-3 col-md-6 col-sm-6">
                                         <div className="footer-title">
                                             <h3>Sản phẩm</h3>
                                         </div>
@@ -42,11 +42,11 @@ export const Footer = () => {
                                             <li><a href="#">Tài khoản của tôi</a></li>
                                         </ul>
                                     </div>
-                                    <div className="col-lg-3 col-md-6 col-sm-6">
+                                    <div className="col-lg-4 col-md-6 col-sm-6">
                                         <div className="footer-title">
                                             <h3>Bản đồ</h3>
                                         </div>
-                                        <div>
+                                        <div className={`map`}>
                                             <iframe
                                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863806019131!2d105.74468687587265!3d21.038134787455345!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313455e940879933%3A0xcf10b34e9f1a03df!2zVHLGsOG7nW5nIENhbyDEkeG6s25nIEZQVCBQb2x5dGVjaG5pYw!5e0!3m2!1svi!2s!4v1752488530028!5m2!1svi!2s"
                                                 width="320"
