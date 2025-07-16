@@ -6,6 +6,7 @@ import {axiosInstance} from "../utils/axios";
 import {convertToInt} from "../helpers/common";
 import {TOKEN_KEY} from "../providers/authProvider";
 import axios from "axios";
+import {axiosGHNInstance} from "../utils/axios_ghn";
 
 const {Option} = Select;
 
@@ -43,22 +44,22 @@ interface CouponResponse {
 }
 
 interface Province {
-    PROVINCE_ID: string;
-    PROVINCE_NAME: string;
-    PROVINCE_CODE: string;
+    ProvinceID: string;
+    ProvinceName: string;
+    Code: string;
 }
 
 interface District {
-    DISTRICT_ID: string;
-    DISTRICT_NAME: string;
-    DISTRICT_VALUE: string;
-    PROVINCE_ID: number;
+    DistrictID: string;
+    DistrictName: string;
+    Code: string;
+    ProvinceID: number;
 }
 
 interface Ward {
-    WARDS_ID: string;
-    WARDS_NAME: string;
-    DISTRICT_ID: number;
+    WardCode: string;
+    WardName: string;
+    DistrictID: number;
 }
 
 interface Address {
@@ -66,7 +67,8 @@ interface Address {
     recipient_name: string;
     recipient_phone: string;
     recipient_email: string;
-    shipping_address: string;
+    address: string;
+    is_default: boolean;
 }
 
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -112,6 +114,7 @@ export const Checkout = () => {
         payment_method: "",
         address_selection: "",
     });
+    const [shippingFee, setShippingFee] = useState<number>(0);
 
     useEffect(() => {
         if (!localStorage.getItem(TOKEN_KEY)) {
@@ -155,15 +158,52 @@ export const Checkout = () => {
         }
     };
 
+    const fetchShippingFee = async (
+        addressId: number | null,
+        provinceId?: string,
+        districtId?: string,
+        wardCode?: string
+    ) => {
+        try {
+            const payload = addressId
+                ? { address_id: addressId }
+                : {
+                    province_id: provinceId,
+                    district_id: districtId,
+                    ward_code: wardCode,
+                };
+
+            const res = await axiosInstance.post("/api/client/shipping-fee", payload);
+
+            if (res.status === 200 && typeof res.data.total_shipping_fee === "number") {
+                setShippingFee(res.data.total_shipping_fee);
+            } else {
+                setShippingFee(0);
+                notification.error({
+                    message: res.data.message || "Lỗi khi tính phí vận chuyển",
+                });
+            }
+        } catch (e: any) {
+            setShippingFee(0);
+            notification.error({
+                message: e?.response?.data?.message || e.message || "Lỗi khi tính phí vận chuyển",
+            });
+        }
+    };
+
+
     const fetchAddresses = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/addresses");
+            const res = await axiosInstance.get("/api/client/addresses");
             if (res.data.status) {
                 setAddresses(res.data.data);
-                if (res.data.data.length > 0) {
-                    setSelectedAddressId(res.data.data[0].id);
-                }
+                const addressData: Address[] = res.data.data;
+                addressData.map((item: Address) => {
+                    if (item.is_default) {
+                        setSelectedAddressId(item.id);
+                    }
+                })
             } else {
                 notification.error({message: res.data.message || "Lỗi khi tải danh sách địa chỉ"});
             }
@@ -176,8 +216,8 @@ export const Checkout = () => {
 
     const fetchProvinces = async () => {
         try {
-            const res = await axios.get("https://partner.viettelpost.vn/v2/categories/listProvince");
-            if (res.data.status) {
+            const res = await axiosGHNInstance("/province");
+            if (res.data.message == 'Success') {
                 setProvinces(res.data.data);
             }
         } catch (e) {
@@ -187,8 +227,8 @@ export const Checkout = () => {
 
     const fetchDistricts = async (provinceId: string) => {
         try {
-            const res = await axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${provinceId}`);
-            if (res.data.status) {
+            const res = await axiosGHNInstance(`/district?province_id=${provinceId}`);
+            if (res.data.message == 'Success') {
                 setDistricts(res.data.data);
                 setWards([]);
             }
@@ -199,8 +239,8 @@ export const Checkout = () => {
 
     const fetchWards = async (districtId: string) => {
         try {
-            const res = await axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${districtId}`);
-            if (res.data.status) {
+            const res = await axiosGHNInstance(`/ward?district_id=${districtId}`);
+            if (res.data.message == 'Success') {
                 setWards(res.data.data);
             }
         } catch (e) {
@@ -226,6 +266,18 @@ export const Checkout = () => {
             }));
         }
     }, [profile]);
+
+    useEffect(() => {
+        if (selectedAddressId && !useNewAddress) {
+            fetchShippingFee(selectedAddressId);
+        }
+    }, [selectedAddressId]);
+
+    useEffect(() => {
+        if (useNewAddress && formData.province && formData.district && formData.ward) {
+            fetchShippingFee(null, formData.province, formData.district, formData.ward);
+        }
+    }, [formData.province, formData.district, formData.ward, useNewAddress]);
 
     const applyCoupon = async () => {
         if (!voucherCode) {
@@ -289,7 +341,8 @@ export const Checkout = () => {
 
     const handleAddressChange = (addressId: number | null) => {
         setSelectedAddressId(addressId);
-        setFormErrors((prev) => ({...prev, address_selection: ""}));
+        setFormErrors((prev) => ({ ...prev, address_selection: "" }));
+        setShippingFee(0);
         if (addressId === null) {
             setUseNewAddress(true);
         } else {
@@ -329,24 +382,6 @@ export const Checkout = () => {
         };
         let isValid = true;
 
-        if (!data.recipient_name.trim()) {
-            errors.recipient_name = "Vui lòng nhập họ và tên";
-            isValid = false;
-        }
-        if (!data.recipient_phone.trim()) {
-            errors.recipient_phone = "Vui lòng nhập số điện thoại";
-            isValid = false;
-        } else if (!/^\d{10}$/.test(data.recipient_phone.trim())) {
-            errors.recipient_phone = "Số điện thoại không hợp lệ";
-            isValid = false;
-        }
-        if (!data.recipient_email.trim()) {
-            errors.recipient_email = "Vui lòng nhập email";
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.recipient_email.trim())) {
-            errors.recipient_email = "Email không hợp lệ";
-            isValid = false;
-        }
         if (useNewAddress) {
             if (!data.province) {
                 errors.province = "Vui lòng chọn tỉnh/thành phố";
@@ -362,6 +397,24 @@ export const Checkout = () => {
             }
             if (!data.detailed_address.trim()) {
                 errors.detailed_address = "Vui lòng nhập địa chỉ chi tiết";
+                isValid = false;
+            }
+            if (!data.recipient_name.trim()) {
+                errors.recipient_name = "Vui lòng nhập họ và tên";
+                isValid = false;
+            }
+            if (!data.recipient_phone.trim()) {
+                errors.recipient_phone = "Vui lòng nhập số điện thoại";
+                isValid = false;
+            } else if (!/^\d{10}$/.test(data.recipient_phone.trim())) {
+                errors.recipient_phone = "Số điện thoại không hợp lệ";
+                isValid = false;
+            }
+            if (!data.recipient_email.trim()) {
+                errors.recipient_email = "Vui lòng nhập email";
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.recipient_email.trim())) {
+                errors.recipient_email = "Email không hợp lệ";
                 isValid = false;
             }
         } else if (!selectedAddressId) {
@@ -386,9 +439,9 @@ export const Checkout = () => {
 
         let shipping_address = "";
         if (useNewAddress) {
-            const provinceName = provinces.find((p) => p.PROVINCE_ID === formData.province)?.PROVINCE_NAME || "";
-            const districtName = districts.find((d) => d.DISTRICT_ID === formData.district)?.DISTRICT_NAME || "";
-            const wardName = wards.find((w) => w.WARDS_ID === formData.ward)?.WARDS_NAME || "";
+            const provinceName = provinces.find((p) => p.ProvinceID === formData.province)?.ProvinceName || "";
+            const districtName = districts.find((d) => d.DistrictID === formData.district)?.DistrictName || "";
+            const wardName = wards.find((w) => w.WardCode === formData.ward)?.WardName || "";
             shipping_address = `${formData.detailed_address}, ${wardName}, ${districtName}, ${provinceName}`;
         }
 
@@ -414,7 +467,8 @@ export const Checkout = () => {
         }
     };
 
-    const displayTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
+    const baseTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
+    const displayTotal = baseTotal + shippingFee;
 
     return (
         <>
@@ -467,7 +521,7 @@ export const Checkout = () => {
                                                                             className="form-check-label"
                                                                             htmlFor={`address_${address.id}`}
                                                                         >
-                                                                            <strong>{address.recipient_name}</strong>, {address.recipient_phone}, {address.recipient_email}, {address.shipping_address}
+                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}
                                                                         </label>
                                                                     </div>
                                                                 ))
@@ -573,9 +627,9 @@ export const Checkout = () => {
                                                                         }
                                                                     >
                                                                         {provinces.map((province) => (
-                                                                            <Option key={province.PROVINCE_ID}
-                                                                                    value={province.PROVINCE_ID}>
-                                                                                {province.PROVINCE_NAME}
+                                                                            <Option key={province.ProvinceID}
+                                                                                    value={province.ProvinceID}>
+                                                                                {province.ProvinceName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
@@ -603,9 +657,9 @@ export const Checkout = () => {
                                                                         disabled={!formData.province}
                                                                     >
                                                                         {districts.map((district) => (
-                                                                            <Option key={district.DISTRICT_ID}
-                                                                                    value={district.DISTRICT_ID}>
-                                                                                {district.DISTRICT_NAME}
+                                                                            <Option key={district.DistrictID}
+                                                                                    value={district.DistrictID}>
+                                                                                {district.DistrictName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
@@ -632,9 +686,9 @@ export const Checkout = () => {
                                                                         disabled={!formData.district}
                                                                     >
                                                                         {wards.map((ward) => (
-                                                                            <Option key={ward.WARDS_ID}
-                                                                                    value={ward.WARDS_ID}>
-                                                                                {ward.WARDS_NAME}
+                                                                            <Option key={ward.WardCode}
+                                                                                    value={ward.WardCode}>
+                                                                                {ward.WardName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
@@ -788,7 +842,9 @@ export const Checkout = () => {
                                                                 )}
                                                                 <tr>
                                                                     <th className="text-start">Phí vận chuyển</th>
-                                                                    <td className="text-end">Miễn phí</td>
+                                                                    <td className="text-end">
+                                                                        <span className="fw-bold">{shippingFee > 0 ? convertToInt(shippingFee.toString()) + "₫" : "Đang tính phí vận chuyển"}</span>
+                                                                    </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th className="text-start">Tổng cộng</th>

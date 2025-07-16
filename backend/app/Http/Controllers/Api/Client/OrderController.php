@@ -108,6 +108,7 @@ class OrderController extends Controller
                 'recipient_phone'   => $address->recipient_phone,
                 'recipient_email'   => $address->recipient_email,
                 'discount_amount'   => 0,
+                'shipping_fee'      => $request->shipping_fee ?? 0,
             ]);
 
             foreach ($cart->items as $item) {
@@ -299,6 +300,7 @@ class OrderController extends Controller
                         'category_id' => $item->product->category_id,
                         'name' => $item->product->name,
                         'description' => $item->product->description,
+                        'image' => $item->product->image,
                         'price' => $item->product->price,
                         'sale_price' => $item->product->sale_price,
                         'sale_end' => $item->product->sale_end,
