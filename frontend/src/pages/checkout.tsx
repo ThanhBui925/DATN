@@ -430,6 +430,9 @@ export const Checkout = () => {
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        if (profile.role === 'admin') {
+            return notification.error({message: "Admin không thể mua hàng"})
+        }
         const {isValid, errors} = validateForm(formData, useNewAddress);
         if (!isValid) {
             setFormErrors(errors);

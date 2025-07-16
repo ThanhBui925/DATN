@@ -17,6 +17,7 @@ export const i18nProvider: I18nProvider = {
             "notifications.createSuccess": "Tạo thành công",
             "notifications.editError": "Cập nhật thất bại",
             "notifications.editSuccess": "Cập nhật thành công",
+            "notifications.deleteSuccess": "Xóa thành công",
 
             "products.titles.list": "Danh sách sản phẩm",
             "vouchers.titles.list": "Danh sách voucher",
