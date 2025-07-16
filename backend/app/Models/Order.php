@@ -12,6 +12,7 @@ class Order extends Model
 
     protected $fillable = [
         'date_order',
+        'final_amount',
         'total_price',
         'discount_amount',
         'voucher_code',
@@ -22,6 +23,7 @@ class Order extends Model
         'payment_method',
         'user_id',
         'shipping_id',
+        'shipping_fee',
         'recipient_name',
         'recipient_phone',
         'recipient_email',

@@ -178,9 +178,9 @@ export const OrderContent = () => {
                                         className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
                                         <div>
                                           <span className="fw-bold text-muted">
-                                            Tổng tiền:{" "}
+                                            Thành tiền:{" "}
                                               <span className="text-original-base fs-5">
-                                              {convertToInt(order?.total_price)}₫
+                                              {convertToInt(order?.final_amount)}₫
                                             </span>
                                           </span>
                                         </div>

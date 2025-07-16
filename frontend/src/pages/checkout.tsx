@@ -453,11 +453,21 @@ export const Checkout = () => {
                 recipient_name: formData.recipient_name ?? profile.name,
                 recipient_phone: formData.recipient_phone ?? profile.customer.phone,
                 recipient_email: formData.recipient_email ?? profile.email,
-                ...(useNewAddress ? {shipping_address} : {address_id: selectedAddressId}),
+                ...(useNewAddress
+                    ? {
+                        shipping_address,
+                        province_id: formData.province,
+                        district_id: formData.district,
+                        ward_code: formData.ward,
+                    }
+                    : {
+                        address_id: selectedAddressId,
+                    }),
                 note: formData.note,
                 payment_method: formData.payment_method,
                 voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
             };
+
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
                 notification.success({message: res.data.message || "Đặt hàng thành công"});
