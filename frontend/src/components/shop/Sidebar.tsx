@@ -1,10 +1,30 @@
 import {useEffect, useState} from "react";
 import {axiosInstance} from "../../utils/axios";
 import {notification, Skeleton} from "antd";
+import { useSearchParams } from "react-router-dom";
 
 export const Sidebar = () => {
     const [categories, setCategories] = useState([])
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const handleCategoryChange = (id: number, checked: boolean) => {
+        const current = searchParams.getAll("category").map(Number);
+        let updated: number[];
+        if (checked) {
+            updated = [...new Set([...current, id])];
+        } else {
+            updated = current.filter((catId) => catId !== id);
+        }
+        searchParams.delete("category");
+        updated.forEach(catId => {
+            searchParams.append("category", String(catId));
+        });
+
+        setSearchParams(searchParams);
+    };
+
+
     const fetchCategories = async () => {
         setLoading(true);
         try {
@@ -82,9 +102,22 @@ export const Sidebar = () => {
                                         <Skeleton />
                                     ) : (
                                         categories && categories.length > 0 ? (
-                                            categories.map((category: any) => (
-                                                <li key={category.id}><input type="checkbox" name="product-categori"/><a href="#">{ category.name }</a></li>
-                                            ))
+                                            categories.map((category: any) => {
+                                                const isChecked = searchParams.getAll("category").includes(String(category.id));
+                                                return (
+                                                    <li key={category.id}>
+                                                        <label>
+                                                            <input
+                                                                type="checkbox"
+                                                                name="product-categori"
+                                                                checked={isChecked}
+                                                                onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
+                                                            />
+                                                            <span style={{ marginLeft: '6px' }}>{category.name}</span>
+                                                        </label>
+                                                    </li>
+                                                );
+                                            })
                                         ) : (
                                             <li>Chưa có danh mục nào !</li>
                                         )

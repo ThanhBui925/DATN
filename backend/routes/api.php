@@ -17,12 +17,16 @@ use App\Http\Controllers\Api\{
     CartController,
     CustomerController,
     ForgotPasswordController
+
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
+use App\Http\Controllers\Api\Client\AddressController;
+use App\Http\Controllers\Api\Client\ShippingFeeController;
+use App\Http\Controllers\Api\Client\MomoPayment;
 
 
 Route::prefix('client')->group(function () {
@@ -41,6 +45,10 @@ Route::prefix('client')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
     });
+
+    Route::post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
+
+    Route::post('/momo_payment', [MomoPayment::class, 'momo_payment']);
 
     // Các route cần đăng nhập
     Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
@@ -63,6 +71,13 @@ Route::prefix('client')->group(function () {
         Route::delete('/{id}', [ClientReviewController::class, 'destroy']);
     });
     Route::middleware('auth:sanctum')->post('/checkout/apply_coupon', [ClientOrderController::class, 'applyVoucher']);
+    Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
+        Route::post('/', [AddressController::class, 'store']);
+        Route::get('/', [AddressController::class, 'index']);
+        Route::put('/{id}', [AddressController::class, 'update']);
+        Route::delete('/{id}', [AddressController::class, 'destroy']);
+    });
+
 });
 
 Route::controller(AuthController::class)->group(function () {

@@ -229,7 +229,7 @@ export const Cart = () => {
                                                     <td className="plantmore-product-price">
                                                         <span className="amount">{convertToInt(cart.price)} vnđ</span>
                                                     </td>
-                                                    <td className="plantmore-product-quantity">
+                                                    <td className="plantmore-product-quantity d-flex justify-content-center flex-column align-items-center">
                                                         <div className="input-group" style={{ width: "150px" }}>
                                                             <button
                                                                 className="btn btn-outline-secondary"

@@ -138,7 +138,7 @@ class BlogController extends Controller
         $comments = $blog->comments()
             ->whereNull('deleted_at')
             ->with('user')
-            ->paginate($request->get('limit', 10));
+            ->paginate($request->get('limit', default: 10));
 
         return response()->json([
             'message' => 'Danh sách bình luận',
