@@ -18,6 +18,7 @@ import {Register} from "./pages/auth/register";
 import {Profile} from "./pages/auth/profile";
 import {Order} from "./pages/order";
 import {OrderDetail} from "./pages/orderDetail";
+import {Address} from "./pages/auth/address";
 
 export const ClientApp = () => {
     return (
@@ -37,6 +38,7 @@ export const ClientApp = () => {
 
                 <Route path="danh-muc-san-pham" element={<Shop />} />
                 <Route path="tai-khoan-cua-toi" element={<Profile />} />
+                <Route path="dia-chi" element={<Address />} />
                 <Route path="don-hang-cua-toi" element={<Order />} />
                 <Route path="chi-tiet-don-hang/:orderId" element={<OrderDetail />} />
             </Route>

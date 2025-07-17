@@ -1,11 +1,11 @@
-import {ProfileSidebar} from "../components/auth/profile/ProfileSidebar";
-import {OrderContent} from "../components/order/OrderContent";
-import {Breadcrumb} from "../components/Breadcrumb";
+import {ProfileSidebar} from "../../components/auth/profile/ProfileSidebar";
+import {AddressContent} from "../../components/auth/profile/AddressContent";
+import {Breadcrumb} from "../../components/Breadcrumb";
 
-export const Order = () => {
+export const Address = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",
-        breadcrumb2: "Đơn hàng",
+        breadcrumb2: "Địa chỉ",
     };
     return (
         <>
@@ -14,7 +14,7 @@ export const Order = () => {
                 <div className="container-fluid">
                     <div className={`row`}>
                         <ProfileSidebar/>
-                        <OrderContent/>
+                        <AddressContent/>
                     </div>
                 </div>
             </div>
