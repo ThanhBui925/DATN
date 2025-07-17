@@ -19,6 +19,7 @@ use App\Models\Size;
 use App\Models\Color;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Services\ShippingFeeService;
 
 class OrderController extends Controller
 {
@@ -205,6 +206,89 @@ class OrderController extends Controller
                 'new_status' => $newStatus
             ]);
             return $this->errorResponse('Cập nhật trạng thái đơn hàng thất bại: ' . $e->getMessage(), null, 500);
+        }
+
+        if($newStatus === 'shipping' && !$order->order_code){
+            if(isset($order->address_id) && $order->address_id){
+                // Nếu có address_id, lấy thông tin từ địa chỉ đã lưu
+                $address = $order->address;
+                if(!$address) {
+                    return $this->errorResponse('Địa chỉ không tồn tại', null, 400);
+                }
+                $recipientName = $address->recipient_name;
+                $recipientPhone = $address->recipient_phone;
+                $recipientEmail = $address->recipient_email;
+                $detailed_address = $address->address;
+                $wardName = $address->ward_name;
+                $districtName = $address->district_name;
+                $provinceName = $address->province_name;
+            } else {
+                // Nếu không có address_id, dùng thông tin từ request
+                $recipientName = $order->recipient_name;
+                $recipientPhone = $order->recipient_phone;
+                $recipientEmail = $order->recipient_email;
+                $detailed_address = $order->detailed_address;
+                $wardName = $order->ward_name;
+                $districtName = $order->district_name;
+                $provinceName = $order->province_name;
+            }
+            $toProvinceId = ShippingFeeService::matchProvinceByName($provinceName);
+            $toDistrictId = ShippingFeeService::matchDistrictByName($toProvinceId['ProvinceID'], $districtName);
+            $toWardCode = ShippingFeeService::matchWardByName($toDistrictId['DistrictID'], $wardName);
+
+            if (!$toProvinceId || !$toDistrictId || !$toWardCode) {
+                return $this->errorResponse("Không tìm được ID địa chỉ từ tên đã lưu trong đơn hàng.", null, 400);
+            }
+
+            $shippingData = [
+                'province_id' => $toProvinceId['ProvinceID'],
+                'district_id' => $toDistrictId['DistrictID'],
+                'ward_code' => $toWardCode['WardCode'],
+            ];
+            Log::info('Shipping data resolved from address names', [
+                'provinceName' => $provinceName,
+                'districtName' => $districtName,
+                'wardName' => $wardName,
+                'province_id' => $toProvinceId['ProvinceID'] ?? null,
+                'district_id' => $toDistrictId['DistrictID'] ?? null,
+                'ward_code' => $toWardCode['WardCode'] ?? null,
+            ]);
+
+            $shippingAddress = implode(', ', array_filter([
+                $detailed_address,
+                $wardName,
+                $districtName,
+                $provinceName,
+            ]));
+            $items = $order->orderItems->map(function ($item) {
+                return [
+                    'name' => $item->product->name ?? 'Sản phẩm',
+                    'quantity' => (int) $item->quantity,
+                    'price' => (int) $item->price,
+                ];
+            })->toArray();
+
+            $totalWeight = $order->orderItems->sum(function ($item) {
+                return $item->product->weight * $item->quantity;
+            });
+
+            $ghnResponse = ShippingFeeService::createOrder(
+                $order,
+                $recipientName,
+                $recipientPhone,
+                $shippingAddress,
+                $shippingData,
+                $items
+            );
+            if (is_null($ghnResponse) || !isset($ghnResponse['code']) || $ghnResponse['code'] != 200) {
+                Log::error('GHN order creation failed', [
+                    'order_id' => $order->id,
+                    'response' => $ghnResponse,
+                ]);
+                return $this->errorResponse('Tạo đơn hàng GHN thất bại: ' . (isset($ghnResponse['message']) ? $ghnResponse['message'] : json_encode($ghnResponse)), null, 500);
+            }
+            $order->order_code = $ghnResponse['data']['order_code'];
+            $order->save();
         }
 
         return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
