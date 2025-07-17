@@ -431,54 +431,60 @@ export const Checkout = () => {
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (profile.role === 'admin') {
-            return notification.error({message: "Admin không thể mua hàng"})
+            return notification.error({ message: "Admin không thể mua hàng" });
         }
-        const {isValid, errors} = validateForm(formData, useNewAddress);
+
+        const { isValid, errors } = validateForm(formData, useNewAddress);
         if (!isValid) {
             setFormErrors(errors);
-            notification.error({message: "Vui lòng kiểm tra thông tin nhập"});
+            notification.error({ message: "Vui lòng kiểm tra thông tin nhập" });
             return;
         }
 
-        let shipping_address = "";
+        let payload: any = {
+            recipient_name: formData.recipient_name ?? profile.name,
+            recipient_phone: formData.recipient_phone ?? profile.customer.phone,
+            recipient_email: formData.recipient_email ?? profile.email,
+            note: formData.note,
+            payment_method: formData.payment_method,
+            voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
+        };
+
         if (useNewAddress) {
             const provinceName = provinces.find((p) => p.ProvinceID === formData.province)?.ProvinceName || "";
             const districtName = districts.find((d) => d.DistrictID === formData.district)?.DistrictName || "";
             const wardName = wards.find((w) => w.WardCode === formData.ward)?.WardName || "";
-            shipping_address = `${formData.detailed_address}, ${wardName}, ${districtName}, ${provinceName}`;
+
+            payload = {
+                ...payload,
+                detailed_address: formData.detailed_address,
+                province_name: provinceName,
+                district_name: districtName,
+                ward_name: wardName,
+                province_id: formData.province,
+                district_id: formData.district,
+                ward_code: formData.ward,
+            };
+        } else {
+            payload = {
+                ...payload,
+                address_id: selectedAddressId,
+            };
         }
 
         try {
-            const payload = {
-                recipient_name: formData.recipient_name ?? profile.name,
-                recipient_phone: formData.recipient_phone ?? profile.customer.phone,
-                recipient_email: formData.recipient_email ?? profile.email,
-                ...(useNewAddress
-                    ? {
-                        shipping_address,
-                        province_id: formData.province,
-                        district_id: formData.district,
-                        ward_code: formData.ward,
-                    }
-                    : {
-                        address_id: selectedAddressId,
-                    }),
-                note: formData.note,
-                payment_method: formData.payment_method,
-                voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
-            };
-
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
-                notification.success({message: res.data.message || "Đặt hàng thành công"});
+                notification.success({ message: res.data.message || "Đặt hàng thành công" });
                 navigate("/don-hang-cua-toi");
             } else {
-                notification.error({message: res.data.message || "Lỗi khi đặt hàng"});
+                notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
             }
         } catch (e: any) {
-            notification.error({message: e.message || "Lỗi khi đặt hàng"});
+            notification.error({ message: e.message || "Lỗi khi đặt hàng" });
         }
     };
+
 
     const baseTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
     const displayTotal = baseTotal + shippingFee;

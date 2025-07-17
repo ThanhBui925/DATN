@@ -4,6 +4,9 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use App\Models\Cart;
+use Illuminate\Support\Facades\Log;
+use App\Models\Address;
+
 
 class ShippingFeeService
 {
@@ -75,7 +78,7 @@ class ShippingFeeService
                 'Token' => env('GHN_TOKEN'),
                 'ShopId' => env('GHN_SHOP_ID'),
                 'Content-Type' => 'application/json',
-            ])->post('https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee', [
+            ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee', [
                 "service_type_id" => 2,
                 "insurance_value" => $insurance,
                 "coupon" => null,
@@ -99,22 +102,98 @@ class ShippingFeeService
         return $totalShippingFee;
     }
 
-    private static function matchProvinceByName($name)
+
+    public static function createOrder($order, $recipientName, $recipientPhone, $shippingAddress, $shippingData, $items)
+    {
+        $token = env('GHN_TOKEN');
+        $shopId = env('GHN_SHOP_ID');
+
+        if (empty($items)) {
+            throw new \Exception("Không có sản phẩm nào trong đơn hàng.");
+        }
+
+        $totalQty = array_sum(array_column($items, 'quantity'));
+        $maxPerBox = 8;
+        $boxes = ceil($totalQty / $maxPerBox);
+
+        $weightPerItem = 500;
+        $totalWeight = $totalQty * $weightPerItem;
+
+        $length = 30;
+        $width = 20;
+        $heightPerBox = 10;
+        $height = $boxes * $heightPerBox;
+
+        $orderCode = 'ORDER_' . $order->id;
+
+        $response = Http::withHeaders([
+            'Token' => $token,
+            'ShopId' => $shopId,
+            'Content-Type' => 'application/json',
+        ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create', [
+            "payment_type_id" => 2, // Người nhận trả
+            "note" => "Giao buổi sáng",
+            "required_note" => "CHOXEMHANGKHONGTHU",
+            "to_name" => $recipientName,
+            "to_phone" => $recipientPhone,
+            "to_address" => $shippingAddress,
+            "to_ward_code" => $shippingData['ward_code'],
+            "to_district_id" => $shippingData['district_id'],
+            "cod_amount" => (int) $order->final_amount,
+            "content" => "Đơn hàng #" . $order->id,
+            "weight" => $totalWeight,
+            "length" => $length,
+            "width" => $width,
+            "height" => $height,
+            "service_type_id" => 2,
+            "service_id" => 53320,
+            "order_code" => $orderCode,
+            "pick_station_id" => 0,
+            "from_name" => "SportWolk", // Tên người gửi
+            "from_phone" => "0909090909", // SĐT người gửi
+            "from_address" => "22 ngõ 68 Cầu Giấy, Hà Nội", // Địa chỉ người gửi
+            "from_province_name" => "Hà Nội",
+            "from_district_id" => 1485,
+            "from_ward_code" => "1A0606",
+            "items" => $items,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            Log::info('GHN response after create order:', $data);
+            if (isset($data['code']) && $data['code'] === 200) {
+                return $data; // Trả về toàn bộ phản hồi thay vì chỉ $data['data']
+            } else {
+                throw new \Exception("GHN trả về lỗi: " . ($data['message'] ?? json_encode($data)));
+            }
+        } else {
+            $errorBody = $response->json() ?? $response->body();
+            Log::error('GHN HTTP Error:', [
+                'status' => $response->status(),
+                'body' => $errorBody,
+            ]);
+            throw new \Exception("GHN tạo đơn thất bại: " . (is_array($errorBody) ? json_encode($errorBody) : $errorBody));
+        }
+
+    }
+
+
+    public static function matchProvinceByName($name)
     {
         $res = Http::withHeaders(['Token' => env('GHN_TOKEN')])
-            ->get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province');
+            ->get('https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province');
 
         return collect($res['data'])->first(function ($item) use ($name) {
             $normalizedInput = strtolower(trim($name));
 
             // So sánh chính xác với tên chính thức
-            if (strtolower(trim($item['ProvinceName'])) === $normalizedInput) {
+            if (strtolower(trim($item['ProvinceName'])) == $normalizedInput) {
                 return true;
             }
 
             // So sánh với các tên mở rộng (alias)
             foreach ($item['NameExtension'] ?? [] as $alias) {
-                if (strtolower(trim($alias)) === $normalizedInput) {
+                if (strtolower(trim($alias)) == $normalizedInput) {
                     return true;
                 }
             }
@@ -125,22 +204,22 @@ class ShippingFeeService
 
 
 
-    private static function matchDistrictByName($provinceId, $name)
+    public static function matchDistrictByName($provinceId, $name)
     {
         $res = Http::withHeaders(['Token' => env('GHN_TOKEN')])
-            ->get('https://online-gateway.ghn.vn/shiip/public-api/master-data/district', [
+            ->get('https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district', [
                 'province_id' => $provinceId
             ]);
 
         return collect($res['data'])->first(function ($item) use ($name) {
             $normalizedInput = strtolower(trim($name));
 
-            if (strtolower(trim($item['DistrictName'])) === $normalizedInput) {
+            if (strtolower(trim($item['DistrictName'])) == $normalizedInput) {
                 return true;
             }
 
             foreach ($item['NameExtension'] ?? [] as $alias) {
-                if (strtolower(trim($alias)) === $normalizedInput) {
+                if (strtolower(trim($alias)) == $normalizedInput) {
                     return true;
                 }
             }
@@ -150,22 +229,22 @@ class ShippingFeeService
     }
 
 
-    private static function matchWardByName($districtId, $name)
+    public static function matchWardByName($districtId, $name)
     {
         $res = Http::withHeaders(['Token' => env('GHN_TOKEN')])
-            ->get('https://online-gateway.ghn.vn/shiip/public-api/master-data/ward', [
+            ->get('https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward', [
                 'district_id' => $districtId
             ]);
 
         return collect($res['data'])->first(function ($item) use ($name) {
             $normalizedInput = strtolower(trim($name));
 
-            if (strtolower(trim($item['WardName'])) === $normalizedInput) {
+            if (strtolower(trim($item['WardName'])) == $normalizedInput) {
                 return true;
             }
 
             foreach ($item['NameExtension'] ?? [] as $alias) {
-                if (strtolower(trim($alias)) === $normalizedInput) {
+                if (strtolower(trim($alias)) == $normalizedInput) {
                     return true;
                 }
             }
