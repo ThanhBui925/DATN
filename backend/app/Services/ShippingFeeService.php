@@ -115,14 +115,33 @@ class ShippingFeeService
         $totalQty = array_sum(array_column($items, 'quantity'));
         $maxPerBox = 8;
         $boxes = ceil($totalQty / $maxPerBox);
-
         $weightPerItem = 500;
-        $totalWeight = $totalQty * $weightPerItem;
 
-        $length = 30;
-        $width = 20;
-        $heightPerBox = 10;
-        $height = $boxes * $heightPerBox;
+        $fromDistrict = 1485;
+        $fromWardCode = '1A0606';
+        $insurance = 0;
+
+        $totalWeight = 0;
+        $maxBoxDimension = ['length' => 0, 'width' => 0, 'height' => 0];
+
+        for ($i = 0; $i < $boxes; $i++) {
+            $itemsInBox = min($maxPerBox, $totalQty - $i * $maxPerBox);
+            $weight = $itemsInBox * $weightPerItem;
+            $totalWeight += $weight;
+
+            [$length, $width, $height] = match (true) {
+                $itemsInBox <= 1 => [35, 24, 14],
+                $itemsInBox <= 3 => [40, 30, 16],
+                $itemsInBox <= 5 => [50, 35, 18],
+                $itemsInBox <= 7 => [60, 40, 20],
+                default => [70, 45, 25],
+            };
+
+            // Ghi nhận kích thước lớn nhất trong các kiện
+            $maxBoxDimension['length'] = max($maxBoxDimension['length'], $length);
+            $maxBoxDimension['width'] = max($maxBoxDimension['width'], $width);
+            $maxBoxDimension['height'] = max($maxBoxDimension['height'], $height);
+        }
 
         $orderCode = 'ORDER_' . $order->id;
 
@@ -131,7 +150,7 @@ class ShippingFeeService
             'ShopId' => $shopId,
             'Content-Type' => 'application/json',
         ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create', [
-            "payment_type_id" => 2, // Người nhận trả
+            "payment_type_id" => 1,
             "note" => "Giao buổi sáng",
             "required_note" => "CHOXEMHANGKHONGTHU",
             "to_name" => $recipientName,
@@ -142,27 +161,28 @@ class ShippingFeeService
             "cod_amount" => (int) $order->final_amount,
             "content" => "Đơn hàng #" . $order->id,
             "weight" => $totalWeight,
-            "length" => $length,
-            "width" => $width,
-            "height" => $height,
+            "length" => $maxBoxDimension['length'],
+            "width" => $maxBoxDimension['width'],
+            "height" => $maxBoxDimension['height'],
             "service_type_id" => 2,
             "service_id" => 53320,
             "order_code" => $orderCode,
             "pick_station_id" => 0,
-            "from_name" => "SportWolk", // Tên người gửi
-            "from_phone" => "0909090909", // SĐT người gửi
-            "from_address" => "22 ngõ 68 Cầu Giấy, Hà Nội", // Địa chỉ người gửi
+            "from_name" => "SportWolk",
+            "from_phone" => "0909090909",
+            "from_address" => "22 ngõ 68 Cầu Giấy, Hà Nội",
             "from_province_name" => "Hà Nội",
-            "from_district_id" => 1485,
-            "from_ward_code" => "1A0606",
+            "from_district_id" => $fromDistrict,
+            "from_ward_code" => $fromWardCode,
             "items" => $items,
+            "insurance_value" => $insurance,
         ]);
 
         if ($response->successful()) {
             $data = $response->json();
             Log::info('GHN response after create order:', $data);
             if (isset($data['code']) && $data['code'] === 200) {
-                return $data; // Trả về toàn bộ phản hồi thay vì chỉ $data['data']
+                return $data;
             } else {
                 throw new \Exception("GHN trả về lỗi: " . ($data['message'] ?? json_encode($data)));
             }
@@ -174,7 +194,6 @@ class ShippingFeeService
             ]);
             throw new \Exception("GHN tạo đơn thất bại: " . (is_array($errorBody) ? json_encode($errorBody) : $errorBody));
         }
-
     }
 
 

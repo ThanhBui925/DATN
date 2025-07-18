@@ -245,15 +245,7 @@ class OrderController extends Controller
                 'district_id' => $toDistrictId['DistrictID'],
                 'ward_code' => $toWardCode['WardCode'],
             ];
-            Log::info('Shipping data resolved from address names', [
-                'provinceName' => $provinceName,
-                'districtName' => $districtName,
-                'wardName' => $wardName,
-                'province_id' => $toProvinceId['ProvinceID'] ?? null,
-                'district_id' => $toDistrictId['DistrictID'] ?? null,
-                'ward_code' => $toWardCode['WardCode'] ?? null,
-            ]);
-
+            
             $shippingAddress = implode(', ', array_filter([
                 $detailed_address,
                 $wardName,
