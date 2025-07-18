@@ -266,7 +266,7 @@ export const OrderDetailContent = () => {
                             {order.order_status === "completed" && (
                                 <button className="btn btn-outline-success btn-sm px-4 fw-medium">Đánh Giá</button>
                             )}
-                            {["pending", "confirming"].includes(order.order_status) && (
+                            {["pending","confirming", "confirmed"].includes(order.order_status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
@@ -274,6 +274,16 @@ export const OrderDetailContent = () => {
                             </Link>
                         </div>
                     </div>
+                    {
+                        order.cancel_reason && (
+                            <div className={`mt-5`}>
+                                <div className="section-title-3">
+                                    <h2>Lý do huỷ đơn</h2>
+                                </div>
+                                <p>{order.cancel_reason}</p>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>
