@@ -17,7 +17,7 @@ export const ProductList = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/products');
+            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/product-brand-hot');
             const data = res.data.data || {};
             setForMan(data.forMan || []);
             setForGirl(data.forGirl || []);
