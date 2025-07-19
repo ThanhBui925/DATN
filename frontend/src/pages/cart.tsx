@@ -230,32 +230,34 @@ export const Cart = () => {
                                                         <span className="amount">{convertToInt(cart.price)} vnđ</span>
                                                     </td>
                                                     <td className="plantmore-product-quantity">
-                                                        <div className="input-group" style={{ width: "150px" }}>
-                                                            <button
-                                                                className="btn btn-outline-secondary"
-                                                                type="button"
-                                                                onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity - 1)}
-                                                                disabled={cart.quantity <= 1}
-                                                            >
-                                                                -
-                                                            </button>
-                                                            <input
-                                                                type="text"
-                                                                className="form-control text-center"
-                                                                value={cart.quantity}
-                                                                onChange={(e) => {
-                                                                    const value = parseInt(e.target.value) || 1;
-                                                                    handleQuantityChange(cart.id, cart.variant_id, value);
-                                                                }}
-                                                                min="1"
-                                                            />
-                                                            <button
-                                                                className="btn btn-outline-secondary"
-                                                                type="button"
-                                                                onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity + 1)}
-                                                            >
-                                                                +
-                                                            </button>
+                                                        <div className="d-flex justify-content-center">
+                                                            <div className="input-group" style={{ width: "150px" }}>
+                                                                <button
+                                                                    className="btn btn-outline-secondary "
+                                                                    type="button"
+                                                                    onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity - 1)}
+                                                                    disabled={cart.quantity <= 1}
+                                                                >
+                                                                    -
+                                                                </button>
+                                                                <input
+                                                                    type="text"
+                                                                    className="form-control text-center"
+                                                                    value={cart.quantity}
+                                                                    onChange={(e) => {
+                                                                        const value = parseInt(e.target.value) || 1;
+                                                                        handleQuantityChange(cart.id, cart.variant_id, value);
+                                                                    }}
+                                                                    min="1"
+                                                                />
+                                                                <button
+                                                                    className="btn btn-outline-secondary"
+                                                                    type="button"
+                                                                    onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity + 1)}
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         {errorQty[cart.id] && <div className="text-danger mt-1">{errorQty[cart.id]}</div>}
                                                     </td>

@@ -49,6 +49,7 @@ interface Shipping {
 interface Order {
     id: number;
     date_order: string;
+    final_amount: string;
     total_price: string;
     order_status: string;
     cancel_reason: string | null;
@@ -63,11 +64,15 @@ interface Order {
     user: User;
     customer_id: number | null;
     shipping_id: number;
+    shipping_fee: number;
+    recipient_email: string | null;
     shipping: Shipping;
     created_at: string;
     updated_at: string;
-    voucher: string | null;
+    voucher_code: string | null;
     items: Item[];
+    shipping_name: string,
+    subtotal: number
 }
 
 const statusMap: Record<string, { color: string; label: string }> = {
@@ -171,20 +176,21 @@ export const OrderDetailContent = () => {
                             </div>
                             <div className="col-md-6">
                                 <div className="bg-light p-3 rounded">
-                                    <p className="mb-1"><strong>Đơn vị vận
-                                        chuyển:</strong> {order.shipping?.name || "N/A"}</p>
-                                    <p className="mb-1"><strong>Trạng thái vận
-                                        chuyển:</strong> {order.shipping?.status || "N/A"}</p>
-                                    <p className="mb-1"><strong>Ngày giao
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        hàng:</strong> {convertDate(order.delivered_at) || "N/A"}</p>
-                                    <p className="mb-0"><strong>Ngày xuất
-                                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                                        {/*@ts-ignore*/}
-                                        kho:</strong> {convertDate(order.shipped_at) || "N/A"}</p>
+                                    <p className="mb-1">
+                                        <strong>Đơn vị vận chuyển:</strong> {order.shipping_name || "N/A"}
+                                    </p>
+                                    {/* <p className="mb-1">
+                                        <strong>Trạng thái vận chuyển:</strong> {order.shipping?.status || "N/A"}
+                                    </p> */}
+                                    <p className="mb-1">
+                                        <strong>Ngày giao hàng:</strong> {convertDate(order.delivered_at) || "N/A"}
+                                    </p>
+                                    <p className="mb-0">
+                                        <strong>Ngày xuất kho:</strong> {convertDate(order.shipped_at) || "N/A"}
+                                    </p>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -231,20 +237,25 @@ export const OrderDetailContent = () => {
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 border-top pt-3">
                         <div>
                             <h6 className="fw-bold mb-1 text-dark">
-                                Tổng tiền: <span
-                                className="text-original-base fs-4">{convertToInt(order.total_price)}₫</span>
+                                Tạm Tính : <span
+                                className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
                             </h6>
-                            {order.discount_amount && (
+                            {order.shipping_fee && (
                                 <p className="text-muted small mb-1">
-                                    Giảm giá: <span
-                                    className="text-success">{convertToInt(order.discount_amount)}₫</span>
+                                    Phí vận chuyển : <span
+                                    className="text-danger">{convertToInt(order.shipping_fee)} ₫</span>
                                 </p>
                             )}
-                            {order.voucher && (
+                            {order.voucher_code && order.discount_amount && (
                                 <p className="text-muted small mb-1">
-                                    Voucher: <span className="text-success">{order.voucher}</span>
+                                    Voucher : <span className="text-success">{order.voucher_code}</span> — Giảm :{" "}
+                                    <span className="text-success">{convertToInt(order.discount_amount)} ₫</span>
                                 </p>
                             )}
+                            <h6 className="fw-bold mb-1 text-dark">
+                                Tổng Cộng : <span
+                                className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
+                            </h6>
                             <p className="text-muted small mb-0">
                                 Thanh toán: {paymentMethodMap[order.payment_method]?.label || "Không xác định"} (
                                 {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"})
@@ -255,7 +266,7 @@ export const OrderDetailContent = () => {
                             {order.order_status === "completed" && (
                                 <button className="btn btn-outline-success btn-sm px-4 fw-medium">Đánh Giá</button>
                             )}
-                            {["pending", "confirming"].includes(order.order_status) && (
+                            {["pending","confirming", "confirmed"].includes(order.order_status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
@@ -263,6 +274,16 @@ export const OrderDetailContent = () => {
                             </Link>
                         </div>
                     </div>
+                    {
+                        order.cancel_reason && (
+                            <div className={`mt-5`}>
+                                <div className="section-title-3">
+                                    <h2>Lý do huỷ đơn</h2>
+                                </div>
+                                <p>{order.cancel_reason}</p>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>

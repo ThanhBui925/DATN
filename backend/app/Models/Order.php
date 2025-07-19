@@ -12,15 +12,22 @@ class Order extends Model
 
     protected $fillable = [
         'date_order',
+        'final_amount',
         'total_price',
         'discount_amount',
         'voucher_code',
+        'order_code',
         'order_status',
         'payment_status',
-        'shipping_address',
+        'address_id',
+        'detailed_address',
+        'ward_name',
+        'district_name',
+        'province_name',
         'payment_method',
         'user_id',
         'shipping_id',
+        'shipping_fee',
         'recipient_name',
         'recipient_phone',
         'recipient_email',
@@ -56,5 +63,9 @@ class Order extends Model
     public function voucher()
     {
         return $this->belongsTo(Voucher::class);
+    }
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
     }
 }

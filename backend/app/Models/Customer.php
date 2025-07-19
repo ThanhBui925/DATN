@@ -9,10 +9,14 @@ class Customer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'phone', 'address', 'avatar', 'dob', 'gender'];
+    protected $fillable = ['user_id', 'phone', 'address_id', 'avatar', 'dob', 'gender'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
     }
 }
