@@ -12,9 +12,13 @@ use App\Mail\WelcomeMail;
 use Illuminate\Support\Facades\Log;
 use App\Traits\ApiResponseTrait;
 
+// Swagger documentation đã được chuyển sang SwaggerDocumentationController
+
 class AuthController extends Controller
 {
     use ApiResponseTrait;
+    
+    // Swagger documentation đã được chuyển sang SwaggerDocumentationController
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -54,6 +58,7 @@ class AuthController extends Controller
         }
     }
 
+    // Swagger documentation đã được chuyển sang SwaggerDocumentationController
     public function register(Request $request)
     {
         $data = $request->validate([

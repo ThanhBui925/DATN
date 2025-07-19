@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
+// Swagger UI Route đã được L5-Swagger tự động đăng ký tại /api/documentation
 use Illuminate\Http\Request;
 
 Route::get('/', function () {

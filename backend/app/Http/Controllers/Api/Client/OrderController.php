@@ -19,6 +19,7 @@ use App\Models\Color;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\ApplyVoucherRequest;
+use App\Http\Requests\UpdateOrderAddressRequest;
 use App\Models\Cart;
 use App\Models\Address;
 use App\Services\ShippingFeeService;
@@ -435,6 +436,75 @@ class OrderController extends Controller
                 'user_id' => $user->id
             ]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Cập nhật địa chỉ đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
+     */
+    public function updateAddress(UpdateOrderAddressRequest $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền thay đổi', null, 404);
+        }
+
+        // Kiểm tra trạng thái đơn hàng - chỉ cho phép thay đổi ở trạng thái pending/confirming
+        if (!in_array($order->order_status, ['pending', 'confirming'])) {
+            return $this->errorResponse('Chỉ có thể thay đổi địa chỉ đơn hàng ở trạng thái chờ xác nhận hoặc đang xác nhận', null, 400);
+        }
+
+        try {
+            // Nếu có address_id, sử dụng địa chỉ có sẵn
+            if ($request->filled('address_id')) {
+                $address = Address::where('id', $request->address_id)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                if (!$address) {
+                    return $this->errorResponse('Địa chỉ không tồn tại hoặc không thuộc về bạn', null, 404);
+                }
+
+                $order->update([
+                    'address_id' => $address->id,
+                    'shipping_address' => $address->shipping_address ?? $address->address,
+                    'recipient_name' => $address->recipient_name,
+                    'recipient_phone' => $address->recipient_phone,
+                    'recipient_email' => $address->recipient_email,
+                ]);
+            } else {
+                // Sử dụng thông tin địa chỉ mới từ request
+                $order->update([
+                    'address_id' => null,
+                    'shipping_address' => $request->shipping_address,
+                    'recipient_name' => $request->recipient_name,
+                    'recipient_phone' => $request->recipient_phone,
+                    'recipient_email' => $request->recipient_email,
+                ]);
+            }
+
+            Log::info('Order address updated by user', [
+                'order_id' => $order->id,
+                'user_id' => $user->id,
+                'new_address' => $order->shipping_address
+            ]);
+
+            return $this->successResponse($order->load('address'), 'Cập nhật địa chỉ đơn hàng thành công');
+        } catch (\Exception $e) {
+            Log::error('Failed to update order address', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'user_id' => $user->id
+            ]);
+            return $this->errorResponse('Cập nhật địa chỉ đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
     }
 }
