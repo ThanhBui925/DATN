@@ -231,11 +231,6 @@ export const OrderContent = () => {
                                             >
                                                 Xem Chi Tiết
                                             </button>
-                                            {order?.order_status === "completed" && (
-                                                <button className="btn btn-outline-success btn-sm px-4 fw-medium">
-                                                    Đánh Giá
-                                                </button>
-                                            )}
                                             {["pending", "confirmed", "confirming"].includes(order?.order_status) && (
                                                 <button
                                                     className="btn btn-outline-danger btn-sm px-4 fw-medium"
