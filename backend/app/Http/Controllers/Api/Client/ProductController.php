@@ -31,7 +31,7 @@ class ProductController extends Controller
         $products = Product::query()
             ->with(['category', 'images'])
             ->latest()
-            ->limit(1)
+            ->limit(8)
             ->get();
         return $this->success($products);
     }

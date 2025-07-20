@@ -92,7 +92,7 @@ class OrderController extends Controller
                 $wardName = $address->ward_name;
                 $districtName = $address->district_name;
                 $provinceName = $address->province_name;
-                
+
                 $addressId = $address->id;
                 $shippingFee = ShippingFeeService::calculate($userId, ['address_id' => $address->id]);
             } else {
@@ -115,7 +115,7 @@ class OrderController extends Controller
             $discountAmount = 0;
             $productIds = $cart->items->pluck('product_id')->toArray();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-           
+
 
             $order = Order::create([
                 'date_order'        => now(),
@@ -250,7 +250,9 @@ class OrderController extends Controller
         $voucher = Voucher::where('code', $request->voucher_code)->first();
 
         $cart = Cart::with('items.product')->where('user_id', $userId)->first();
-        $totalPrice = $cart->items->sum(fn($item) => $item->product->price * $item->quantity);
+        $totalPrice = $cart->items->reduce(function ($item) {
+            return $item->product->price * $item->quantity;
+        });
 
         $discountAmount = 0;
         if ($voucher->discount_type === 'percentage') {
