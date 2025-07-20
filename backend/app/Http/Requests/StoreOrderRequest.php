@@ -10,12 +10,15 @@ class StoreOrderRequest extends FormRequest
 {
     return [
         'address_id'       => 'nullable|exists:addresses,id',
-        'shipping_address' => 'required_without:address_id|string|max:255',
+        'detailed_address' => 'required_without:address_id|string|max:255',
+        'ward_name'        => 'required_without:address_id|string|max:255',
+        'district_name'    => 'required_without:address_id|string|max:255',
+        'province_name'    => 'required_without:address_id|string|max:255',
         'payment_method'   => 'required|in:cash,card,paypal,vnpay',
         'shipping_id'      => 'nullable|exists:shipping,id',
-        'recipient_name'   => 'required_without:address_id|string|max:255',
-        'recipient_phone'  => 'required_without:address_id|string|max:20',
-        'recipient_email'  => 'required_without:address_id|email|max:255',
+        'recipient_name'  => 'required_without:address_id|nullable|string|max:255',
+        'recipient_phone' => 'required_without:address_id|nullable|string|max:20',
+        'recipient_email' => 'required_without:address_id|nullable|email|max:255',
     ];
 }
 

@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {axiosInstance} from "../../utils/axios";
-import {convertDate, convertToInt} from "../../helpers/common";
-import {Link, useNavigate} from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { axiosInstance } from "../../utils/axios";
+import { convertDate, convertToInt } from "../../helpers/common";
+import { Link, useNavigate } from "react-router-dom";
+import { notification, Modal, Input } from "antd";
 
 const statusMap: Record<string, { color: string; label: string }> = {
     confirming: {color: "#E6F3FF", label: "Đang xác nhận"},
@@ -25,6 +26,9 @@ export const OrderContent = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<string>('all');
     const [orders, setOrders] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
     const fetchOrders = async () => {
         try {
@@ -33,6 +37,43 @@ export const OrderContent = () => {
         } catch (e) {
             console.log(e);
         }
+    }
+
+    const handleCancelOrder = async (orderId: number, reason: string) => {
+        try {
+            const res = await axiosInstance.put(`/api/client/orders/${orderId}/cancel`, { cancel_reason: reason })
+            if (res.data.status) {
+                notification.success({message: "Đã huỷ đơn hàng thành công"});
+                fetchOrders(); // Refresh orders after cancellation
+            } else {
+                notification.error({message: res.data.message});
+            }
+        } catch (e) {
+            console.log(e);
+            notification.error({message: "Có lỗi xảy ra khi hủy đơn hàng"});
+        }
+    }
+
+    const showCancelModal = (orderId: number) => {
+        setSelectedOrderId(orderId);
+        setIsModalOpen(true);
+    }
+
+    const handleModalOk = () => {
+        if (selectedOrderId && cancelReason.trim()) {
+            handleCancelOrder(selectedOrderId, cancelReason);
+            setIsModalOpen(false);
+            setCancelReason('');
+            setSelectedOrderId(null);
+        } else {
+            notification.error({message: "Vui lòng nhập lý do hủy đơn"});
+        }
+    }
+
+    const handleModalCancel = () => {
+        setIsModalOpen(false);
+        setCancelReason('');
+        setSelectedOrderId(null);
     }
 
     useEffect(() => {
@@ -55,6 +96,7 @@ export const OrderContent = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const filteredOrders = orders.filter(tabs[activeTab] || tabs.all);
+
     return (
         <div className="col-md-12 col-lg-10">
             <div className="tab-content">
@@ -110,7 +152,6 @@ export const OrderContent = () => {
                     </div>
                     {filteredOrders.map((order: any) => (
                         <div key={order?.id} className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden">
-                            {/* Header đơn hàng */}
                             <div
                                 className="card-header bg-white py-2 px-4 d-flex justify-content-between align-items-center border-bottom">
                                 <div className="d-flex align-items-center gap-2">
@@ -178,28 +219,23 @@ export const OrderContent = () => {
                                         className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
                                         <div>
                                           <span className="fw-bold text-muted">
-                                            Tổng tiền:{" "}
+                                            Thành tiền:{" "}
                                               <span className="text-original-base fs-5">
-                                              {convertToInt(order?.total_price)}₫
+                                              {convertToInt(order?.final_amount)}₫
                                             </span>
                                           </span>
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
-                                            {/*<button className="btn bg-original-base text-white btn-sm px-4 fw-medium">*/}
-                                            {/*    Mua Lại*/}
-                                            {/*</button>*/}
                                             <button className="btn btn-outline-secondary btn-sm px-4 fw-medium"
                                                     onClick={() => navigate(`/chi-tiet-don-hang/${order?.id}`)}
                                             >
                                                 Xem Chi Tiết
                                             </button>
-                                            {order?.order_status === "completed" && (
-                                                <button className="btn btn-outline-success btn-sm px-4 fw-medium">
-                                                    Đánh Giá
-                                                </button>
-                                            )}
                                             {["pending", "confirmed", "confirming"].includes(order?.order_status) && (
-                                                <button className="btn btn-outline-danger btn-sm px-4 fw-medium">
+                                                <button
+                                                    className="btn btn-outline-danger btn-sm px-4 fw-medium"
+                                                    onClick={() => showCancelModal(order?.id)}
+                                                >
                                                     Hủy Đơn
                                                 </button>
                                             )}
@@ -211,6 +247,23 @@ export const OrderContent = () => {
                     ))}
                 </div>
             </div>
+
+            <Modal
+                title="Lý do hủy đơn"
+                open={isModalOpen}
+                onOk={handleModalOk}
+                onCancel={handleModalCancel}
+                okText="Xác nhận"
+                cancelText="Hủy"
+            >
+                <Input.TextArea
+                    name="cancel_reason"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Vui lòng nhập lý do hủy đơn"
+                    rows={4}
+                />
+            </Modal>
         </div>
     )
 }

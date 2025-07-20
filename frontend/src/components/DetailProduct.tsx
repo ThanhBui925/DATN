@@ -141,7 +141,7 @@ export const DetailProduct = () => {
     }
 
     return (
-        <div className="container">
+        <div className="container mb-3">
             <div className="row px-3">
                 <div className="col-xl-5 col-lg-6 col-md-5 col-sm-12">
                     <div className="single-product-tab">
@@ -356,28 +356,37 @@ export const DetailProduct = () => {
             </div>
             <div className="row mt-4">
                 <div className="col">
-                    <div className="p-3">
-                        <h3>Mô tả</h3>
-                        <p>{product.description}</p>
-                        <h3 className="mt-4">Đánh giá</h3>
-                        <table className="table table-striped table-bordered">
-                            <tbody>
-                            <tr>
-                                <td><strong>Người dùng</strong></td>
-                                <td className="text-end">28/06/2025</td>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>
-                                    <p>Chất lượng sản phẩm rất tốt, sẽ ủng hộ tiếp!</p>
-                                    <div className="d-flex">
-                                        {[...Array(5)].map((_, i) => (
-                                            <i key={i} className="fa fa-star-o text-warning"></i>
-                                        ))}
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div>
+                        <section className="desc-section mb-3">
+                            <div className="section-title-3">
+                                <h2>Mô tả sản phẩm</h2>
+                            </div>
+                            <p>{product.description}</p>
+                        </section>
+
+                        <section className="rate-section mb-3">
+                            <div className="section-title-3">
+                                <h2>Đánh giá</h2>
+                            </div>
+                            <table className="table table-striped table-bordered">
+                                <tbody>
+                                <tr>
+                                    <td><strong>Người dùng</strong></td>
+                                    <td className="text-end">28/06/2025</td>
+                                </tr>
+                                <tr>
+                                    <td colSpan={2}>
+                                        <p>Chất lượng sản phẩm rất tốt, sẽ ủng hộ tiếp!</p>
+                                        <div className="d-flex">
+                                            {[...Array(5)].map((_, i) => (
+                                                <i key={i} className="fa fa-star-o text-warning"></i>
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </section>
                     </div>
                 </div>
             </div>

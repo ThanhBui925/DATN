@@ -1,125 +1,182 @@
+import React, { useEffect, useState, FormEvent } from 'react';
+import { TOKEN_KEY } from "../../../providers/authProvider";
+import { notification } from "antd";
+import { axiosInstance } from "../../../utils/axios";
+
+interface UserData {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    email_verified_at: string | null;
+    created_at: string;
+    updated_at: string;
+    status: number;
+    customer: {
+        id: number;
+        user_id: number;
+        phone: string;
+        address: string;
+        avatar: string | null;
+        dob: string | null;
+        gender: string | null;
+        created_at: string;
+        updated_at: string;
+        deleted_at: string | null;
+    };
+}
+
 export const ProfileContent = () => {
+    const isAuth = !!localStorage.getItem(TOKEN_KEY);
+    const [profile, setProfile] = useState<UserData | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [name, setName] = useState<string>('');
+    const [phone, setPhone] = useState<string>('');
+    const [gender, setGender] = useState<string | null>(null);
+    const [dob, setDob] = useState<string>('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+
+    useEffect(() => {
+        if (isAuth) {
+            const fetchProfile = async () => {
+                try {
+                    const res = await axiosInstance.get("/api/profile");
+                    if (res.data.status) {
+                        setProfile(res.data.data);
+                        setName(res.data.data.name);
+                        setPhone(res.data.data.customer.phone || '');
+                        setGender(res.data.data.customer.gender || null);
+                        setDob(res.data.data.customer.dob || '');
+                        if (res.data.data.customer.avatar) {
+                            setPreviewImage(res.data.data.customer.avatar);
+                        }
+                    } else {
+                        notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
+                    }
+                } catch (e) {
+                    notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
+                }
+            };
+            fetchProfile();
+        }
+    }, [isAuth]);
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 1024 * 1024) {
+                notification.error({ message: "Dung lượng file tối đa là 1MB" });
+                return;
+            }
+            const validTypes = ['image/jpeg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                notification.error({ message: "Chỉ hỗ trợ định dạng JPEG, PNG" });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            setImageFile(file);
+        }
+    };
+
+    const handleSubmit = async (event: FormEvent) => {
+        event.preventDefault();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('phone', phone);
+        if (gender) formData.append('gender', gender);
+        if (dob) formData.append('dob', dob);
+        if (imageFile) formData.append('avatar', imageFile);
+
+        try {
+            const res = await axiosInstance.post("/api/profile", formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (res.data.status) {
+                notification.success({ message: "Cập nhật thông tin thành công" });
+                setProfile(prev => prev ? { ...prev, name, customer: { ...prev.customer, phone, gender, dob, avatar: previewImage || prev.customer.avatar } } : null);
+            } else {
+                notification.error({ message: res.data.message || "Cập nhật thông tin thất bại" });
+            }
+        } catch (e) {
+            notification.error({ message: (e as Error).message || "Lỗi khi cập nhật thông tin" });
+        }
+    };
+
     return (
         <div className="col-md-12 col-lg-10">
-            <div className="tab-content dashboard-content">
-                <div id="dashboard" className="tab-pane fade show active">
-                    <h3>Dashboard </h3>
-                    <p>From your account dashboard. you can easily check &amp; view your <a href="#">recent
-                        orders</a>, manage your <a href="#">shipping and billing addresses</a> and <a href="#">edit
-                        your password and account details.</a></p>
-                </div>
-                <div id="orders" className="tab-pane fade">
-                    <h3>Orders</h3>
-                    <div className="table-responsive">
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                <th>Order</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>May 10, 2018</td>
-                                <td>Processing</td>
-                                <td>$25.00 for 1 item</td>
-                                <td><a className="view" href="cart.html">view</a></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>May 10, 2018</td>
-                                <td>Processing</td>
-                                <td>$17.00 for 1 item</td>
-                                <td><a className="view" href="cart.html">view</a></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div id="downloads" className="tab-pane fade">
-                    <h3>Downloads</h3>
-                    <div className="table-responsive">
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Downloads</th>
-                                <th>Expires</th>
-                                <th>Download</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Haven - Free Real Estate PSD Template</td>
-                                <td>May 10, 2018</td>
-                                <td>never</td>
-                                <td><a className="view" href="#">Click Here To Download Your File</a></td>
-                            </tr>
-                            <tr>
-                                <td>Nevara - ecommerce html template</td>
-                                <td>Sep 11, 2018</td>
-                                <td>never</td>
-                                <td><a className="view" href="#">Click Here To Download Your File</a></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div id="address" className="tab-pane">
-                    <p>The following addresses will be used on the checkout page by default.</p>
-                    <h4 className="billing-address">Billing address</h4>
-                    <a className="view" href="#">edit</a>
-                    <p>Johan Don</p>
-                    <p>Bangladesh</p>
-                </div>
-                <div id="account-details" className="tab-pane fade">
-                    <h3>Account details </h3>
-                    <div className="login">
-                        <div className="login-form-container">
-                            <div className="account-login-form">
-                                <form action="#">
-                                    <p>Already have an account? <a href="#">Log in instead!</a></p>
-                                    <label>Social title</label>
-                                    <div className="input-radio">
-                                            <span className="custom-radio"><input name="id_gender" value="1"
-                                                                                  type="radio"/> Mr.</span>
-                                        <span className="custom-radio"><input name="id_gender" value="1"
-                                                                              type="radio"/> Mrs.</span>
-                                    </div>
-                                    <label>First Name</label>
-                                    <input name="first-name" type="text"/>
-                                    <label>Last Name</label>
-                                    <input name="last-name" type="text"/>
-                                    <label>Email</label>
-                                    <input name="email-name" type="text"/>
-                                    <label>Password</label>
-                                    <input name="user-password" type="password"/>
-                                    <label>Birthdate</label>
-                                    <input name="birthday" value="" placeholder="MM/DD/YYYY" type="text"/>
-                                    <span className="example">
-                                                          (E.g.: 05/31/1970)
-                                                        </span>
-                                    <span className="custom-checkbox">
-                                                            <input name="optin" value="1" type="checkbox"/>
-                                                            <label>Receive offers from our partners</label>
-                                                        </span>
-                                    <span className="custom-checkbox">
-                                                            <input name="newsletter" value="1" type="checkbox"/>
-                                                            <label>Sign up for our newsletter<br/><em>You may unsubscribe at any moment. For that purpose, please find our contact info in the legal notice.</em></label>
-                                                        </span>
-                                    <div className="button-box">
-                                        <button type="submit" className="default-btn">save</button>
-                                    </div>
-                                </form>
+            <div className="tab-content">
+                <div className="container">
+                    <div className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden p-4">
+                        <h2 className="text-center mb-4">Hồ Sơ Của Tôi</h2>
+                        <p className="text-center text-muted mb-4">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-3">
+                                <label className="form-label">Tên đăng nhập</label>
+                                <input type="text" className="form-control" value="lelieu1232" readOnly disabled={true}/>
                             </div>
-                        </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Tên</label>
+                                <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Email</label>
+                                <input type="email" className="form-control" value={profile?.email} readOnly />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Số điện thoại</label>
+                                <input type="text" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Giới tính</label>
+                                <div className="d-flex gap-3">
+                                    <div className="form-check">
+                                        <input type="radio" className="form-check-input" name="gender" value="Nam" checked={gender === 'Nam'} onChange={() => setGender('Nam')} />
+                                        <label className="form-check-label">Nam</label>
+                                    </div>
+                                    <div className="form-check">
+                                        <input type="radio" className="form-check-input" name="gender" value="Nữ" checked={gender === 'Nữ'} onChange={() => setGender('Nữ')} />
+                                        <label className="form-check-label">Nữ</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Ngày sinh</label>
+                                <input type="date" className="form-control" value={dob} onChange={(e) => setDob(e.target.value)} />
+                            </div>
+
+                            <div className="mb-3 d-flex align-items-center gap-3">
+                                <div>
+                                    <label className="form-label">Ảnh đại diện</label>
+                                    <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: 150, height: 150 }}>
+                                        {previewImage ? (
+                                            <img src={previewImage} alt="Avatar" className="rounded-circle object-fit-cover" style={{ height: 150 }} />
+                                        ) : (
+                                            <span className="text-muted">No image</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <input type="file" accept="image/jpeg,image/png" onChange={handleImageChange} className="form-control d-none" id="imageUpload" />
+                                    <label htmlFor="imageUpload" className="btn btn-outline-secondary mb-1">Chọn Ảnh</label>
+                                    <p className="text-muted small mb-0">Dung lượng file tối đa 1 MB<br />Định dạng: JPEG, PNG</p>
+                                </div>
+                            </div>
+
+                            <button type="submit" className="btn btn-danger w-25">Lưu</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

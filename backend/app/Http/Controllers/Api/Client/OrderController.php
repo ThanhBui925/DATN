@@ -21,6 +21,10 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\ApplyVoucherRequest;
 use App\Models\Cart;
 use App\Models\Address;
+use App\Services\ShippingFeeService;
+use Illuminate\Support\Facades\Http;
+
+
 
 class OrderController extends Controller
 {
@@ -79,36 +83,61 @@ class OrderController extends Controller
                 if (!$address) {
                     return $this->errorResponse('Địa chỉ không tồn tại hoặc không thuộc về bạn.', null, 404);
                 }
+
+                $recipientName = $address->recipient_name;
+                $recipientPhone = $address->recipient_phone;
+                $recipientEmail = $address->recipient_email;
+                $detailed_address = $address->address;
+                $wardName = $address->ward_name;
+                $districtName = $address->district_name;
+                $provinceName = $address->province_name;
+                
+                $addressId = $address->id;
+                $shippingFee = ShippingFeeService::calculate($userId, ['address_id' => $address->id]);
             } else {
-                $address = Address::create([
-                    'user_id'         => $userId,
-                    'address'         => $request->shipping_address,
-                    'recipient_name'  => $request->recipient_name,
-                    'recipient_phone' => $request->recipient_phone,
-                    'recipient_email' => $request->recipient_email,
-                    'is_default'      => 0,
+                $recipientName = $request->recipient_name;
+                $recipientPhone = $request->recipient_phone;
+                $recipientEmail = $request->recipient_email;
+                $detailed_address = $request->detailed_address;
+                $wardName = $request->ward_name;
+                $districtName = $request->district_name;
+                $provinceName = $request->province_name;
+                $addressId = null;
+                $shippingFee = ShippingFeeService::calculate($userId, [
+                    'province_id' => $request->province_id,
+                    'district_id' => $request->district_id,
+                    'ward_code'   => $request->ward_code,
                 ]);
             }
 
             $totalPrice = 0;
+            $discountAmount = 0;
             $productIds = $cart->items->pluck('product_id')->toArray();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+           
 
             $order = Order::create([
                 'date_order'        => now(),
                 'total_price'       => 0,
                 'order_status'      => 'pending',
                 'payment_status'    => 'unpaid',
-                'address_id'        => $address->id,
-                'shipping_address'  => $address->address,
+                'address_id'        => $addressId,
+                'detailed_address'  => $detailed_address,
+                'ward_name'         => $wardName,
+                'district_name'     => $districtName,
+                'province_name'     => $provinceName,
                 'payment_method'    => $request->payment_method,
                 'user_id'           => $userId,
                 'shipping_id'       => $request->shipping_id ?? 1,
-                'recipient_name'    => $address->recipient_name,
-                'recipient_phone'   => $address->recipient_phone,
-                'recipient_email'   => $address->recipient_email,
+                'recipient_name'    => $recipientName,
+                'recipient_phone'   => $recipientPhone,
+                'recipient_email'   => $recipientEmail,
                 'discount_amount'   => 0,
+                'shipping_fee'      => $shippingFee,
+                'final_amount'      => 0,
+
             ]);
+
 
             foreach ($cart->items as $item) {
                 $product = $products[$item->product_id] ?? null;
@@ -193,7 +222,11 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order->update(['total_price' => $totalPrice - $discountAmount]);
+            $order->update([
+                'total_price'   => $totalPrice,
+                'discount_amount' => $discountAmount,
+                'final_amount'  => $totalPrice - $discountAmount + $shippingFee,
+            ]);
 
             $cart->items()->delete();
             $cart->delete();
@@ -244,12 +277,14 @@ class OrderController extends Controller
     /**
      * Xem chi tiết đơn hàng của user
      */
+
     public function show(Request $request, $id)
     {
         $user = $request->user();
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
+
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->with([
@@ -261,12 +296,35 @@ class OrderController extends Controller
                 'orderItems.variant.size',
                 'orderItems.variant.color',
             ])->first();
+
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập', null, 404);
         }
+
+        // --- Gọi GHN API ---
+        $ghnShippingInfo = null;
+        if ($order->order_code) {
+            $token = env('GHN_TOKEN');
+            $shopId = env('GHN_SHOP_ID');
+
+            $res = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Token' => $token,
+                'ShopId' => $shopId,
+            ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail', [
+                'order_code' => $order->order_code
+            ]);
+
+            if ($res->successful() && isset($res['data'])) {
+                $ghnShippingInfo = $res['data'];
+            }
+        }
+
         $result = [
             'id' => $order->id,
-            'date_order' => $order->created_at,
+            'order_code' => $order->order_code,
+            'expected_delivery_time' => $order->expected_delivery_time,
+            'final_amount' => $order->final_amount,
             'total_price' => $order->total_price,
             'voucher_code' => $order->voucher_code,
             'order_status' => $order->order_status,
@@ -277,20 +335,20 @@ class OrderController extends Controller
             'shipped_at' => $order->shipped_at,
             'delivered_at' => $order->delivered_at,
             'discount_amount' => $order->discount_amount,
+            'shipping_fee' => $order->shipping_fee,
+            'shipping_name' => optional($order->shipping)->name,
+            'recipient_name' => $order->recipient_name,
+            'recipient_phone' => $order->recipient_phone,
+            'recipient_email' => $order->recipient_email,
+            'customer_id' => $order->customer_id,
+            'shipping_id' => $order->shipping_id,
             'user' => $order->user ? [
                 'id' => $order->user->id,
                 'name' => $order->user->name,
                 'email' => $order->user->email,
             ] : null,
-            'customer_id' => $order->customer_id,
-            'shipping_id' => $order->shipping_id,
-            'shipping_name' => optional($order->shipping)->name,
-            'recipient_name' => $order->recipient_name,
-            'recipient_phone' => $order->recipient_phone,
-            'recipient_email' => $order->recipient_email,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher,
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -299,6 +357,7 @@ class OrderController extends Controller
                         'category_id' => $item->product->category_id,
                         'name' => $item->product->name,
                         'description' => $item->product->description,
+                        'image' => $item->product->image,
                         'price' => $item->product->price,
                         'sale_price' => $item->product->sale_price,
                         'sale_end' => $item->product->sale_end,
@@ -324,10 +383,16 @@ class OrderController extends Controller
             'subtotal' => $order->orderItems->reduce(function ($carry, $item) {
                 return $carry + ($item->price * $item->quantity);
             }, 0),
+            // Gắn kết quả từ GHN
+            'status' => $ghnShippingInfo['status'] ?? null,
+            'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
+            'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
+            'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
+
 
     /**
      * Hủy đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
