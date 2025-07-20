@@ -20,6 +20,7 @@ class Order extends Model
         'order_status',
         'payment_status',
         'address_id',
+        'shipping_address',
         'detailed_address',
         'ward_name',
         'district_name',
@@ -31,6 +32,7 @@ class Order extends Model
         'recipient_name',
         'recipient_phone',
         'recipient_email',
+        'cancel_reason',
     ];
 
     protected $casts = [

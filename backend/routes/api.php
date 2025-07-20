@@ -60,6 +60,7 @@ Route::prefix('client')->group(function () {
         Route::post('/', [ClientOrderController::class, 'store']);
         Route::get('/{id}', [ClientOrderController::class, 'show']);
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
+        Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
     });
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
         Route::get('/', [ClientReviewController::class, 'index']);
