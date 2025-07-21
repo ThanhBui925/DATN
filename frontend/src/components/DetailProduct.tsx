@@ -3,17 +3,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import { convertToInt } from "../helpers/common";
 import { axiosInstance } from "../utils/axios";
 import { TOKEN_KEY } from "../providers/authProvider";
-import {Col, Image, notification, Row} from "antd";
+import { Col, Image, notification, Row, Pagination, Rate, Spin } from "antd";
 import emitter from "../utils/eventBus";
+import moment from "moment";
 
 export const DetailProduct = () => {
     const { id } = useParams();
     const [product, setProduct] = useState<any>(null);
+    const [reviews, setReviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [reviewLoading, setReviewLoading] = useState(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
     const [errorQty, setErrorQty] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalReviews, setTotalReviews] = useState(0);
+    const pageSize = 5;
     const navigate = useNavigate();
     const BASE_URL = import.meta.env.VITE_APP_API_URL + '/api';
 
@@ -32,6 +38,25 @@ export const DetailProduct = () => {
         };
         fetchProduct();
     }, [id]);
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            setReviewLoading(true);
+            try {
+                const res = await axiosInstance.get(`${BASE_URL}/client/products/${id}/reviews`, {
+                    params: { page: currentPage, limit: pageSize }
+                });
+                setReviews(res.data.data || []);
+                setTotalReviews(res.data.total || 0);
+            } catch (err) {
+                console.error("Lỗi khi tải đánh giá:", err);
+                notification.error({ message: "Không thể tải đánh giá." });
+            } finally {
+                setReviewLoading(false);
+            }
+        };
+        fetchReviews();
+    }, [id, currentPage]);
 
     const uniqueSizeOptions = Array.from(
         new Set(
@@ -111,7 +136,7 @@ export const DetailProduct = () => {
             await axiosInstance.post(`${BASE_URL}/client/cart/items`, payload);
             setErrorQty('');
             emitter.emit('addToCart');
-            notification.success({message: "Sản phẩm đã được thêm vào giỏ hàng!"});
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng!" });
         } catch (err) {
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
             setErrorQty("Không thể thêm sản phẩm vào giỏ hàng.");
@@ -133,9 +158,7 @@ export const DetailProduct = () => {
     if (loading || !product) {
         return (
             <div className="text-center py-5">
-                <div className="spinner-border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
+                <Spin size="large" />
             </div>
         );
     }
@@ -226,7 +249,7 @@ export const DetailProduct = () => {
                                     ))}
                                 </span>
                             </div>
-                            <span className="ms-2">| <span className={`text-decoration-underline`}>1.2k</span> đánh giá |</span>
+                            <span className="ms-2">| <span className={`text-decoration-underline`}>{totalReviews}</span> đánh giá |</span>
                             <span className="ms-2">Đã bán <span
                                 className={`text-decoration-underline`}>7.2k</span></span>
                         </div>
@@ -366,26 +389,62 @@ export const DetailProduct = () => {
 
                         <section className="rate-section mb-3">
                             <div className="section-title-3">
-                                <h2>Đánh giá</h2>
+                                <h2>Đánh giá ({totalReviews})</h2>
                             </div>
-                            <table className="table table-striped table-bordered">
-                                <tbody>
-                                <tr>
-                                    <td><strong>Người dùng</strong></td>
-                                    <td className="text-end">28/06/2025</td>
-                                </tr>
-                                <tr>
-                                    <td colSpan={2}>
-                                        <p>Chất lượng sản phẩm rất tốt, sẽ ủng hộ tiếp!</p>
-                                        <div className="d-flex">
-                                            {[...Array(5)].map((_, i) => (
-                                                <i key={i} className="fa fa-star-o text-warning"></i>
-                                            ))}
+                            {reviewLoading ? (
+                                <div className="text-center py-5">
+                                    <Spin size="large" />
+                                </div>
+                            ) : reviews.length === 0 ? (
+                                <p className="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                            ) : (
+                                <div>
+                                    {reviews.map((review: any, index: number) => (
+                                        <div
+                                            key={index}
+                                            className="border-bottom py-3"
+                                            style={{ marginBottom: "20px" }}
+                                        >
+                                            <div className="d-flex align-items-center mb-2">
+                                                <img
+                                                    src={review.user?.avatar || "/img/default-avatar.jpg"}
+                                                    alt="avatar"
+                                                    style={{
+                                                        width: "40px",
+                                                        height: "40px",
+                                                        borderRadius: "50%",
+                                                        marginRight: "10px",
+                                                        objectFit: "cover"
+                                                    }}
+                                                />
+                                                <div>
+                                                    <strong>{review.user?.name || "Ẩn danh"}</strong>
+                                                    <div>
+                                                        <Rate
+                                                            disabled
+                                                            value={review.rating}
+                                                            style={{ fontSize: "14px", color: "#fadb14" }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <span className="ms-auto text-muted">
+                                                    {moment(review.created_at).format("DD/MM/YYYY HH:mm")}
+                                                </span>
+                                            </div>
+                                            <p className="mb-2">{review.comment}</p>
                                         </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                                    ))}
+                                    <div className="text-center mt-4">
+                                        <Pagination
+                                            current={currentPage}
+                                            total={totalReviews}
+                                            pageSize={pageSize}
+                                            onChange={(page) => setCurrentPage(page)}
+                                            showSizeChanger={false}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </section>
                     </div>
                 </div>
