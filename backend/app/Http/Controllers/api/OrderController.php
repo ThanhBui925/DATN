@@ -94,6 +94,14 @@ class OrderController extends Controller
             return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
         }
 
+        $shipping_address = implode(', ', array_filter([
+            $order->detailed_address ?? '',
+            $order->ward_name ?? '',
+            $order->district_name ?? '',
+            $order->province_name ?? '',
+        ]));
+
+
         $result = [
             'id' => $order->id,
             'date_order' => $order->created_at,
@@ -101,7 +109,7 @@ class OrderController extends Controller
             'order_status' => $order->order_status,
             'cancel_reason' => $order->cancel_reason,
             'payment_status' => $order->payment_status,
-            'shipping_address' => $order->shipping_address,
+            'shipping_address' => $shipping_address,
             'payment_method' => $order->payment_method,
             'shipped_at' => $order->shipped_at,
             'delivered_at' => $order->delivered_at,

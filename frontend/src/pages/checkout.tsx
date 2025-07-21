@@ -540,7 +540,7 @@ export const Checkout = () => {
                                                                             className="form-check-label"
                                                                             htmlFor={`address_${address.id}`}
                                                                         >
-                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}
+                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}, {address.ward_name}, {address.district_name}, Tỉnh {address.province_name}
                                                                         </label>
                                                                     </div>
                                                                 ))

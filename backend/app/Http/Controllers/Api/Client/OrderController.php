@@ -205,6 +205,7 @@ class OrderController extends Controller
                     throw new \Exception('Đơn hàng chưa đạt giá trị tối thiểu để dùng mã.');
                 }
 
+                $discountAmount = 0;
                 if ($voucher->discount_type === 'percentage') {
                     $discountAmount = $totalPrice * ($voucher->discount / 100);
                     if ($voucher->max_discount_amount) {
@@ -215,19 +216,29 @@ class OrderController extends Controller
                 }
 
                 $discountAmount = min($discountAmount, $totalPrice);
-                $voucher->increment('usage_count');
+
+                // Gợi ý: CHỈ tăng usage_count khi đơn thực sự xác nhận / thanh toán thành công
 
                 $order->update([
                     'voucher_code'    => $voucher->code,
-                    'discount_amount' => $discountAmount,
+                    'discount_amount' => round($discountAmount, 0),
                 ]);
             }
+
 
             $order->update([
                 'total_price'   => $totalPrice,
                 'discount_amount' => $discountAmount,
                 'final_amount'  => $totalPrice - $discountAmount + $shippingFee,
             ]);
+
+            if ($request->payment_method === 'vnpay') {
+                $paymentUrl = app(\App\Services\VnPayService::class)->createPaymentUrl($order);
+                return $this->successResponse([
+                    'order' => $order->load('orderItems'),
+                    'payment_url' => $paymentUrl
+                ], 'Tạo đơn hàng và chuyển đến VNPay', 201);
+            }
 
             $cart->items()->delete();
             $cart->delete();
@@ -250,9 +261,11 @@ class OrderController extends Controller
         $voucher = Voucher::where('code', $request->voucher_code)->first();
 
         $cart = Cart::with('items.product')->where('user_id', $userId)->first();
-        $totalPrice = $cart->items->reduce(function ($item) {
-            return $item->product->price * $item->quantity;
-        });
+        $items = $cart->items->filter(fn($item) => $item->product);
+        $totalPrice = $items->reduce(function ($carry, $item) {
+            return $carry + ($item->product->price * $item->quantity);
+        }, 0);
+
 
         $discountAmount = 0;
         if ($voucher->discount_type === 'percentage') {
@@ -323,6 +336,14 @@ class OrderController extends Controller
             }
         }
 
+        $shipping_address = implode(', ', array_filter([
+            $order->detailed_address ?? '',
+            $order->ward_name ?? '',
+            $order->district_name ?? '',
+            $order->province_name ?? '',
+        ]));
+
+
         $result = [
             'id' => $order->id,
             'order_code' => $order->order_code,
@@ -333,7 +354,7 @@ class OrderController extends Controller
             'order_status' => $order->order_status,
             'cancel_reason' => $order->cancel_reason,
             'payment_status' => $order->payment_status,
-            'shipping_address' => $order->shipping_address,
+            'shipping_address' => $shipping_address,
             'payment_method' => $order->payment_method,
             'shipped_at' => $order->shipped_at,
             'delivered_at' => $order->delivered_at,
