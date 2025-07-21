@@ -233,6 +233,7 @@ class OrderController extends Controller
             ]);
 
             if ($request->payment_method === 'vnpay') {
+                DB::commit();
                 $paymentUrl = app(\App\Services\VnPayService::class)->createPaymentUrl($order);
                 return $this->successResponse([
                     'order' => $order->load('orderItems'),

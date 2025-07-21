@@ -9,12 +9,14 @@ class VnPayService
 {
     public function createPaymentUrl($order)
     {
-        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        $vnp_Returnurl = "https://localhost/vnpay_php/vnpay_return.php";
-        $vnp_TmnCode = "0DUWN3BA";//Mã website tại VNPAY 
-        $vnp_HashSecret = "LC6DXT29OEJLESM62JMCM67LULO7XHZX";
+        $vnp_Url = config('vnpay.url', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+        $vnp_Returnurl = config('vnpay.return_url', 'http://localhost:8000/payment-return');
+        $vnp_TmnCode = config('vnpay.tmn_code', '0DUWN3BA');
+        $vnp_HashSecret = config('vnpay.hash_secret', 'LC6DXT29OEJLESM62JMCM67LULO7XHZX');
 
         $vnp_TxnRef = $order->id;
+        $order->update(['vnp_txn_ref' => $vnp_TxnRef]);
+
         $vnp_OrderInfo = 'Thanh toán đơn hàng #' . $order->id;
         $vnp_OrderType = 'billpayment';
         $vnp_Amount = intval($order->final_amount) * 100;
@@ -36,52 +38,47 @@ class VnPayService
             "vnp_TxnRef" => $vnp_TxnRef,
         ];
 
+        // Sắp xếp và tạo chuỗi hash đúng chuẩn
         ksort($inputData);
-
         $hashDataArr = [];
         foreach ($inputData as $key => $value) {
-            $hashDataArr[] = $key . "=" . $value;
+            $hashDataArr[] = urlencode($key) . '=' . urlencode($value);
         }
         $hashData = implode('&', $hashDataArr);
         $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-        
-        $query = http_build_query($inputData);
-        $paymentUrl = $vnp_Url . '?' . $query
-        . '&vnp_SecureHashType=SHA512'
-        . '&vnp_SecureHash=' . $secureHash;
+        // Tạo URL thanh toán
+        $query = http_build_query($inputData, '', '&', PHP_QUERY_RFC3986);
+        $paymentUrl = $vnp_Url . '?' . $query . '&vnp_SecureHashType=SHA512&vnp_SecureHash=' . $secureHash;
 
-
-        \Log::info("VNPay HashData: " . $hashData);
-        \Log::info("VNPay SecureHash: " . $secureHash);
-        \Log::info("VNPay Payment URL: " . $paymentUrl);
+        Log::info("VNPay HashData: " . $hashData);
+        Log::info("VNPay SecureHash: " . $secureHash);
+        Log::info("VNPay Payment URL: " . $paymentUrl);
 
         return $paymentUrl;
     }
 
-
-
-
     public function handleCallback(array $input): bool|string
     {
-       $vnp_HashSecret = config('vnpay.hash_secret');
-
+        $vnp_HashSecret = config('vnpay.hash_secret', 'LC6DXT29OEJLESM62JMCM67LULO7XHZX');
         $vnp_SecureHash = $input['vnp_SecureHash'] ?? null;
 
-        // Loại bỏ trước khi tạo hash lại
-        unset($input['vnp_SecureHash'], $input['vnp_SecureHashType']);
+        // Lọc các tham số bắt đầu bằng vnp_ (trừ hash)
+        $filtered = array_filter($input, function ($key) {
+            return strpos($key, 'vnp_') === 0;
+        }, ARRAY_FILTER_USE_KEY);
 
-        ksort($input);
+        unset($filtered['vnp_SecureHash'], $filtered['vnp_SecureHashType']);
+        ksort($filtered);
 
-        $hashData = '';
-        foreach ($input as $key => $value) {
-            $hashData .= $key . '=' . $value . '&';
+        $hashDataArr = [];
+        foreach ($filtered as $key => $value) {
+            $hashDataArr[] = urlencode($key) . '=' . urlencode($value);
         }
-        $hashData = rtrim($hashData, '&');
+        $hashData = implode('&', $hashDataArr);
 
         $secureHashCheck = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-        // Ghi log chi tiết để kiểm tra
         Log::info("VNPay Callback HashData: " . $hashData);
         Log::info("VNPay Callback Calculated Hash: " . $secureHashCheck);
         Log::info("VNPay Callback Received Hash: " . $vnp_SecureHash);
@@ -91,14 +88,18 @@ class VnPayService
             return false;
         }
 
-        $orderId = $input['vnp_TxnRef'] ?? null;
+        $txnRef = $input['vnp_TxnRef'] ?? null;
         $responseCode = $input['vnp_ResponseCode'] ?? null;
-
-        $order = Order::find($orderId);
+        $order = Order::where('vnp_txn_ref', $txnRef)->first();
 
         if (!$order) {
-            Log::error("VNPay Callback: Không tìm thấy đơn hàng ID {$orderId}");
+            Log::error("VNPay Callback: Không tìm thấy đơn hàng với mã vnp_TxnRef {$txnRef}");
             return false;
+        }
+
+        if ($order->payment_status === 'paid') {
+            Log::info("VNPay Callback: Đơn hàng {$order->id} đã được thanh toán trước đó.");
+            return 'already_paid';
         }
 
         if ($responseCode === '00') {
@@ -116,4 +117,5 @@ class VnPayService
             return 'failed';
         }
     }
+
 }

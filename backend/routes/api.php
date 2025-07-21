@@ -85,6 +85,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('/profile', 'profile')->middleware('auth:sanctum');
 });
 
+
+
+
+
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
 
