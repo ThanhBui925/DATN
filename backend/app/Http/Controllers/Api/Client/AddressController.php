@@ -41,9 +41,31 @@ class AddressController extends Controller
 
     public function index(Request $request)
     {
-        $addresses = Address::where('user_id', $request->user()->id)->get();
+        $address = Address::where('user_id', $request->user()->id)->get();
+
+        $addresses = $address->map(function ($address) {
+            return [
+                'id' => $address->id,
+                'recipient_name' => $address->recipient_name,
+                'recipient_phone' => $address->recipient_phone,
+                'recipient_email' => $address->recipient_email,
+                'address' => $address->address,
+                'ward_name' => $address->ward_name,
+                'district_name' => $address->district_name,
+                'province_name' => $address->province_name,
+                'is_default' => $address->is_default,
+                'full_address' => implode(', ', array_filter([
+                    $address->address,
+                    $address->ward_name,
+                    $address->district_name,
+                    $address->province_name,
+                ])),
+            ];
+        });
+
         return $this->successResponse($addresses, 'Addresses retrieved successfully');
     }
+
 
     public function update(StoreAddressRequest $request, $id)
     {
