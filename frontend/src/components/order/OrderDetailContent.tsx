@@ -32,6 +32,7 @@ interface Item {
     variant: Variant;
     quantity: number;
     price: string;
+    is_review?: boolean
 }
 
 interface User {
