@@ -12,53 +12,50 @@ use Illuminate\Support\Facades\DB;
 class VNPayController extends Controller
 {
     public function paymentReturn(Request $request)
+
     {
         $vnp_SecureHash = $request->input('vnp_SecureHash');
 
-        // 1. Lấy toàn bộ dữ liệu từ VNPay trừ vnp_SecureHash & vnp_SecureHashType
         $inputData = $request->except(['vnp_SecureHash', 'vnp_SecureHashType']);
         ksort($inputData);
 
         $hashDataArr = [];
         foreach ($inputData as $key => $value) {
-            $hashDataArr[] = $key . '=' . $value;
+            $hashDataArr[] = urlencode($key) . '=' . urlencode($value);
         }
         $hashData = implode('&', $hashDataArr);
 
         $secureHash = hash_hmac('sha512', $hashData, config('vnpay.hash_secret'));
 
-        Log::info('VNPay return hashData: ' . $hashData);
-        Log::info('VNPay return secureHash: ' . $secureHash);
-        Log::info('VNPay return vnp_SecureHash: ' . $vnp_SecureHash);
-
-        // 3. So sánh chữ ký
         if ($secureHash !== $vnp_SecureHash) {
             Log::warning('VNPay return: Invalid hash');
             return response('Invalid checksum', 400);
         }
 
-        // 4. Lấy mã đơn hàng
-        $orderId = $request->input('vnp_TxnRef'); // ví dụ: 110
-        $transactionStatus = $request->input('vnp_TransactionStatus'); // '00' nếu thành công
+        $orderId = $request->input('vnp_TxnRef');
+        $transactionStatus = $request->input('vnp_TransactionStatus');
 
-        // 5. Tìm đơn hàng trong DB
         $order = Order::find($orderId);
 
+        $userId = $order->user_id;
+        $cart = Cart::with('items')->where('user_id', $userId)->first();
+
         if (!$order) {
-            Log::warning("VNPay return: Order #$orderId not found");
             return response('Order not found', 404);
         }
 
-        // 6. Nếu thành công thì cập nhật trạng thái
         if ($transactionStatus === '00') {
-            $order->payment_status = 'paid'; // hoặc 1, hoặc 'Đã thanh toán' tuỳ hệ thống
+            $order->payment_status = 'paid';
             $order->payment_method = 'vnpay';
+            $order->order_status = 'confirmed';
             $order->save();
 
-            Log::info("VNPay return: Order #$orderId đã thanh toán thành công");
-            return response('Thanh toán thành công', 200);
+            $cart->items()->delete();
+            $cart->delete();
+
+            return redirect()->away("http://localhost:3000/chi-tiet-don-hang/{$order->id}");
+            
         } else {
-            Log::info("VNPay return: Order #$orderId thanh toán thất bại");
             return response('Thanh toán thất bại', 200);
         }
     }
