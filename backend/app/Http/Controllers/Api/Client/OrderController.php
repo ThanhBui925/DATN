@@ -216,9 +216,6 @@ class OrderController extends Controller
                 }
 
                 $discountAmount = min($discountAmount, $totalPrice);
-
-                // Gợi ý: CHỈ tăng usage_count khi đơn thực sự xác nhận / thanh toán thành công
-
                 $order->update([
                     'voucher_code'    => $voucher->code,
                     'discount_amount' => round($discountAmount, 0),
