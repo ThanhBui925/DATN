@@ -38,7 +38,6 @@ class VnPayService
             "vnp_TxnRef" => $vnp_TxnRef,
         ];
 
-        // Sắp xếp và tạo chuỗi hash đúng chuẩn
         ksort($inputData);
         $hashDataArr = [];
         foreach ($inputData as $key => $value) {
@@ -50,10 +49,6 @@ class VnPayService
         // Tạo URL thanh toán
         $query = http_build_query($inputData, '', '&', PHP_QUERY_RFC3986);
         $paymentUrl = $vnp_Url . '?' . $query . '&vnp_SecureHashType=SHA512&vnp_SecureHash=' . $secureHash;
-
-        Log::info("VNPay HashData: " . $hashData);
-        Log::info("VNPay SecureHash: " . $secureHash);
-        Log::info("VNPay Payment URL: " . $paymentUrl);
 
         return $paymentUrl;
     }
@@ -79,10 +74,6 @@ class VnPayService
 
         $secureHashCheck = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
-        Log::info("VNPay Callback HashData: " . $hashData);
-        Log::info("VNPay Callback Calculated Hash: " . $secureHashCheck);
-        Log::info("VNPay Callback Received Hash: " . $vnp_SecureHash);
-
         if ($secureHashCheck !== $vnp_SecureHash) {
             Log::error('VNPay Callback: Sai chữ ký');
             return false;
@@ -93,12 +84,11 @@ class VnPayService
         $order = Order::where('vnp_txn_ref', $txnRef)->first();
 
         if (!$order) {
-            Log::error("VNPay Callback: Không tìm thấy đơn hàng với mã vnp_TxnRef {$txnRef}");
+           
             return false;
         }
 
         if ($order->payment_status === 'paid') {
-            Log::info("VNPay Callback: Đơn hàng {$order->id} đã được thanh toán trước đó.");
             return 'already_paid';
         }
 
@@ -107,13 +97,11 @@ class VnPayService
                 'payment_status' => 'paid',
                 'order_status' => 'confirmed',
             ]);
-            Log::info("VNPay Callback: Thanh toán thành công đơn #{$order->id}");
             return 'success';
         } else {
             $order->update([
                 'payment_status' => 'failed',
             ]);
-            Log::warning("VNPay Callback: Thanh toán thất bại đơn #{$order->id}");
             return 'failed';
         }
     }

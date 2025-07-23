@@ -250,8 +250,6 @@ class OrderController extends Controller
     }
 
 
-
-
     public function applyVoucher(ApplyVoucherRequest $request)
     {
         $userId = $request->user()->id;
@@ -431,8 +429,8 @@ class OrderController extends Controller
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền hủy', null, 404);
         }
-        if (!in_array($order->order_status, ['pending', 'confirming'])) {
-            return $this->errorResponse('Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đang xác nhận', null, 400);
+        if (!in_array($order->order_status, ['pending', 'confirming', 'confirmed'])) {
+            return $this->errorResponse('Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đã xác nhận', null, 400);
         }
         $request->validate([
             'cancel_reason' => 'required|string|max:500',
@@ -444,11 +442,20 @@ class OrderController extends Controller
             $order->order_status = 'canceled';
             $order->cancel_reason = $request->input('cancel_reason');
             $order->save();
+
+            foreach ($order->orderItems as $item) {
+                $variant = \App\Models\VariantProduct::find($item->variant_id);
+                if ($variant) {
+                    $variant->increment('quantity', $item->quantity);
+                }
+            }
+
             Log::info('Order canceled by user', [
                 'order_id' => $order->id,
                 'user_id' => $user->id,
                 'reason' => $order->cancel_reason
             ]);
+
             return $this->successResponse($order, 'Hủy đơn hàng thành công');
         } catch (\Exception $e) {
             Log::error('Failed to cancel order', [
@@ -458,6 +465,7 @@ class OrderController extends Controller
             ]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
+
     }
 
     /**
@@ -479,8 +487,8 @@ class OrderController extends Controller
         }
 
         // Kiểm tra trạng thái đơn hàng - chỉ cho phép thay đổi ở trạng thái pending/confirming
-        if (!in_array($order->order_status, ['pending', 'confirming'])) {
-            return $this->errorResponse('Chỉ có thể thay đổi địa chỉ đơn hàng ở trạng thái chờ xác nhận hoặc đang xác nhận', null, 400);
+        if (!in_array($order->order_status, ['pending', 'confirming', 'confirmed'])) {
+            return $this->errorResponse('Chỉ có thể thay đổi địa chỉ đơn hàng ở trạng thái chờ xác nhận hoặc đã xác nhận', null, 400);
         }
 
         try {
