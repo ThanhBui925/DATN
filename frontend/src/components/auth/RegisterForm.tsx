@@ -1,7 +1,8 @@
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import {notification} from "antd";
+import {useLogin} from "@refinedev/core";
 
 export const RegisterForm = () => {
     const [email, setEmail] = useState("");
@@ -12,7 +13,7 @@ export const RegisterForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showCfPassword, setShowCfPassword] = useState(false);
-    const navigate = useNavigate();
+    const { mutate: login } = useLogin();
 
     const handleSubmit = async  (e: React.FormEvent) => {
         setIsLoading(true)
@@ -31,9 +32,9 @@ export const RegisterForm = () => {
                 password,
                 password_confirmation: confirmPassword,
             });
-            if (response.data.status) {
-                notification.success({message: 'Đăng ký thành công!'})
-                navigate("/dang-nhap");
+            if (response.data.token) {
+                notification.success({message: 'Đăng ký thành công, đang đăng nhập ...!'})
+                login({ email, password });
             } else {
                 notification.error({message: response?.data?.errors[0]})
             }
