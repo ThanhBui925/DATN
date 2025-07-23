@@ -475,6 +475,9 @@ export const Checkout = () => {
         try {
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
+                if (res.data.data.order.payment_method == 'vnpay' && res.data.data.payment_url) {
+                    return window.location.href = res.data.data.payment_url
+                }
                 notification.success({ message: res.data.message || "Đặt hàng thành công" });
                 navigate("/don-hang-cua-toi");
             } else {
@@ -540,7 +543,7 @@ export const Checkout = () => {
                                                                             className="form-check-label"
                                                                             htmlFor={`address_${address.id}`}
                                                                         >
-                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}
+                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}, {address.ward_name}, {address.district_name}, Tỉnh {address.province_name}
                                                                         </label>
                                                                     </div>
                                                                 ))
@@ -771,7 +774,7 @@ export const Checkout = () => {
                                                                             name="payment_method"
                                                                             id={`payment_${key}`}
                                                                             value={key}
-                                                                            disabled={key !== "cash"}
+                                                                            disabled={key !== "cash" && key !== "vnpay"}
                                                                             checked={formData.payment_method === key}
                                                                             onChange={() => handlePaymentMethodChange(key)}
                                                                         />

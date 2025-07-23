@@ -116,11 +116,6 @@ export const ProfileContent = () => {
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
-                                <label className="form-label">Tên đăng nhập</label>
-                                <input type="text" className="form-control" value="lelieu1232" readOnly disabled={true}/>
-                            </div>
-
-                            <div className="mb-3">
                                 <label className="form-label">Tên</label>
                                 <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
                             </div>

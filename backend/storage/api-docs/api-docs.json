@@ -1,0 +1,3293 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "DATN E-commerce API Documentation",
+        "description": "API documentation cho hệ thống E-commerce",
+        "contact": {
+            "name": "API Support",
+            "email": "admin@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đăng nhập người dùng",
+                "description": "Đăng nhập với email và password",
+                "operationId": "975e7a7e3f327de80166c8bc9fbdf35b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Đăng nhập thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|abc123..."
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Thông tin đăng nhập không đúng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đăng ký người dùng mới",
+                "description": "Tạo tài khoản người dùng mới",
+                "operationId": "3c9a03cce4a11eb4cdb8753b599ddd39",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nguyễn Văn A"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "0123456789"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Đường ABC, Quận 1, TP.HCM"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Đăng ký thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|abc123..."
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "customer": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                }
+            }
+        },
+        "/api/client/products": {
+            "get": {
+                "tags": [
+                    "Client Products"
+                ],
+                "summary": "Lấy danh sách sản phẩm (Client)",
+                "description": "Lấy danh sách tất cả sản phẩm với phân trang và filter",
+                "operationId": "8242849e779a225c132a62daf568e150",
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "ID danh mục sản phẩm",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Từ khóa tìm kiếm sản phẩm",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "áo thun"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/client/products/{id}": {
+            "get": {
+                "tags": [
+                    "Client Products"
+                ],
+                "summary": "Lấy chi tiết sản phẩm (Client)",
+                "description": "Lấy thông tin chi tiết của một sản phẩm",
+                "operationId": "ff4e57019b784652a0370878ccc87f5f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
+                    }
+                }
+            }
+        },
+        "/api/client/categories": {
+            "get": {
+                "tags": [
+                    "Client Categories"
+                ],
+                "summary": "Lấy danh sách danh mục (Client)",
+                "description": "Lấy tất cả danh mục sản phẩm",
+                "operationId": "cb5e69015190d049b465d1b57cec565a",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/client/cart": {
+            "get": {
+                "tags": [
+                    "Client Cart"
+                ],
+                "summary": "Lấy giỏ hàng",
+                "description": "Lấy thông tin giỏ hàng của người dùng",
+                "operationId": "012be34b3c12ca8f74c0cb4ef08fd391",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/cart/items": {
+            "post": {
+                "tags": [
+                    "Client Cart"
+                ],
+                "summary": "Thêm sản phẩm vào giỏ hàng",
+                "description": "Thêm sản phẩm vào giỏ hàng",
+                "operationId": "3e99818f4c9d506ddc6162b815b38e6e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "variant_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thêm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sản phẩm đã được thêm vào giỏ hàng"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/orders": {
+            "get": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Lấy danh sách đơn hàng",
+                "description": "Lấy tất cả đơn hàng của người dùng",
+                "operationId": "8eb34dbbead48d57133c71febdc5440f",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Tạo đơn hàng mới",
+                "description": "Tạo đơn hàng từ giỏ hàng",
+                "operationId": "098e77bc3863c17acb873f7f5ee99a11",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "address_id",
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "address_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "cod"
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "Ghi chú đơn hàng"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo đơn hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/reviews": {
+            "get": {
+                "tags": [
+                    "Client Reviews"
+                ],
+                "summary": "Lấy danh sách đánh giá (Client)",
+                "description": "Lấy tất cả đánh giá",
+                "operationId": "061a8719f44c70668c877f8416bfd7ac",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Client Reviews"
+                ],
+                "summary": "Tạo đánh giá sản phẩm",
+                "description": "Tạo đánh giá cho sản phẩm",
+                "operationId": "9b8c026ac9cd47f8f8d873f1faa9e0b0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "rating",
+                                    "comment"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1,
+                                        "example": 5
+                                    },
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Sản phẩm rất tốt!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo đánh giá thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đánh giá đã được tạo"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products": {
+            "get": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Lấy danh sách sản phẩm (Admin)",
+                "description": "Lấy danh sách tất cả sản phẩm cho admin",
+                "operationId": "9605c45e7c49f9d3aa71ea7cbf648f79",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Tạo sản phẩm mới (Admin)",
+                "description": "Tạo sản phẩm mới",
+                "operationId": "9ad6c2cec4bee19c4671a24724c73fb7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "category_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Áo thun nam"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 150000
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Mô tả sản phẩm"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "active"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo sản phẩm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Lấy danh sách danh mục (Admin)",
+                "description": "Lấy tất cả danh mục cho admin",
+                "operationId": "dff1f2d618a3907663124152328a7f86",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Tạo danh mục mới (Admin)",
+                "description": "Tạo danh mục sản phẩm mới",
+                "operationId": "c2ef572e1aa231e372d72d3de8e8ebc4",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Lấy danh sách đơn hàng (Admin)",
+                "description": "Lấy tất cả đơn hàng cho admin",
+                "operationId": "2de6e343b72e50ad86fd2f9e7394d13e",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Tạo đơn hàng mới (Admin)",
+                "description": "Tạo đơn hàng mới",
+                "operationId": "f83cda95d6be31f2ec380a9b9e43b1a7",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/total-revenue": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy tổng doanh thu (Admin)",
+                "description": "Lấy tổng doanh thu cho dashboard",
+                "operationId": "00f030ec594c55bbf02e971aa2a0f677",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/total-orders": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy tổng đơn hàng (Admin)",
+                "description": "Lấy tổng số đơn hàng cho dashboard",
+                "operationId": "6949b4f6b66f1622eb08007c901d04e7",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/total-customers": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy tổng khách hàng (Admin)",
+                "description": "Lấy tổng số khách hàng cho dashboard",
+                "operationId": "9b8f68d1a8d0ad1e3bc1eca30f05fdb8",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/average-order-value": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy giá trị đơn hàng trung bình (Admin)",
+                "description": "Lấy giá trị đơn hàng trung bình cho dashboard",
+                "operationId": "3558cbe53fa88d45d8babad8beae7abd",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/average-rating": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy đánh giá trung bình (Admin)",
+                "description": "Lấy đánh giá trung bình cho dashboard",
+                "operationId": "1aee158a4bc7715fcd2f1ee47abcc72b",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/monthly-revenue": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy doanh thu theo tháng (Admin)",
+                "description": "Lấy doanh thu theo tháng cho dashboard",
+                "operationId": "1063fa377ab7fc07dc78a46139566a23",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/user-growth": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy tăng trưởng người dùng (Admin)",
+                "description": "Lấy tăng trưởng người dùng cho dashboard",
+                "operationId": "904831c0b9fdbe7b2fb5f94d77870d9a",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/revenue-by-category": {
+            "get": {
+                "tags": [
+                    "Admin Dashboard"
+                ],
+                "summary": "Lấy doanh thu theo danh mục (Admin)",
+                "description": "Lấy doanh thu theo danh mục cho dashboard",
+                "operationId": "900bafd4ff7585519604713b4a557890",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/new-products": {
+            "get": {
+                "tags": [
+                    "Client Products"
+                ],
+                "summary": "Lấy sản phẩm mới (Client)",
+                "description": "Lấy danh sách sản phẩm mới nhất",
+                "operationId": "2ecd4c976e97c9d71b5c2cecf6a679b7",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/client/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Client Categories"
+                ],
+                "summary": "Lấy chi tiết danh mục (Client)",
+                "description": "Lấy thông tin chi tiết của một danh mục",
+                "operationId": "a866fbf585c4ebe87a2f278131bd07e9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/client/banners": {
+            "get": {
+                "tags": [
+                    "Client Banners"
+                ],
+                "summary": "Lấy danh sách banner (Client)",
+                "description": "Lấy tất cả banner",
+                "operationId": "ad89be3b8f17a5c5480fe0dfd483e324",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/client/banners/{id}": {
+            "get": {
+                "tags": [
+                    "Client Banners"
+                ],
+                "summary": "Lấy chi tiết banner (Client)",
+                "description": "Lấy thông tin chi tiết của một banner",
+                "operationId": "10f8266acf7ed85b059f25b32b5aa561",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID banner",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/client/shipping-fee": {
+            "post": {
+                "tags": [
+                    "Client Shipping"
+                ],
+                "summary": "Tính phí vận chuyển (Client)",
+                "description": "Tính phí vận chuyển",
+                "operationId": "d0dd1a3d899a638d6d4b2d83eba79faa",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/cart/items/{itemId}": {
+            "put": {
+                "tags": [
+                    "Client Cart"
+                ],
+                "summary": "Cập nhật giỏ hàng (Client)",
+                "description": "Cập nhật số lượng sản phẩm trong giỏ hàng",
+                "operationId": "ef9a6ba7e43ee8d8954b90a782d26490",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID item trong giỏ hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Client Cart"
+                ],
+                "summary": "Xóa sản phẩm khỏi giỏ hàng (Client)",
+                "description": "Xóa sản phẩm khỏi giỏ hàng",
+                "operationId": "d194f833113afcca3d2de5a3081ec464",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID item trong giỏ hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/cart/{productId}/variants": {
+            "get": {
+                "tags": [
+                    "Client Cart"
+                ],
+                "summary": "Lấy variants của sản phẩm (Client)",
+                "description": "Lấy các variants của sản phẩm cho giỏ hàng",
+                "operationId": "94bf83444637ddbfdeb14803632a4c59",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/orders/{id}": {
+            "get": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Lấy chi tiết đơn hàng (Client)",
+                "description": "Lấy thông tin chi tiết của một đơn hàng",
+                "operationId": "68fd1c22861c5cdf00ac4c919849b083",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/orders/{id}/cancel": {
+            "put": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Hủy đơn hàng (Client)",
+                "description": "Hủy đơn hàng",
+                "operationId": "33bc3e071ebf554fc891e81af93b6765",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/orders/{id}/address": {
+            "put": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Cập nhật địa chỉ đơn hàng (Client)",
+                "description": "Cập nhật địa chỉ giao hàng",
+                "operationId": "bd7d166c8b5c17d57342f173164a45b0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/checkout/apply_coupon": {
+            "post": {
+                "tags": [
+                    "Client Orders"
+                ],
+                "summary": "Áp dụng voucher (Client)",
+                "description": "Áp dụng voucher cho đơn hàng",
+                "operationId": "d76577eb651afda563871a73f2f72b65",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/reviews/{id}": {
+            "put": {
+                "tags": [
+                    "Client Reviews"
+                ],
+                "summary": "Cập nhật đánh giá (Client)",
+                "description": "Cập nhật đánh giá sản phẩm",
+                "operationId": "977497e983e93b43f49c25b6a9177a28",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Client Reviews"
+                ],
+                "summary": "Xóa đánh giá (Client)",
+                "description": "Xóa đánh giá sản phẩm",
+                "operationId": "fd9404fafd39e68528902977166711fa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/addresses": {
+            "get": {
+                "tags": [
+                    "Client Addresses"
+                ],
+                "summary": "Lấy danh sách địa chỉ (Client)",
+                "description": "Lấy tất cả địa chỉ của người dùng",
+                "operationId": "0896f08d7184fd8d2a080fda39bcb759",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Client Addresses"
+                ],
+                "summary": "Tạo địa chỉ mới (Client)",
+                "description": "Tạo địa chỉ giao hàng mới",
+                "operationId": "7adee5ed76629fce0b1d3dc3b9a56159",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/client/addresses/{id}": {
+            "put": {
+                "tags": [
+                    "Client Addresses"
+                ],
+                "summary": "Cập nhật địa chỉ (Client)",
+                "description": "Cập nhật thông tin địa chỉ",
+                "operationId": "e819f5a14e29dca0de6b77c9a758d132",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID địa chỉ",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Client Addresses"
+                ],
+                "summary": "Xóa địa chỉ (Client)",
+                "description": "Xóa địa chỉ giao hàng",
+                "operationId": "020f98091b1cdcd2f062906727058188",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID địa chỉ",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lấy thông tin người dùng hiện tại",
+                "description": "Lấy thông tin người dùng đang đăng nhập",
+                "operationId": "22c9135b6d9ce28c08ea22be1761e8b6",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lấy profile người dùng",
+                "description": "Lấy thông tin profile chi tiết",
+                "operationId": "8cf0047c31cb3ae504fd7fe9bb435628",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/forgot-password": {
+            "post": {
+                "tags": [
+                    "Password Reset"
+                ],
+                "summary": "Gửi link reset password",
+                "description": "Gửi email chứa link reset password",
+                "operationId": "b0b35ef45e60a7cfffdbe664b0374a84",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/reset-password": {
+            "post": {
+                "tags": [
+                    "Password Reset"
+                ],
+                "summary": "Reset password",
+                "description": "Đặt lại mật khẩu mới",
+                "operationId": "e09eb7260adae9720e552254bb12f68d",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/banners": {
+            "get": {
+                "tags": [
+                    "Admin Banners"
+                ],
+                "summary": "Lấy danh sách banner (Admin)",
+                "description": "Lấy tất cả banner cho admin",
+                "operationId": "f8b7e19a9af63bf4e6db8cac73680970",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Banners"
+                ],
+                "summary": "Tạo banner mới (Admin)",
+                "description": "Tạo banner mới",
+                "operationId": "47a14e60177391e8e189a40c3a66c4c0",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/banners/{banner}": {
+            "get": {
+                "tags": [
+                    "Admin Banners"
+                ],
+                "summary": "Lấy chi tiết banner (Admin)",
+                "description": "Lấy thông tin chi tiết của một banner",
+                "operationId": "b70bb4b7d3dacc01d96aee16390382f3",
+                "parameters": [
+                    {
+                        "name": "banner",
+                        "in": "path",
+                        "description": "ID banner",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Banners"
+                ],
+                "summary": "Cập nhật banner (Admin)",
+                "description": "Cập nhật thông tin banner",
+                "operationId": "379a547a0f04a9e6c43a39918e4a8df0",
+                "parameters": [
+                    {
+                        "name": "banner",
+                        "in": "path",
+                        "description": "ID banner",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Banners"
+                ],
+                "summary": "Xóa banner (Admin)",
+                "description": "Xóa banner",
+                "operationId": "f0dc3e22318290fd6baf211c2abeb84f",
+                "parameters": [
+                    {
+                        "name": "banner",
+                        "in": "path",
+                        "description": "ID banner",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/trashed": {
+            "get": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Lấy danh mục đã xóa (Admin)",
+                "description": "Lấy danh sách danh mục đã bị xóa mềm",
+                "operationId": "aa7980d411bd884f14fcbae4f276fddb",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{id}/restore": {
+            "post": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Khôi phục danh mục (Admin)",
+                "description": "Khôi phục danh mục đã bị xóa mềm",
+                "operationId": "64a28ac795769f5e0b2b5adfd23cc2e7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{id}/force-delete": {
+            "delete": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Xóa vĩnh viễn danh mục (Admin)",
+                "description": "Xóa vĩnh viễn danh mục",
+                "operationId": "ac5e39868e88dc2a3162e5e9d0389af4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{category}": {
+            "get": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Lấy chi tiết danh mục (Admin)",
+                "description": "Lấy thông tin chi tiết của một danh mục",
+                "operationId": "96652323d5839fbbcc3dbf63489a820b",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Cập nhật danh mục (Admin)",
+                "description": "Cập nhật thông tin danh mục",
+                "operationId": "67f332cb7e6f256411443f46d9d24f44",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Xóa danh mục (Admin)",
+                "description": "Xóa danh mục (soft delete)",
+                "operationId": "dacffc31f750d3317fdee3eb0d0e4eae",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/trashed": {
+            "get": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Lấy sản phẩm đã xóa (Admin)",
+                "description": "Lấy danh sách sản phẩm đã bị xóa mềm",
+                "operationId": "8d2ebef9e30fffdb67fd97fc925c340f",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}/restore": {
+            "post": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Khôi phục sản phẩm (Admin)",
+                "description": "Khôi phục sản phẩm đã bị xóa mềm",
+                "operationId": "a47fc72fa4c1c260e79027ce1bbd667b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}/force-delete": {
+            "delete": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Xóa vĩnh viễn sản phẩm (Admin)",
+                "description": "Xóa vĩnh viễn sản phẩm",
+                "operationId": "87731c97aa2208e7b8cc52bcda1d1592",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{product}": {
+            "get": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Lấy chi tiết sản phẩm (Admin)",
+                "description": "Lấy thông tin chi tiết của một sản phẩm",
+                "operationId": "3294067f82cae19d4abcc631480b4074",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Cập nhật sản phẩm (Admin)",
+                "description": "Cập nhật thông tin sản phẩm",
+                "operationId": "d3c6e4af6dc510e109899516b7b69dbc",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Products"
+                ],
+                "summary": "Xóa sản phẩm (Admin)",
+                "description": "Xóa sản phẩm (soft delete)",
+                "operationId": "c30e64180180e4fd4801e3d586060020",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/search": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Tìm kiếm đơn hàng theo sản phẩm (Admin)",
+                "description": "Tìm kiếm đơn hàng theo tên sản phẩm",
+                "operationId": "66a91d386e023db444a01a38b5a59b85",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Lấy chi tiết đơn hàng (Admin)",
+                "description": "Lấy thông tin chi tiết của một đơn hàng",
+                "operationId": "fef1241be67230e90abf997c3adaa5b3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Cập nhật trạng thái đơn hàng (Admin)",
+                "description": "Cập nhật trạng thái đơn hàng",
+                "operationId": "3e44004b9905a1e4df72ed2dff1bc979",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/{id}/pdf": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "Tạo PDF đơn hàng (Admin)",
+                "description": "Tạo file PDF cho đơn hàng",
+                "operationId": "cd8777c06db3843c7cd45a07354d6b54",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Lấy danh sách người dùng (Admin)",
+                "description": "Lấy tất cả người dùng cho admin",
+                "operationId": "1c463d451925816771722c80992256ba",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{id}/toggle-status": {
+            "put": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Bật/tắt trạng thái người dùng (Admin)",
+                "description": "Bật hoặc tắt trạng thái người dùng",
+                "operationId": "da91aa139e6f493f523d4fa3e830f1cc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID người dùng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{id}/reset-password": {
+            "put": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Reset password người dùng (Admin)",
+                "description": "Reset mật khẩu cho người dùng",
+                "operationId": "b5e76fff7feb9f0834bc8e4e1635fbab",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID người dùng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{id}/role": {
+            "put": {
+                "tags": [
+                    "Admin Users"
+                ],
+                "summary": "Cập nhật role người dùng (Admin)",
+                "description": "Cập nhật vai trò của người dùng",
+                "operationId": "c114f021f9ee6fde47e0a81ce1e21240",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID người dùng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/customers": {
+            "get": {
+                "tags": [
+                    "Admin Customers"
+                ],
+                "summary": "Lấy danh sách khách hàng (Admin)",
+                "description": "Lấy tất cả khách hàng cho admin",
+                "operationId": "496c163c48489722719196782013ed25",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Customers"
+                ],
+                "summary": "Tạo khách hàng mới (Admin)",
+                "description": "Tạo khách hàng mới",
+                "operationId": "ca79174fab0147664aae965aca3e8442",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/customers/{customer}": {
+            "get": {
+                "tags": [
+                    "Admin Customers"
+                ],
+                "summary": "Lấy chi tiết khách hàng (Admin)",
+                "description": "Lấy thông tin chi tiết của một khách hàng",
+                "operationId": "a948959c0d8a690e55ef6df8d024b2a8",
+                "parameters": [
+                    {
+                        "name": "customer",
+                        "in": "path",
+                        "description": "ID khách hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Customers"
+                ],
+                "summary": "Cập nhật khách hàng (Admin)",
+                "description": "Cập nhật thông tin khách hàng",
+                "operationId": "70141f6c1b2e45b5cd80d860177c6f7a",
+                "parameters": [
+                    {
+                        "name": "customer",
+                        "in": "path",
+                        "description": "ID khách hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Customers"
+                ],
+                "summary": "Xóa khách hàng (Admin)",
+                "description": "Xóa khách hàng",
+                "operationId": "15411b6a0f4f200eaa7f9ce5cb8fabd4",
+                "parameters": [
+                    {
+                        "name": "customer",
+                        "in": "path",
+                        "description": "ID khách hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/colors": {
+            "get": {
+                "tags": [
+                    "Admin Colors"
+                ],
+                "summary": "Lấy danh sách màu sắc (Admin)",
+                "description": "Lấy tất cả màu sắc cho admin",
+                "operationId": "89fb2f8ba08774ace1e70ac1d639918f",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Colors"
+                ],
+                "summary": "Tạo màu sắc mới (Admin)",
+                "description": "Tạo màu sắc mới",
+                "operationId": "f98ede542c37be395e51881db00f948b",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/colors/{color}": {
+            "put": {
+                "tags": [
+                    "Admin Colors"
+                ],
+                "summary": "Cập nhật màu sắc (Admin)",
+                "description": "Cập nhật thông tin màu sắc",
+                "operationId": "f088c7299c3680a30be0bd057311c366",
+                "parameters": [
+                    {
+                        "name": "color",
+                        "in": "path",
+                        "description": "ID màu sắc",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Colors"
+                ],
+                "summary": "Xóa màu sắc (Admin)",
+                "description": "Xóa màu sắc",
+                "operationId": "9b5490608a535e51c2e57f6ce3e2b719",
+                "parameters": [
+                    {
+                        "name": "color",
+                        "in": "path",
+                        "description": "ID màu sắc",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/sizes": {
+            "get": {
+                "tags": [
+                    "Admin Sizes"
+                ],
+                "summary": "Lấy danh sách kích thước (Admin)",
+                "description": "Lấy tất cả kích thước cho admin",
+                "operationId": "a3b38c98b6dd974f0144799b8a4e7462",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Sizes"
+                ],
+                "summary": "Tạo kích thước mới (Admin)",
+                "description": "Tạo kích thước mới",
+                "operationId": "c3185f1273d91158a7a356853db544a5",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/sizes/{size}": {
+            "put": {
+                "tags": [
+                    "Admin Sizes"
+                ],
+                "summary": "Cập nhật kích thước (Admin)",
+                "description": "Cập nhật thông tin kích thước",
+                "operationId": "1a468b56ccb99c9a9c0e1a8f13afd9e6",
+                "parameters": [
+                    {
+                        "name": "size",
+                        "in": "path",
+                        "description": "ID kích thước",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Sizes"
+                ],
+                "summary": "Xóa kích thước (Admin)",
+                "description": "Xóa kích thước",
+                "operationId": "ac844776e9ddcd68437d4c5440c31d28",
+                "parameters": [
+                    {
+                        "name": "size",
+                        "in": "path",
+                        "description": "ID kích thước",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/vouchers": {
+            "get": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Lấy danh sách voucher (Admin)",
+                "description": "Lấy tất cả voucher cho admin",
+                "operationId": "8a9ee51f290952da3aff9eb5f35a70bc",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Tạo voucher mới (Admin)",
+                "description": "Tạo voucher mới",
+                "operationId": "4acd5abca2305481c65f99bcecedd1c9",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/vouchers/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Lấy chi tiết voucher (Admin)",
+                "description": "Lấy thông tin chi tiết của một voucher",
+                "operationId": "362f8a9be7c08dc51e90993b91135043",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID voucher",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Cập nhật voucher (Admin)",
+                "description": "Cập nhật thông tin voucher",
+                "operationId": "d9027a45a332222e0cf6d7f641b1c090",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID voucher",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Xóa voucher (Admin)",
+                "description": "Xóa voucher",
+                "operationId": "ccf50671f9f27835b63370be5656ee15",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID voucher",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/vouchers/apply": {
+            "post": {
+                "tags": [
+                    "Admin Vouchers"
+                ],
+                "summary": "Áp dụng voucher (Admin)",
+                "description": "Áp dụng voucher cho đơn hàng",
+                "operationId": "e8ec4a073156eb15347ef695a81712f2",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews": {
+            "get": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Lấy danh sách đánh giá (Admin)",
+                "description": "Lấy tất cả đánh giá cho admin",
+                "operationId": "87be9257e8e97d73a66dc615b47ce415",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Tạo đánh giá mới (Admin)",
+                "description": "Tạo đánh giá mới",
+                "operationId": "5ecfe49514ec7edbadc0e9bc906895a8",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Lấy chi tiết đánh giá (Admin)",
+                "description": "Lấy thông tin chi tiết của một đánh giá",
+                "operationId": "ac441e0b95a16ec274756a00de73f2a5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Cập nhật đánh giá (Admin)",
+                "description": "Cập nhật thông tin đánh giá",
+                "operationId": "3970062a34fa6546aea955b96d3d0fd1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Xóa đánh giá (Admin)",
+                "description": "Xóa đánh giá",
+                "operationId": "0d51ad14a898d1ecf21dcc9f1999ecdf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews/{id}/reply": {
+            "post": {
+                "tags": [
+                    "Admin Reviews"
+                ],
+                "summary": "Trả lời đánh giá (Admin)",
+                "description": "Trả lời đánh giá của khách hàng",
+                "operationId": "a647d55910d8589eb25d00f0ea4dc336",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID đánh giá",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs": {
+            "get": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Lấy danh sách blog (Admin)",
+                "description": "Lấy tất cả blog cho admin",
+                "operationId": "fe8f21538991c2d80d746f7fc32a2243",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Tạo blog mới (Admin)",
+                "description": "Tạo blog mới",
+                "operationId": "e23a4fa12c5e51597c6060ef96aad7b5",
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Lấy chi tiết blog (Admin)",
+                "description": "Lấy thông tin chi tiết của một blog",
+                "operationId": "e1346bd1f75e5a53e7532e76f81f893c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Cập nhật blog (Admin)",
+                "description": "Cập nhật thông tin blog",
+                "operationId": "b21dead677d5334c2afcd67328c78fcb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Xóa blog (Admin)",
+                "description": "Xóa blog",
+                "operationId": "dbdef98dff32d37c4eadd369e1992cec",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/{id}/hide": {
+            "put": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Ẩn/hiện blog (Admin)",
+                "description": "Ẩn hoặc hiện blog",
+                "operationId": "88e72d8e6b29934e11aff3ced4e9086c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/{blogId}/comments": {
+            "get": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Lấy bình luận blog (Admin)",
+                "description": "Lấy tất cả bình luận của một blog",
+                "operationId": "81db7ec271f9f51d554f8f943432183a",
+                "parameters": [
+                    {
+                        "name": "blogId",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Tạo bình luận blog (Admin)",
+                "description": "Tạo bình luận mới cho blog",
+                "operationId": "64ad0f53dfff1c9463130c87ea00507f",
+                "parameters": [
+                    {
+                        "name": "blogId",
+                        "in": "path",
+                        "description": "ID blog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/comments/{commentId}": {
+            "delete": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Xóa bình luận blog (Admin)",
+                "description": "Xóa bình luận blog (soft delete)",
+                "operationId": "7a1ff8c2ff412325abe85be01e23cd17",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "description": "ID bình luận",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/comments/{commentId}/restore": {
+            "put": {
+                "tags": [
+                    "Admin Blogs"
+                ],
+                "summary": "Khôi phục bình luận blog (Admin)",
+                "description": "Khôi phục bình luận blog đã bị xóa",
+                "operationId": "9b99ee5c5e30a29aca297a08fd1c29d3",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "description": "ID bình luận",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Client Products",
+            "description": "API Endpoints cho sản phẩm (Client)"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Client Categories",
+            "description": "Client Categories"
+        },
+        {
+            "name": "Client Cart",
+            "description": "Client Cart"
+        },
+        {
+            "name": "Client Orders",
+            "description": "Client Orders"
+        },
+        {
+            "name": "Client Reviews",
+            "description": "Client Reviews"
+        },
+        {
+            "name": "Admin Products",
+            "description": "Admin Products"
+        },
+        {
+            "name": "Admin Categories",
+            "description": "Admin Categories"
+        },
+        {
+            "name": "Admin Orders",
+            "description": "Admin Orders"
+        },
+        {
+            "name": "Admin Dashboard",
+            "description": "Admin Dashboard"
+        },
+        {
+            "name": "Client Banners",
+            "description": "Client Banners"
+        },
+        {
+            "name": "Client Shipping",
+            "description": "Client Shipping"
+        },
+        {
+            "name": "Client Addresses",
+            "description": "Client Addresses"
+        },
+        {
+            "name": "Password Reset",
+            "description": "Password Reset"
+        },
+        {
+            "name": "Admin Banners",
+            "description": "Admin Banners"
+        },
+        {
+            "name": "Admin Users",
+            "description": "Admin Users"
+        },
+        {
+            "name": "Admin Customers",
+            "description": "Admin Customers"
+        },
+        {
+            "name": "Admin Colors",
+            "description": "Admin Colors"
+        },
+        {
+            "name": "Admin Sizes",
+            "description": "Admin Sizes"
+        },
+        {
+            "name": "Admin Vouchers",
+            "description": "Admin Vouchers"
+        },
+        {
+            "name": "Admin Reviews",
+            "description": "Admin Reviews"
+        },
+        {
+            "name": "Admin Blogs",
+            "description": "Admin Blogs"
+        }
+    ]
+}

@@ -76,7 +76,7 @@ export const LoginForm = () => {
                                         >
                                             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
                                         </button>
-                                        <a href="#" className="lost-password">Quên mật khẩu?</a>
+                                        <Link to="/quen-mat-khau" className="lost-password">Quên mật khẩu?</Link>
                                     </p>
                                     <div className="d-flex gap-2">
                                         <span>Chưa có tài khoản? </span>

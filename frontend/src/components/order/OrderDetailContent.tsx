@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import {useParams, Link, useSearchParams} from "react-router-dom";
 import { axiosInstance } from "../../utils/axios";
 import { convertDate, convertToInt } from "../../helpers/common";
 import {notification} from "antd";
@@ -32,6 +32,7 @@ interface Item {
     variant: Variant;
     quantity: number;
     price: string;
+    is_review?: boolean
 }
 
 interface User {
@@ -108,6 +109,7 @@ export const OrderDetailContent = () => {
     const [reviewError, setReviewError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+    const [queryParams] = useSearchParams();
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -122,6 +124,13 @@ export const OrderDetailContent = () => {
         };
         fetchOrder();
     }, [orderId]);
+
+    useEffect(() => {
+        const showMsg = queryParams.get('showMsg') ?? 0
+        if (showMsg) {
+            notification.success({message: "Thanh toán thành công, đơn hàng đã được xác nhận"})
+        }
+    }, [queryParams]);
 
     const openReviewModal = (productId: number, productName: string) => {
         setSelectedProduct({ productId, productName });
