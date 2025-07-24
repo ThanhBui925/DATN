@@ -475,7 +475,7 @@ export const Checkout = () => {
         try {
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
-                if (res.data.data.order.payment_method == 'vnpay' && res.data.data.payment_url) {
+                if (res.data.data.order && res.data.data.order.payment_method == 'vnpay' && res.data.data.payment_url) {
                     return window.location.href = res.data.data.payment_url
                 }
                 notification.success({ message: res.data.message || "Đặt hàng thành công" });

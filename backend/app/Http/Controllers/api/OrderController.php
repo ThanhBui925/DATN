@@ -20,14 +20,14 @@ use App\Models\Color;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Services\ShippingFeeService;
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
     use ApiResponseTrait;
     
     private $validTransitions = [
-        'pending' => ['confirming', 'canceled'],
-        'confirming' => ['confirmed', 'canceled'],
+        'pending' => ['confirmed', 'canceled'],
         'confirmed' => ['preparing', 'canceled'],
         'preparing' => ['shipping', 'canceled'],
         'shipping' => ['delivered', 'canceled'],
@@ -101,6 +101,26 @@ class OrderController extends Controller
             $order->province_name ?? '',
         ]));
 
+        $ghnShippingInfo = null;
+        $shippingStatus = null;
+
+        if ($order->order_code) {
+            $token = env('GHN_TOKEN');
+            $shopId = env('GHN_SHOP_ID');
+
+            $res = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Token' => $token,
+                'ShopId' => $shopId,
+            ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail', [
+                'order_code' => $order->order_code
+            ]);
+
+            if ($res->successful() && isset($res['data'])) {
+                $ghnShippingInfo = $res['data'];
+                $shippingStatus = $ghnShippingInfo['status'] ?? null;
+            }
+        }
 
         $result = [
             'id' => $order->id,
@@ -157,6 +177,10 @@ class OrderController extends Controller
                     'price' => $item->price,
                 ];
             }),
+            'shipping_status' => $ghnShippingInfo['status'] ?? $order->order_status,
+            'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
+            'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
+            'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');

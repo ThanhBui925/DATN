@@ -12,8 +12,7 @@ import { DateField } from "@refinedev/antd";
 import { convertToInt } from "../../../helpers/common";
 
 const validTransitions: Record<string, string[]> = {
-    pending: ["confirming", "canceled"],
-    confirming: ["confirmed", "canceled"],
+    pending: ["confirmed", "canceled"],
     confirmed: ["preparing", "canceled"],
     preparing: ["shipping", "canceled"],
     shipping: ["delivered", "canceled"],
@@ -40,7 +39,6 @@ export const OrdersList = () => {
     const { mutate } = useUpdate();
 
     const statusMap: Record<string, { color: string; label: string }> = {
-        confirming: { color: "blue", label: "Đang xác nhận" },
         confirmed: { color: "cyan", label: "Đã xác nhận" },
         preparing: { color: "purple", label: "Đang chuẩn bị" },
         shipping: { color: "orange", label: "Đang giao" },
