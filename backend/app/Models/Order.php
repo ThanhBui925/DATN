@@ -33,6 +33,7 @@ class Order extends Model
         'recipient_phone',
         'recipient_email',
         'cancel_reason',
+        'use_shipping_status',
     ];
 
     protected $casts = [
