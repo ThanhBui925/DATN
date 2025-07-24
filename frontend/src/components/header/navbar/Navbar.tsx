@@ -88,7 +88,6 @@ export const Navbar = () => {
                                         <li><a href="#">Chính sách</a>
                                             <ul>
                                                 <li><Link to="/chinh-sach-ban-hang">Chính sách bán hàng</Link></li>
-                                                <li><Link to="/chinh-sach-hoan-hang">Chính sách hoàn hàng</Link></li>
                                             </ul>
                                         </li>
                                         <li><a href="#">Hướng dẫn</a>
