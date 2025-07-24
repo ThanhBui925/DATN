@@ -21,6 +21,7 @@ import {OrderDetail} from "./pages/orderDetail";
 import {Address} from "./pages/auth/address";
 import {ReturnOrderInstruct} from "./pages/returnOrderInstruct";
 import {SalesPolicy} from "./pages/salePolicy";
+import {OrderInstruct} from "./pages/orderInstruct";
 
 export const ClientApp = () => {
     return (
@@ -39,7 +40,7 @@ export const ClientApp = () => {
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />
                 <Route path="huong-dan-hoan-hang" element={<ReturnOrderInstruct />} />
                 <Route path="chinh-sach-ban-hang" element={<SalesPolicy />} />
-                <Route path="ve-chung-toi" element={<AboutUsPage />} />
+                <Route path="huong-dan-mua-hang" element={<OrderInstruct />} />
 
                 <Route path="danh-muc-san-pham" element={<Shop />} />
                 <Route path="tai-khoan-cua-toi" element={<Profile />} />
