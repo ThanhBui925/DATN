@@ -214,6 +214,18 @@ export const OrdersList = () => {
                         }}
                     />
                     <Table.Column
+                        title="Trạng thái giao hàng"
+                        dataIndex="shipping_status"
+                        render={(value: string) => {
+                            const status = statusMap[value];
+                            return status ? (
+                                <Tag color={status.color}>{status.label}</Tag>
+                            ) : (
+                                <Tag>{value}</Tag>
+                            );
+                        }}
+                    />
+                    <Table.Column
                         title="Phương thức thanh toán"
                         dataIndex="payment_method"
                         render={(value: string) => {

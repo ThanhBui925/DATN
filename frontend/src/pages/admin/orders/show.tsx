@@ -221,24 +221,6 @@ export const OrdersShow = () => {
                                     )
                                 }
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
-                                    <div style={{marginTop: 8}}>
-                                        {record?.payment_status ? (
-                                            <Tag
-                                                color={paymentStatusMap[record.payment_status]?.color}
-                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
-                                            >
-                                                {paymentStatusMap[record.payment_status]?.label || record.payment_status}
-                                            </Tag>
-                                        ) : (
-                                            <TextField
-                                                value="-"
-                                                style={{display: "block", fontSize: 16, color: "#262626"}}
-                                            />
-                                        )}
-                                    </div>
-                                </Col>
-                                <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Phương thức thanh toán</Text>
                                     <div style={{marginTop: 8}}>
                                         {record?.payment_method ? (
@@ -256,6 +238,39 @@ export const OrdersShow = () => {
                                         )}
                                     </div>
                                 </Col>
+                                
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái giao hàng</Text>
+                                    <div style={{marginTop: 8}}>
+                                        {record?.shipping_status ? (
+                                            <Tag color="blue">{record?.shipping_status}</Tag>
+                                        ) : (
+                                            <Text style={{display: "block", fontSize: 16, color: "#262626"}}>-</Text>
+                                        )}
+                                    </div>
+                                </Col>
+
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
+                                    <div style={{marginTop: 8}}>
+                                        {record?.payment_status ? (
+                                            <Tag
+                                                color={paymentStatusMap[record.payment_status]?.color}
+                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                            >
+                                                {paymentStatusMap[record.payment_status]?.label || record.payment_status}
+                                            </Tag>
+                                        ) : (
+                                            <TextField
+                                                value="-"
+                                                style={{display: "block", fontSize: 16, color: "#262626"}}
+                                            />
+                                        )}
+                                    </div>
+                                </Col>
+                                
+
+                                
                             </Row>
                         </Card>
                     </Col>

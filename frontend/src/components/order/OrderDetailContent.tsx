@@ -74,6 +74,14 @@ interface Order {
     items: Item[];
     shipping_name: string;
     subtotal: number;
+    status: string;
+    leadtime_order: {
+        from_estimate_date: string | null;
+        to_estimate_date: string | null;
+        delivered_date: string | null;
+    }
+    pickup_time: string | null;
+    picked_date: string | null;
 }
 
 const statusMap: Record<string, { color: string; label: string }> = {
@@ -239,14 +247,30 @@ export const OrderDetailContent = () => {
                                 <div className="bg-light p-3 rounded">
                                     <p className="mb-1"><strong>Người nhận:</strong> {order.recipient_name}</p>
                                     <p className="mb-1"><strong>Số điện thoại:</strong> {order.recipient_phone}</p>
+                                    <p className="mb-0"><strong>Email:</strong> {order.recipient_email}</p>
                                     <p className="mb-0"><strong>Địa chỉ:</strong> {order.shipping_address}</p>
+
                                 </div>
                             </div>
                             <div className="col-md-6">
                                 <div className="bg-light p-3 rounded">
                                     <p className="mb-1"><strong>Đơn vị vận chuyển:</strong> {order.shipping_name || "N/A"}</p>
-                                    <p className="mb-1"><strong>Ngày giao hàng:</strong> {convertDate(order.delivered_at) || "N/A"}</p>
-                                    <p className="mb-0"><strong>Ngày xuất kho:</strong> {convertDate(order.shipped_at) || "N/A"}</p>
+                                    <p className="mb-0"><strong>Ngày xuất kho:</strong> {convertDate(order.picked_date) || "N/A"}</p>
+                                    <p className="mb-1">
+                                        <strong>Ngày giao hàng:</strong>{" "}
+                                        {
+                                            order.leadtime_order?.delivered_date
+                                            ? `Đã giao: ${convertDate(order.leadtime_order.delivered_date)}`
+                                            : (order.leadtime_order?.from_estimate_date && order.leadtime_order?.to_estimate_date
+                                                ? <>
+                                                    Dự kiến: {new Date(order.leadtime_order.from_estimate_date).toLocaleDateString('vi-VN')} - {new Date(order.leadtime_order.to_estimate_date).toLocaleDateString('vi-VN')}
+                                                    <br />
+                                                    <i>* Lưu ý: Thời gian giao hàng thực tế có thể sau ngày dự kiến</i>
+                                                   </>
+                                                : "Chưa có thông tin giao hàng"
+                                                )
+                                        }
+                                    </p>
                                 </div>
                             </div>
                         </div>
