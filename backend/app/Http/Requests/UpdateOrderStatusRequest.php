@@ -38,8 +38,7 @@ class UpdateOrderStatusRequest extends FormRequest
     }
 
     protected $validTransitions = [
-        'pending' => ['confirming', 'canceled'],
-        'confirming' => ['confirmed', 'canceled'],
+        'pending' => ['confirmed', 'canceled'],
         'confirmed' => ['preparing', 'canceled'],
         'preparing' => ['shipping', 'canceled'],
         'shipping' => ['delivered', 'canceled'],
