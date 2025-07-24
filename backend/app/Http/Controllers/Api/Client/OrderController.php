@@ -289,6 +289,39 @@ class OrderController extends Controller
     /**
      * Xem chi tiết đơn hàng của user
      */
+    private function resolveStatus($order_status, $shippingStatus)
+    {
+        if ($order_status === 'shipping') {
+            if ($shippingStatus) {
+                return match ($shippingStatus) {
+                    'ready_to_pick' => 'ready_to_pick',
+                    'picking', 'money_collect_picking' => 'picking',
+                    'picked' => 'picked',
+                    'storing', 'transporting', 'sorting', 'money_collect_delivering', 'delivering' => 'delivering',
+                    'delivered' => 'delivered',
+                    'delivery_fail', 'waiting_to_return', 'return', 'return_transporting', 'return_sorting', 'returning', 'return_fail', 'returned' => 'return_failed',
+                    default => $order_status,
+                };
+            }
+
+            return $order_status;
+        }
+
+
+        if (in_array($order_status, ['pending', 'preparing', 'confirmed', 'completed', 'canceled'])) {
+            return $order_status;
+        }
+
+        if ($order_status === 'delivered') {
+            return 'delivered';
+        }
+
+        if ($order_status === 'canceled') {
+            return 'canceled';
+        }
+
+        return 'unknown';
+    }
 
     public function show(Request $request, $id)
     {
@@ -313,8 +346,10 @@ class OrderController extends Controller
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập', null, 404);
         }
 
-        // --- Gọi GHN API ---
+
         $ghnShippingInfo = null;
+        $shippingStatus = null;
+
         if ($order->order_code) {
             $token = env('GHN_TOKEN');
             $shopId = env('GHN_SHOP_ID');
@@ -329,8 +364,10 @@ class OrderController extends Controller
 
             if ($res->successful() && isset($res['data'])) {
                 $ghnShippingInfo = $res['data'];
+                $shippingStatus = $ghnShippingInfo['status'] ?? null;
             }
         }
+
 
         $shipping_address = implode(', ', array_filter([
             $order->detailed_address ?? '',
@@ -347,7 +384,7 @@ class OrderController extends Controller
             'final_amount' => $order->final_amount,
             'total_price' => $order->total_price,
             'voucher_code' => $order->voucher_code,
-            'order_status' => $order->order_status,
+            // 'order_status' => $order->order_status,
             'cancel_reason' => $order->cancel_reason,
             'payment_status' => $order->payment_status,
             'shipping_address' => $shipping_address,
@@ -404,12 +441,18 @@ class OrderController extends Controller
                 return $carry + ($item->price * $item->quantity);
             }, 0),
             // Gắn kết quả từ GHN
-            'status' => $ghnShippingInfo['status'] ?? null,
+            'status' => $this->resolveStatus($order->order_status, $shippingStatus),
             'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
 
+        $status = $this->resolveStatus($order->order_status, $shippingStatus);
+        if ($status === 'delivered' && $order->order_status !== 'delivered') {
+            $order->order_status = 'delivered';
+            $order->save();
+        }
+            
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 

@@ -158,7 +158,7 @@ class ShippingFeeService
             "to_address" => $shippingAddress,
             "to_ward_code" => $shippingData['ward_code'],
             "to_district_id" => $shippingData['district_id'],
-            "cod_amount" => (int) $order->final_amount,
+            'cod_amount' => $order->payment_status === 'paid' ? 0 : (int) $order->final_amount,
             "content" => "Đơn hàng #" . $order->id,
             "weight" => $totalWeight,
             "length" => $maxBoxDimension['length'],
