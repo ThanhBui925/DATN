@@ -3,6 +3,9 @@ import {useShow, useUpdate} from "@refinedev/core";
 import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message} from "antd";
 import {useState} from "react";
 import {convertToInt} from "../../../helpers/common";
+import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
+import {statusMap} from "../../../types/OrderStatusInterface";
+import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 
 const {Title, Text} = Typography;
 
@@ -25,29 +28,6 @@ export const OrdersShow = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const {mutate} = useUpdate();
-
-    const statusMap: Record<string, { color: string; label: string }> = {
-        confirming: {color: "gold", label: "Đang xác nhận"},
-        confirmed: {color: "blue", label: "Đã xác nhận"},
-        preparing: {color: "orange", label: "Đang chuẩn bị"},
-        shipping: {color: "cyan", label: "Đang giao hàng"},
-        delivered: {color: "green", label: "Đã giao hàng"},
-        completed: {color: "purple", label: "Hoàn tất"},
-        canceled: {color: "red", label: "Đã hủy"},
-        pending: {color: "default", label: "Chờ xử lý"},
-    };
-
-    const paymentStatusMap: Record<string, { color: string; label: string }> = {
-        unpaid: {color: "red", label: "Chưa thanh toán"},
-        paid: {color: "green", label: "Đã thanh toán"},
-    };
-
-    const paymentMethodMap: Record<string, { label: string; color: string }> = {
-        cash: {label: "Tiền mặt", color: "gold"},
-        card: {label: "Thẻ tín dụng", color: "purple"},
-        paypal: {label: "PayPal", color: "blue"},
-        vnpay: {label: "VNPay", color: "red"}
-    };
 
     const handleUpdateStatus = () => {
         setIsModalVisible(true);
@@ -196,7 +176,7 @@ export const OrdersShow = () => {
                                     <div style={{marginTop: 8}}>
                                         {record?.order_status ? (
                                             <Tag
-                                                color={statusMap[record.order_status]?.color}
+                                                color={statusMap[record.order_status]?.cssColor}
                                                 style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                             >
                                                 {statusMap[record.order_status]?.label || record.order_status}
@@ -239,16 +219,24 @@ export const OrdersShow = () => {
                                     </div>
                                 </Col>
                                 
-                                <Col xs={24} sm={12}>
-                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái giao hàng</Text>
-                                    <div style={{marginTop: 8}}>
-                                        {record?.shipping_status ? (
-                                            <Tag color="blue">{record?.shipping_status}</Tag>
-                                        ) : (
-                                            <Text style={{display: "block", fontSize: 16, color: "#262626"}}>-</Text>
-                                        )}
-                                    </div>
-                                </Col>
+                                {/*<Col xs={24} sm={12}>*/}
+                                {/*    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái giao hàng</Text>*/}
+                                {/*    <div style={{marginTop: 8}}>*/}
+                                {/*        {record?.order_status ? (*/}
+                                {/*            <Tag*/}
+                                {/*                color={statusMap[record.order_status]?.color}*/}
+                                {/*                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}*/}
+                                {/*            >*/}
+                                {/*                {statusMap[record.order_status]?.label || record.order_status}*/}
+                                {/*            </Tag>*/}
+                                {/*        ) : (*/}
+                                {/*            <TextField*/}
+                                {/*                value="Không có trạng thái"*/}
+                                {/*                style={{display: "block", fontSize: 16, color: "#262626"}}*/}
+                                {/*            />*/}
+                                {/*        )}*/}
+                                {/*    </div>*/}
+                                {/*</Col>*/}
 
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>

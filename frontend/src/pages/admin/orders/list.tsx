@@ -1,7 +1,7 @@
 import {
     EditButton,
     List,
-    ShowButton,
+    ShowButton, TextField,
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
@@ -10,6 +10,9 @@ import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
 import { convertToInt } from "../../../helpers/common";
+import {statusMap} from "../../../types/OrderStatusInterface";
+import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
+import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 
 const validTransitions: Record<string, string[]> = {
     pending: ["confirmed", "canceled"],
@@ -37,16 +40,6 @@ export const OrdersList = () => {
     const [selectedOrder, setSelectedOrder] = useState<BaseRecord | null>(null);
     const [form] = Form.useForm();
     const { mutate } = useUpdate();
-
-    const statusMap: Record<string, { color: string; label: string }> = {
-        confirmed: { color: "cyan", label: "Đã xác nhận" },
-        preparing: { color: "purple", label: "Đang chuẩn bị" },
-        shipping: { color: "orange", label: "Đang giao" },
-        delivered: { color: "green", label: "Đã giao" },
-        completed: { color: "success", label: "Hoàn thành" },
-        canceled: { color: "red", label: "Đã hủy" },
-        pending: { color: "default", label: "Chờ xử lý" },
-    };
 
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
@@ -202,50 +195,46 @@ export const OrdersList = () => {
                         }
                     />
                     <Table.Column
-                        title="Trạng thái đơn"
+                        title="Trạng thái đơn hàng"
                         dataIndex="order_status"
                         render={(value: string) => {
                             const status = statusMap[value];
                             return status ? (
-                                <Tag color={status.color}>{status.label}</Tag>
+                                <Tag color={status.cssColor}>{status.label}</Tag>
                             ) : (
                                 <Tag>{value}</Tag>
                             );
                         }}
                     />
-                    <Table.Column
-                        title="Trạng thái giao hàng"
-                        dataIndex="shipping_status"
-                        render={(value: string) => {
-                            const status = statusMap[value];
-                            return status ? (
-                                <Tag color={status.color}>{status.label}</Tag>
-                            ) : (
-                                <Tag>{value}</Tag>
-                            );
-                        }}
-                    />
+                    {/*<Table.Column*/}
+                    {/*    title="Trạng thái giao hàng"*/}
+                    {/*    dataIndex="shipping_status"*/}
+                    {/*    render={(value: string) => {*/}
+                    {/*        const status = statusMap[value];*/}
+                    {/*        return status ? (*/}
+                    {/*            <Tag color={status.color}>{status.label}</Tag>*/}
+                    {/*        ) : (*/}
+                    {/*            <Tag>{value}</Tag>*/}
+                    {/*        );*/}
+                    {/*    }}*/}
+                    {/*/>*/}
                     <Table.Column
                         title="Phương thức thanh toán"
                         dataIndex="payment_method"
-                        render={(value: string) => {
-                            const paymentMap: Record<string, string> = {
-                                cash: "Tiền mặt",
-                                card: "Thẻ",
-                                paypal: "PayPal",
-                                vnpay: "VNPay",
-                            };
-                            return paymentMap[value] || value || "-";
-                        }}
+                        render={(value: string) =>
+                            (
+                                <Tag
+                                    color={paymentMethodMap[value]?.color}
+                                >
+                                    {paymentMethodMap[value]?.label || value}
+                                </Tag>
+                            )
+                        }
                     />
                     <Table.Column
                         title="Trạng thái thanh toán"
                         dataIndex="payment_status"
                         render={(value: string) => {
-                            const paymentStatusMap: Record<string, { color: string; label: string }> = {
-                                unpaid: { color: "red", label: "Chưa thanh toán" },
-                                paid: { color: "green", label: "Đã thanh toán" },
-                            };
                             const status = paymentStatusMap[value];
                             return status ? (
                                 <Tag color={status.color}>{status.label}</Tag>
