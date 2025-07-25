@@ -37,7 +37,7 @@ export const HeaderTop = () => {
     const handleLogout = async () => {
         try {
             const res = await axiosInstance.post("/api/logout");
-            if (res.data.success) {
+            if (res.data.status) {
                 localStorage.removeItem(TOKEN_KEY);
                 setProfile(null); // Reset profile sau khi đăng xuất
                 notification.success({ message: "Đăng xuất thành công" });
