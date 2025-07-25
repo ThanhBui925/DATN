@@ -62,7 +62,8 @@ class CustomerController extends Controller
 
     public function show($id)
     {
-        $customer = Customer::with('user')->findOrFail($id);
+        $customer = Customer::with(['user', 'orders.orderItems.product'])->findOrFail($id);
+
         if (!$customer) {
             return $this->error('Khách hàng không tồn tại.', null, 404);
         }

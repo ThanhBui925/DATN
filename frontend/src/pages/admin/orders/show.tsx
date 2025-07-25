@@ -356,7 +356,7 @@ export const OrdersShow = () => {
                                         render={(variant) =>
                                             variant ? (
                                                 <TextField
-                                                    value={`${variant.size?.name || ""} ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
+                                                    value={`${variant.size?.name || ""} - ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
                                                     style={{fontSize: 14, color: "#262626"}}
                                                 />
                                             ) : (
@@ -413,14 +413,55 @@ export const OrdersShow = () => {
                 <Row style={{ display: 'flex', justifyContent: "end"}}>
                     <Col xs={24} md={8}>
                         <Card title={<Title level={4} style={{margin: 0}}>Tổng tiền đơn hàng</Title>} style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
-                            <TextField
-                                value={
-                                    record?.total_price
-                                        ? `${convertToInt(record.total_price)} VNĐ`
-                                        : "0.00 VNĐ"
-                                }
-                                style={{display: "block", fontSize: 16, color: "#262626"}}
-                            />
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}> Tiền hàng:</span>
+                                <TextField
+                                    value={
+                                        record?.total_price
+                                            ? `${convertToInt(record.total_price)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}> Phí vận chuyển:</span>
+                                <TextField
+                                    value={
+                                        record?.shipping_fee
+                                            ? `${convertToInt(record.shipping_fee)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}>Giảm giá:</span>
+                                <TextField
+                                    value={
+                                        record?.discount_amount
+                                            ? `${convertToInt(record.discount_amount)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <h3 style={{ fontSize: 20, color: "#ff0000ff", whiteSpace: "nowrap", margin: 0 }}>
+                                    Thành tiền:
+                                </h3>
+                                <TextField
+                                    value={
+                                        record?.final_amount
+                                            ? `${convertToInt(record.final_amount)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 20, color: "#ff0000ff" }}
+                                />
+                            </div>
+
+
                         </Card>
                     </Col>
                 </Row>
