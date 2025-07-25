@@ -146,7 +146,9 @@ class OrderController extends Controller
             'recipient_email' => $order->recipient_email,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher, 
+            'voucher_code' => $order->voucher_code,
+            'shipping_fee' => $order->shipping_fee,
+            'final_amount' => $order->final_amount,
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
