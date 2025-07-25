@@ -70,7 +70,7 @@ class SizeController extends Controller
 
         // Kiểm tra ràng buộc ở bảng variant_products
         $hasVariants = \DB::table('variant_products')->where('size_id', $id)->exists();
-
+        
         if ($hasVariants) {
             return response()->json([
                 'message' => 'Cannot delete size because it is used in variant products.'

@@ -85,6 +85,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('/profile', 'profile')->middleware('auth:sanctum');
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
 
 
 
