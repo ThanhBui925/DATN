@@ -1,6 +1,13 @@
-import { Show, TextField } from "@refinedev/antd";
-import { useShow } from "@refinedev/core";
-import { Typography, Row, Col, Skeleton, Tag, Breadcrumb, Card, Divider, Image } from "antd";
+import {DateField, Show, TextField} from "@refinedev/antd";
+import {type BaseRecord, useShow} from "@refinedev/core";
+import {Typography, Row, Col, Skeleton, Tag, Breadcrumb, Card, Divider, Image, Table, Space, Button} from "antd";
+import {convertToInt} from "../../../helpers/common";
+import React from "react";
+import {Link} from "react-router-dom";
+import {EyeOutlined} from "@ant-design/icons";
+import {statusMap} from "../../../types/OrderStatusInterface";
+import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
+import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 
 const { Title, Text } = Typography;
 
@@ -219,6 +226,109 @@ export const CustomerShow = () => {
             padding: "16px",
         }}
     >
+        {
+            Array.isArray(record?.orders) && record.orders.length > 0 && (
+                <Table dataSource={record.orders} rowKey="id">
+                    <Table.Column
+                        title="STT"
+                        key="index"
+                        render={(text, record, index) => index + 1}
+                    />
+                    <Table.Column
+                        title="Mã đơn hàng"
+                        dataIndex="id"
+                        render={(value: string) => (value ? `#${value}` : "-")}
+                    />
+                    <Table.Column
+                        title="Ngày đặt"
+                        dataIndex="date_order"
+                        render={(value: any) => <DateField value={value} format="DD/MM/YYYY HH:mm" />}
+                    />
+                    <Table.Column
+                        title="Tổng tiền"
+                        dataIndex="total_price"
+                        render={(value: number) =>
+                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
+                        }
+                    />
+                    <Table.Column
+                        title="Trạng thái đơn"
+                        dataIndex="order_status"
+                        render={(value: string) => {
+                            const status = statusMap[value];
+                            return status ? (
+                                <Tag color={status.cssColor}>{status.label}</Tag>
+                            ) : (
+                                <Tag>{value}</Tag>
+                            );
+                        }}
+                    />
+                    {/*<Table.Column*/}
+                    {/*    title="Trạng thái giao hàng"*/}
+                    {/*    dataIndex="shipping_status"*/}
+                    {/*    render={(value: string) => {*/}
+                    {/*        const status = statusMap[value];*/}
+                    {/*        return status ? (*/}
+                    {/*            <Tag color={status.color}>{status.label}</Tag>*/}
+                    {/*        ) : (*/}
+                    {/*            <Tag>{value}</Tag>*/}
+                    {/*        );*/}
+                    {/*    }}*/}
+                    {/*/>*/}
+                    <Table.Column
+                        title="Phương thức thanh toán"
+                        dataIndex="payment_method"
+                        render={(value: string) =>
+                            (
+                                <Tag
+                                    color={paymentMethodMap[value]?.color}
+                                >
+                                    {paymentMethodMap[value]?.label || value}
+                                </Tag>
+                            )
+                        }
+                    />
+                    <Table.Column
+                        title="Trạng thái thanh toán"
+                        dataIndex="payment_status"
+                        render={(value: string) => {
+                            const status = paymentStatusMap[value];
+                            return status ? (
+                                <Tag color={status.color}>{status.label}</Tag>
+                            ) : (
+                                <Tag>{value}</Tag>
+                            );
+                        }}
+                    />
+                    <Table.Column
+                        title="Người nhận"
+                        render={(record: any) => (
+                            <>
+                                <div style={{ fontWeight: 600 }}>{record.recipient_name}</div>
+                                <div>{record.recipient_phone}</div>
+                                <div>{record?.recipient_email}</div>
+                            </>
+                        )}
+                    />
+                    <Table.Column
+                        title="Hành động"
+                        dataIndex="actions"
+                        render={(_, record: BaseRecord) => (
+                            <Space>
+                                <Link to={`/admin/orders/show/${record.id}`}>
+                                    <Button
+                                        icon={<EyeOutlined />}
+                                        size="large"
+                                        type="default"
+                                        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                                    />
+                                </Link>
+                            </Space>
+                        )}
+                    />
+                </Table>
+            )
+        }
         <Text style={{ fontSize: 16, color: "#595959" }}>
             Chưa có dữ liệu lịch sử mua hàng
         </Text>

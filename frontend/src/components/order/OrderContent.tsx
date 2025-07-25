@@ -3,17 +3,8 @@ import { axiosInstance } from "../../utils/axios";
 import { convertDate, convertToInt } from "../../helpers/common";
 import { Link, useNavigate } from "react-router-dom";
 import { notification, Modal, Input } from "antd";
+import {statusMap} from "../../types/OrderStatusInterface";
 
-const statusMap: Record<string, { color: string; label: string }> = {
-    confirming: {color: "#E6F3FF", label: "Đang xác nhận"},
-    confirmed: {color: "#3B82F6", label: "Đã xác nhận"},
-    preparing: {color: "#E5E7EB", label: "Đang chuẩn bị"},
-    shipping: {color: "#FEF3C7", label: "Đang giao hàng"},
-    delivered: {color: "#DCFCE7", label: "Đã giao hàng"},
-    completed: {color: "#22C55E", label: "Hoàn thành"},
-    canceled: {color: "#FECACA", label: "Đã hủy"},
-    pending: {color: "#DBEAFE", label: "Chờ xác nhận"},
-};
 
 const paymentMethodMap: Record<string, { label: string; color: string }> = {
     cash: {label: "Tiền mặt", color: "gold"},
@@ -177,7 +168,7 @@ export const OrderContent = () => {
                                     <span
                                         className="badge text-white fw-semibold"
                                         style={{
-                                            backgroundColor: statusMap[order?.order_status]?.color,
+                                            backgroundColor: statusMap[order?.order_status]?.cssColor,
                                             padding: "0.5em 1em",
                                             fontSize: "0.9em",
                                         }}
