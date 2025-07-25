@@ -136,6 +136,7 @@ class OrderController extends Controller
                 'discount_amount'   => 0,
                 'shipping_fee'      => $shippingFee,
                 'final_amount'      => 0,
+                'shipping_status' => 'pending',
                 'use_shipping_status' => 1
 
             ]);

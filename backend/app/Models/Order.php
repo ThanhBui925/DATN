@@ -34,6 +34,7 @@ class Order extends Model
         'recipient_email',
         'cancel_reason',
         'use_shipping_status',
+        'shipping_status'
     ];
 
     protected $casts = [
