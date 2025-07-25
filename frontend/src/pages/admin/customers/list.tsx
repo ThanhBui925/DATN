@@ -1,4 +1,4 @@
-import { DeleteOutlined } from "@ant-design/icons";
+import {DeleteOutlined, PauseOutlined, PlayCircleOutlined} from "@ant-design/icons";
 import {
     CreateButton, DateField,
     DeleteButton,
@@ -79,8 +79,13 @@ export const CustomerList = () => {
                                     hideText
                                     size="large"
                                     recordItemId={record.id}
-                                    confirmTitle="Bạn có muốn xóa khách hàng này?"
-                                    confirmOkText="Xóa"
+                                    icon={record.user_status ? <PauseOutlined /> : <PlayCircleOutlined />}
+                                    confirmTitle={
+                                        record.user_status
+                                            ? 'Bạn có muốn ngừng hoạt động khách hàng này?'
+                                            : 'Bạn có muốn kích hoạt lại khách hàng này?'
+                                    }
+                                    confirmOkText={record.user_status ? 'Ngừng hoạt động' : 'Kích hoạt'}
                                     confirmCancelText="Hủy"
                                 />
                             </Space>
