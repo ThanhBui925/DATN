@@ -26,15 +26,29 @@ class ProductController extends Controller
         return $this->success($products);
     }
 
-    public function index(Request $request)
+    // New arrivals
+    public function newArrivalProduct()
     {
-        $products = Product::query()
-            ->with(['category', 'images'])
-            ->latest()
-            ->limit(8)
-            ->get();
-        return $this->success($products);
+        return Product::orderBy('created_at', 'desc')->take(8)->get();
     }
+
+    // Best sellers
+    public function bestSellerProduct()
+    {
+        return Product::withCount('orderItems')
+            ->orderBy('order_items_count', 'desc')
+            ->take(8)
+            ->get();
+    }
+
+    // Featured products
+    public function featureProduct()
+    {
+        return Product::where('is_featured', true)->take(8)->get();
+    }
+
+
+
 
     public function show($id)
     {

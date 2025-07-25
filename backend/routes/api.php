@@ -30,7 +30,9 @@ use App\Http\Controllers\Api\Client\ShippingFeeController;
 
 Route::prefix('client')->group(function () {
     // Các route public (không cần đăng nhập)
-    Route::get('/new-products', [ClientProductController::class, 'index']);
+    Route::get('/new-arrival-product', [ClientProductController::class, 'newArrivalProduct']);
+    Route::get('/best-seller-product', [ClientProductController::class, 'bestSellerProduct']);
+    // Route::get('/feature-product', [ClientProductController::class, 'featureProduct']);
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
