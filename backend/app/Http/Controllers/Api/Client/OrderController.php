@@ -136,6 +136,8 @@ class OrderController extends Controller
                 'discount_amount'   => 0,
                 'shipping_fee'      => $shippingFee,
                 'final_amount'      => 0,
+                'shipping_status' => 'pending',
+                'use_shipping_status' => 1
 
             ]);
 
@@ -368,6 +370,22 @@ class OrderController extends Controller
             }
         }
 
+        $leadtime = $ghnShippingInfo['leadtime_order'] ?? null;
+
+        $leadtimeData = null;
+
+        if (!empty($leadtime['delivered_date'])) {
+            $leadtimeData = [
+                'delivered_date' => $leadtime['delivered_date'],
+            ];
+        } elseif (!empty($leadtime['from_estimate_date']) || !empty($leadtime['to_estimate_date'])) {
+            $leadtimeData = [
+                'from_estimate_date' => $leadtime['from_estimate_date'] ?? null,
+                'to_estimate_date' => $leadtime['to_estimate_date'] ?? null,
+            ];
+        }
+
+
 
         $shipping_address = implode(', ', array_filter([
             $order->detailed_address ?? '',
@@ -442,9 +460,9 @@ class OrderController extends Controller
             }, 0),
             // Gắn kết quả từ GHN
             'status' => $this->resolveStatus($order->order_status, $shippingStatus),
-            'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
-            'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
-            'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
+            'leadtime_order' => $leadtimeData,
+            'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
+            'date_order' => $order->date_order,
         ];
 
         $status = $this->resolveStatus($order->order_status, $shippingStatus);

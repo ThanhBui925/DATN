@@ -146,7 +146,9 @@ class OrderController extends Controller
             'recipient_email' => $order->recipient_email,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
-            'voucher' => $order->voucher, 
+            'voucher_code' => $order->voucher_code,
+            'shipping_fee' => $order->shipping_fee,
+            'final_amount' => $order->final_amount,
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -177,11 +179,16 @@ class OrderController extends Controller
                     'price' => $item->price,
                 ];
             }),
-            'shipping_status' => $ghnShippingInfo['status'] ?? $order->order_status,
+            'shipping_status' => $ghnShippingInfo['status'] ?? null,
             'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
+        if (isset($ghnShippingInfo['status']) && $ghnShippingInfo['status'] === 'delivered') {
+            $order->order_status = 'delivered';
+        }
+        $order->shipping_status = $ghnShippingInfo['status'] ?? 'pending';
+        $order->save();
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
@@ -311,7 +318,26 @@ class OrderController extends Controller
                 ]);
                 return $this->errorResponse('Tạo đơn hàng GHN thất bại: ' . (isset($ghnResponse['message']) ? $ghnResponse['message'] : json_encode($ghnResponse)), null, 500);
             }
+            if ($ghnResponse['data']['order_code']) {
+                $token = env('GHN_TOKEN');
+                $shopId = env('GHN_SHOP_ID');
+
+                $res = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Token' => $token,
+                    'ShopId' => $shopId,
+                ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail', [
+                    'order_code' => $ghnResponse['data']['order_code']
+                ]);
+
+                if ($res->successful() && isset($res['data'])) {
+                    $ghnShippingInfo = $res['data'];
+                    $shippingStatus = $ghnShippingInfo['status'] ?? null;
+                }
+            }
             $order->order_code = $ghnResponse['data']['order_code'];
+            $order->shipping_status = $shippingStatus;
+            $order->use_shipping_status = 1;
             $order->save();
         }
 

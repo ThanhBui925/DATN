@@ -3,6 +3,9 @@ import {useShow, useUpdate} from "@refinedev/core";
 import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message} from "antd";
 import {useState} from "react";
 import {convertToInt} from "../../../helpers/common";
+import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
+import {statusMap} from "../../../types/OrderStatusInterface";
+import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 
 const {Title, Text} = Typography;
 
@@ -25,29 +28,6 @@ export const OrdersShow = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const {mutate} = useUpdate();
-
-    const statusMap: Record<string, { color: string; label: string }> = {
-        confirming: {color: "gold", label: "Đang xác nhận"},
-        confirmed: {color: "blue", label: "Đã xác nhận"},
-        preparing: {color: "orange", label: "Đang chuẩn bị"},
-        shipping: {color: "cyan", label: "Đang giao hàng"},
-        delivered: {color: "green", label: "Đã giao hàng"},
-        completed: {color: "purple", label: "Hoàn tất"},
-        canceled: {color: "red", label: "Đã hủy"},
-        pending: {color: "default", label: "Chờ xử lý"},
-    };
-
-    const paymentStatusMap: Record<string, { color: string; label: string }> = {
-        unpaid: {color: "red", label: "Chưa thanh toán"},
-        paid: {color: "green", label: "Đã thanh toán"},
-    };
-
-    const paymentMethodMap: Record<string, { label: string; color: string }> = {
-        cash: {label: "Tiền mặt", color: "gold"},
-        card: {label: "Thẻ tín dụng", color: "purple"},
-        paypal: {label: "PayPal", color: "blue"},
-        vnpay: {label: "VNPay", color: "red"}
-    };
 
     const handleUpdateStatus = () => {
         setIsModalVisible(true);
@@ -196,7 +176,7 @@ export const OrdersShow = () => {
                                     <div style={{marginTop: 8}}>
                                         {record?.order_status ? (
                                             <Tag
-                                                color={statusMap[record.order_status]?.color}
+                                                color={statusMap[record.order_status]?.cssColor}
                                                 style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                             >
                                                 {statusMap[record.order_status]?.label || record.order_status}
@@ -221,24 +201,6 @@ export const OrdersShow = () => {
                                     )
                                 }
                                 <Col xs={24} sm={12}>
-                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
-                                    <div style={{marginTop: 8}}>
-                                        {record?.payment_status ? (
-                                            <Tag
-                                                color={paymentStatusMap[record.payment_status]?.color}
-                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
-                                            >
-                                                {paymentStatusMap[record.payment_status]?.label || record.payment_status}
-                                            </Tag>
-                                        ) : (
-                                            <TextField
-                                                value="-"
-                                                style={{display: "block", fontSize: 16, color: "#262626"}}
-                                            />
-                                        )}
-                                    </div>
-                                </Col>
-                                <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Phương thức thanh toán</Text>
                                     <div style={{marginTop: 8}}>
                                         {record?.payment_method ? (
@@ -256,6 +218,47 @@ export const OrdersShow = () => {
                                         )}
                                     </div>
                                 </Col>
+                                
+                                {/*<Col xs={24} sm={12}>*/}
+                                {/*    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái giao hàng</Text>*/}
+                                {/*    <div style={{marginTop: 8}}>*/}
+                                {/*        {record?.order_status ? (*/}
+                                {/*            <Tag*/}
+                                {/*                color={statusMap[record.order_status]?.color}*/}
+                                {/*                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}*/}
+                                {/*            >*/}
+                                {/*                {statusMap[record.order_status]?.label || record.order_status}*/}
+                                {/*            </Tag>*/}
+                                {/*        ) : (*/}
+                                {/*            <TextField*/}
+                                {/*                value="Không có trạng thái"*/}
+                                {/*                style={{display: "block", fontSize: 16, color: "#262626"}}*/}
+                                {/*            />*/}
+                                {/*        )}*/}
+                                {/*    </div>*/}
+                                {/*</Col>*/}
+
+                                <Col xs={24} sm={12}>
+                                    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
+                                    <div style={{marginTop: 8}}>
+                                        {record?.payment_status ? (
+                                            <Tag
+                                                color={paymentStatusMap[record.payment_status]?.color}
+                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                            >
+                                                {paymentStatusMap[record.payment_status]?.label || record.payment_status}
+                                            </Tag>
+                                        ) : (
+                                            <TextField
+                                                value="-"
+                                                style={{display: "block", fontSize: 16, color: "#262626"}}
+                                            />
+                                        )}
+                                    </div>
+                                </Col>
+                                
+
+                                
                             </Row>
                         </Card>
                     </Col>
@@ -341,7 +344,7 @@ export const OrdersShow = () => {
                                         render={(variant) =>
                                             variant ? (
                                                 <TextField
-                                                    value={`${variant.size?.name || ""} ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
+                                                    value={`${variant.size?.name || ""} - ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
                                                     style={{fontSize: 14, color: "#262626"}}
                                                 />
                                             ) : (
@@ -398,14 +401,55 @@ export const OrdersShow = () => {
                 <Row style={{ display: 'flex', justifyContent: "end"}}>
                     <Col xs={24} md={8}>
                         <Card title={<Title level={4} style={{margin: 0}}>Tổng tiền đơn hàng</Title>} style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
-                            <TextField
-                                value={
-                                    record?.total_price
-                                        ? `${convertToInt(record.total_price)} VNĐ`
-                                        : "0.00 VNĐ"
-                                }
-                                style={{display: "block", fontSize: 16, color: "#262626"}}
-                            />
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}> Tiền hàng:</span>
+                                <TextField
+                                    value={
+                                        record?.total_price
+                                            ? `${convertToInt(record.total_price)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}> Phí vận chuyển:</span>
+                                <TextField
+                                    value={
+                                        record?.shipping_fee
+                                            ? `${convertToInt(record.shipping_fee)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, color: "#262626", whiteSpace: "nowrap" }}>Giảm giá:</span>
+                                <TextField
+                                    value={
+                                        record?.discount_amount
+                                            ? `${convertToInt(record.discount_amount)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 16, color: "#262626" }}
+                                />
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <h3 style={{ fontSize: 20, color: "#ff0000ff", whiteSpace: "nowrap", margin: 0 }}>
+                                    Thành tiền:
+                                </h3>
+                                <TextField
+                                    value={
+                                        record?.final_amount
+                                            ? `${convertToInt(record.final_amount)} VNĐ`
+                                            : "0.00 VNĐ"
+                                    }
+                                    style={{ fontSize: 20, color: "#ff0000ff" }}
+                                />
+                            </div>
+
+
                         </Card>
                     </Col>
                 </Row>
