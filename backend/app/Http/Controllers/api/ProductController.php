@@ -349,6 +349,9 @@ class ProductController extends Controller
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
+        if ($product->orderItems()->exists()) {
+            return $this->errorResponse('Không thể xóa sản phẩm này vì sản phẩm đã có trong đơn hàng', 400);
+        }
 
         DB::beginTransaction();
         try {
