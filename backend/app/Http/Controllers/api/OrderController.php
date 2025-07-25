@@ -116,11 +116,27 @@ class OrderController extends Controller
                 'order_code' => $order->order_code
             ]);
 
+            $ghnShippingInfo = null;
+            $shippingStatus = null;
+
             if ($res->successful() && isset($res['data'])) {
                 $ghnShippingInfo = $res['data'];
                 $shippingStatus = $ghnShippingInfo['status'] ?? null;
             }
+
+            if ($shippingStatus === 'delivered' && $order->order_status !== 'delivered') {
+                $order->shipping_status = $shippingStatus;
+
+                if ($shippingStatus === 'delivered') {
+                    $order->order_status = 'delivered';
+                    $order->use_shipping_status = 0;
+                }
+
+                $order->save();
+            }
         }
+        $status = $order->use_shipping_status == 1 ? $order->shipping_status : $order->order_status;
+
 
         $result = [
             'id' => $order->id,
@@ -179,16 +195,12 @@ class OrderController extends Controller
                     'price' => $item->price,
                 ];
             }),
-            'shipping_status' => $ghnShippingInfo['status'] ?? null,
+            'status' => $status,
             'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
-        if (isset($ghnShippingInfo['status']) && $ghnShippingInfo['status'] === 'delivered') {
-            $order->order_status = 'delivered';
-        }
-        $order->shipping_status = $ghnShippingInfo['status'] ?? 'pending';
-        $order->save();
+        
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }

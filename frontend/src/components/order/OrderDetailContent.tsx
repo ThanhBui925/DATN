@@ -346,7 +346,7 @@ export const OrderDetailContent = () => {
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
                             <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Mua Lại</button>
-                            {["pending", "confirming", "confirmed"].includes(order.order_status) && (
+                            {["pending", "preparing", "confirmed"].includes(order.order_status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">

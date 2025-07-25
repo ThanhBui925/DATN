@@ -368,11 +368,24 @@ class OrderController extends Controller
                 $ghnShippingInfo = $res['data'];
                 $shippingStatus = $ghnShippingInfo['status'] ?? null;
             }
+
+            if ($shippingStatus) {
+                $order->shipping_status = $shippingStatus;
+
+                if ($shippingStatus === 'delivered' && $order->order_status !== 'delivered') {
+                    $order->order_status = 'delivered';
+                    $order->use_shipping_status = 0;
+                }
+
+                $order->save();
+            }
         }
 
         $leadtime = $ghnShippingInfo['leadtime_order'] ?? null;
 
         $leadtimeData = null;
+
+        $status = $order->use_shipping_status == 1 ? $order->shipping_status : $order->order_status;
 
         if (!empty($leadtime['delivered_date'])) {
             $leadtimeData = [
@@ -459,17 +472,11 @@ class OrderController extends Controller
                 return $carry + ($item->price * $item->quantity);
             }, 0),
             // Gắn kết quả từ GHN
-            'status' => $this->resolveStatus($order->order_status, $shippingStatus),
+            'status' => $status,
             'leadtime_order' => $leadtimeData,
             'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
             'date_order' => $order->date_order,
         ];
-
-        $status = $this->resolveStatus($order->order_status, $shippingStatus);
-        if ($status === 'delivered' && $order->order_status !== 'delivered') {
-            $order->order_status = 'delivered';
-            $order->save();
-        }
             
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
