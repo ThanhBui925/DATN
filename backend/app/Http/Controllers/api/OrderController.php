@@ -184,10 +184,10 @@ class OrderController extends Controller
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
         ];
-        if($ghnShippingInfo['status'] === 'delivered') {
+        if (isset($ghnShippingInfo['status']) && $ghnShippingInfo['status'] === 'delivered') {
             $order->order_status = 'delivered';
         }
-        $order->shipping_status = $ghnShippingInfo['status'];
+        $order->shipping_status = $ghnShippingInfo['status'] ?? 'pending';
         $order->save();
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
