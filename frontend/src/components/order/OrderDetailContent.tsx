@@ -1,8 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {useEffect, useState, useRef} from "react";
 import {useParams, Link, useSearchParams} from "react-router-dom";
-import { axiosInstance } from "../../utils/axios";
-import { convertDate, convertToInt } from "../../helpers/common";
+import {axiosInstance} from "../../utils/axios";
+import {convertDate, convertToInt} from "../../helpers/common";
 import {notification} from "antd";
+import {statusMap} from "../../types/OrderStatusInterface";
+import {paymentMethodMap} from "../../types/PaymentMethodMap";
+
 interface Product {
     id: number;
     name: string;
@@ -84,26 +87,8 @@ interface Order {
     picked_date: string | null;
 }
 
-const statusMap: Record<string, { color: string; label: string }> = {
-    confirming: { color: "#E6F3FF", label: "Đang xác nhận" },
-    confirmed: { color: "#3B82F6", label: "Đã xác nhận" },
-    preparing: { color: "#E5E7EB", label: "Đang chuẩn bị" },
-    shipping: { color: "#FEF3C7", label: "Đang giao hàng" },
-    delivered: { color: "#DCFCE7", label: "Đã giao hàng" },
-    completed: { color: "#22C55E", label: "Hoàn thành" },
-    canceled: { color: "#FECACA", label: "Đã hủy" },
-    pending: { color: "#DBEAFE", label: "Chờ xác nhận" },
-};
-
-const paymentMethodMap: Record<string, { label: string; color: string }> = {
-    cash: { label: "Tiền mặt", color: "#FFD700" },
-    card: { label: "Thẻ tín dụng", color: "#800080" },
-    paypal: { label: "PayPal", color: "#0070BA" },
-    vnpay: { label: "VNPay", color: "#FF0000" },
-};
-
 export const OrderDetailContent = () => {
-    const { orderId } = useParams<{ orderId: string }>();
+    const {orderId} = useParams<{ orderId: string }>();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -137,14 +122,14 @@ export const OrderDetailContent = () => {
         const showMsg = queryParams.get('showMsg');
 
         if (showMsg === '1') {
-            notification.success({ message: "Thanh toán thành công, đơn hàng đã được xác nhận" });
+            notification.success({message: "Thanh toán thành công, đơn hàng đã được xác nhận"});
         } else if (showMsg === '0') {
-            notification.error({ message: "Thanh toán thất bại, đơn hàng đã tự động hủy" });
+            notification.error({message: "Thanh toán thất bại, đơn hàng đã tự động hủy"});
         }
     }, [queryParams]);
 
     const openReviewModal = (productId: number, productName: string) => {
-        setSelectedProduct({ productId, productName });
+        setSelectedProduct({productId, productName});
         setRating(0);
         setComment("");
         setReviewError(null);
@@ -182,7 +167,7 @@ export const OrderDetailContent = () => {
                 comment,
                 order_id: order?.id,
             });
-            notification.success({ message: "Gửi đánh giá thành công !"})
+            notification.success({message: "Gửi đánh giá thành công !"})
             if (closeButtonRef.current) {
                 closeButtonRef.current.click();
             }
@@ -201,7 +186,8 @@ export const OrderDetailContent = () => {
     return (
         <div className="col-12 col-lg-10">
             <div className="card shadow-lg border-0 rounded-3 overflow-hidden">
-                <div className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                <div
+                    className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
                     <div className="d-flex flex-column">
                         <h5 className="fw-bold mb-1 text-dark">Chi tiết đơn hàng #{order.id}</h5>
                         <span className="text-muted small">Đặt ngày: {convertDate(order.date_order)}</span>
@@ -221,12 +207,12 @@ export const OrderDetailContent = () => {
                         <span
                             className="badge text-white fw-semibold"
                             style={{
-                                backgroundColor: statusMap[order.order_status]?.color || "#6B7280",
+                                backgroundColor: statusMap[order.status]?.cssColor || "#6B7280",
                                 padding: "0.5em 1em",
                                 fontSize: "0.9em",
                             }}
                         >
-              {statusMap[order.order_status]?.label || "Không xác định"}
+              {statusMap[order.status]?.label || "Không xác định"}
             </span>
                     </div>
                 </div>
@@ -254,20 +240,24 @@ export const OrderDetailContent = () => {
                             </div>
                             <div className="col-md-6">
                                 <div className="bg-light p-3 rounded">
-                                    <p className="mb-1"><strong>Đơn vị vận chuyển:</strong> {order.shipping_name || "N/A"}</p>
-                                    <p className="mb-0"><strong>Ngày xuất kho:</strong> {convertDate(order.picked_date) || "N/A"}</p>
+                                    <p className="mb-1"><strong>Đơn vị vận
+                                        chuyển:</strong> {order.shipping_name || "N/A"}</p>
+                                    <p className="mb-0"><strong>Ngày xuất
+                                        kho:</strong> {convertDate(order.picked_date) || "N/A"}</p>
                                     <p className="mb-1">
                                         <strong>Ngày giao hàng:</strong>{" "}
                                         {
                                             order.leadtime_order?.delivered_date
-                                            ? `Đã giao: ${convertDate(order.leadtime_order.delivered_date)}`
-                                            : (order.leadtime_order?.from_estimate_date && order.leadtime_order?.to_estimate_date
-                                                ? <>
-                                                    Dự kiến: {new Date(order.leadtime_order.from_estimate_date).toLocaleDateString('vi-VN')} - {new Date(order.leadtime_order.to_estimate_date).toLocaleDateString('vi-VN')}
-                                                    <br />
-                                                    <i>* Lưu ý: Thời gian giao hàng thực tế có thể sau ngày dự kiến</i>
-                                                   </>
-                                                : "Chưa có thông tin giao hàng"
+                                                ? `Đã giao: ${convertDate(order.leadtime_order.delivered_date)}`
+                                                : (order.leadtime_order?.from_estimate_date && order.leadtime_order?.to_estimate_date
+                                                        ? <>
+                                                            Dự
+                                                            kiến: {new Date(order.leadtime_order.from_estimate_date).toLocaleDateString('vi-VN')} - {new Date(order.leadtime_order.to_estimate_date).toLocaleDateString('vi-VN')}
+                                                            <br/>
+                                                            <i>* Lưu ý: Thời gian giao hàng thực tế có thể sau ngày dự
+                                                                kiến</i>
+                                                        </>
+                                                        : "Chưa có thông tin giao hàng"
                                                 )
                                         }
                                     </p>
@@ -300,7 +290,7 @@ export const OrderDetailContent = () => {
                                                     src={item.product.image || "/path/to/fallback-image.jpg"}
                                                     alt={item.product.name}
                                                     className="rounded"
-                                                    style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                                                    style={{width: "60px", height: "60px", objectFit: "cover"}}
                                                 />
                                                 <span className="fw-medium">{item.product.name}</span>
                                             </div>
@@ -330,11 +320,13 @@ export const OrderDetailContent = () => {
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 border-top pt-3">
                         <div>
                             <h6 className="fw-bold mb-1 text-dark">
-                                Tạm Tính: <span className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
+                                Tạm Tính: <span
+                                className="text-original-base fs-4">{convertToInt(order.subtotal)} ₫</span>
                             </h6>
                             {order.shipping_fee && (
                                 <p className="text-muted small mb-1">
-                                    Phí vận chuyển: <span className="text-danger">{convertToInt(order.shipping_fee)} ₫</span>
+                                    Phí vận chuyển: <span
+                                    className="text-danger">{convertToInt(order.shipping_fee)} ₫</span>
                                 </p>
                             )}
                             {order.voucher_code && order.discount_amount && (
@@ -344,7 +336,8 @@ export const OrderDetailContent = () => {
                                 </p>
                             )}
                             <h6 className="fw-bold mb-1 text-dark">
-                                Tổng Cộng: <span className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
+                                Tổng Cộng: <span
+                                className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
                             </h6>
                             <p className="text-muted small mb-0">
                                 Thanh toán: {paymentMethodMap[order.payment_method]?.label || "Không xác định"} (
@@ -378,7 +371,7 @@ export const OrderDetailContent = () => {
                 tabIndex={-1}
                 aria-labelledby="reviewModalLabel"
                 aria-hidden={!isReviewModalOpen}
-                style={{ display: isReviewModalOpen ? "block" : "none" }}
+                style={{display: isReviewModalOpen ? "block" : "none"}}
             >
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
