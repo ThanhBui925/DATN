@@ -5,24 +5,30 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select, Row, Col, Input, DatePicker, message } from "antd";
+import {
+    Breadcrumb,
+    Space,
+    Table,
+    Tag,
+    Button,
+    Modal,
+    Form,
+    Select,
+    Row,
+    Col,
+    Input,
+    DatePicker,
+    message,
+    notification
+} from "antd";
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
 import { convertToInt } from "../../../helpers/common";
-import {statusMap} from "../../../types/OrderStatusInterface";
+import {statusMap, validTransitions} from "../../../types/OrderStatusInterface";
 import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
 import {paymentMethodMap} from "../../../types/PaymentMethodMap";
-
-const validTransitions: Record<string, string[]> = {
-    pending: ["confirmed", "canceled"],
-    confirmed: ["preparing", "canceled"],
-    preparing: ["shipping", "canceled"],
-    shipping: ["delivered", "canceled"],
-    delivered: ["completed"],
-    completed: [],
-    canceled: [],
-};
+import {axiosInstance} from "../../../utils/axios";
 
 export const OrdersList = () => {
     const { tableProps, setFilters } = useTable({
@@ -49,7 +55,7 @@ export const OrdersList = () => {
 
     const handleModalOk = () => {
         form.validateFields()
-            .then((values) => {
+            .then(async (values) => {
                 if (!selectedOrder) {
                     message.error("Không tìm thấy đơn hàng!");
                     return;
@@ -61,20 +67,22 @@ export const OrdersList = () => {
                     return;
                 }
 
-                return mutate(
-                    {
-                        resource: "orders",
-                        id: Number(selectedOrder.id),
-                        values: { order_status: values.order_status },
-                    },
-                    {
-                        onSuccess: () => {
-                            setIsModalVisible(false);
-                            form.resetFields();
-                            setSelectedOrder(null);
-                        }
+                try {
+                    const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, {
+                        order_status: values.order_status,
+                    });
+                    if (response?.data?.status == "false") {
+                        return notification.error({ message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại"});
                     }
-                );
+
+                    setIsModalVisible(false);
+                    form.resetFields();
+                    setSelectedOrder(null);
+                    notification.success({ message: response?.data?.message || "Cập nhật đơn hàng thành công !"});
+                } catch (error) {
+                    console.error("Cập nhật thất bại:", error);
+                    notification.error({ message: "Cập nhật đơn hàng thất bại"});
+                }
             })
             .catch(() => {
                 message.error("Vui lòng kiểm tra lại thông tin!");
@@ -171,7 +179,14 @@ export const OrdersList = () => {
                         </Col>
                     </Row>
                 </Form>
-                <Table {...tableProps} rowKey="id">
+                <Table {...tableProps} rowKey="id" rowClassName={(record) => {
+                    if (record.order_status === "completed" && record.payment_status === "paid") {
+                        return "bg-green-100";
+                    } else if (record.order_status === "canceled") {
+                        return "bg-red-100";
+                    }
+                    return "";
+                }}>
                     <Table.Column
                         title="STT"
                         key="index"
