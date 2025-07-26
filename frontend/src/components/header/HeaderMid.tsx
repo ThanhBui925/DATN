@@ -68,7 +68,7 @@ export const HeaderMid = () => {
         e.preventDefault();
         const query = new URLSearchParams();
         if (searchTerm) query.set("search", searchTerm);
-        if (selectedCategory) query.set("category", selectedCategory);
+        if (selectedCategory) query.set("category_id", selectedCategory);
         navigate(`/danh-muc-san-pham?${query.toString()}`);
     };
 
@@ -90,9 +90,9 @@ export const HeaderMid = () => {
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-lg-3 col md-custom-12">
-                        <div className="logo">
+                        <div className="logo logo_header_mid">
                             <Link to="/trang-chu">
-                                <img src="/img/logo/logo.png" alt=""/>
+                                <img style={{ width: 120, height: 50 }} src="/img/logo/logo.png" alt=""/>
                             </Link>
                         </div>
                     </div>

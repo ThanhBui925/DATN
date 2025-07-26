@@ -21,7 +21,7 @@ export const Shop = () => {
                 <div className="container-fluid">
                     <div className="row">
                         <Sidebar />
-                        <ProductList search={search} category={category} />
+                        <ProductList search={search}/>
                     </div>
                 </div>
             </div>

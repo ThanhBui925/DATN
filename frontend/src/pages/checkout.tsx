@@ -500,7 +500,7 @@ export const Checkout = () => {
                         <div className="col-lg-12">
                             <div className="d-flex gap-4">
                                 <a className={`d-sm-block d-none`} href="/trang-chu">
-                                    <img className={`mt-2`} src="/img/logo/logo.png" alt=""/>
+                                    <img className={`mt-2`} style={{ height: 50 }} src="/img/logo/logo.png" alt=""/>
                                 </a>
                                 <h1 className="cE_Tbx text-original-base">Thanh toán</h1>
                             </div>

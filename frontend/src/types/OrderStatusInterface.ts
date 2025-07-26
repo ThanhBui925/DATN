@@ -169,6 +169,12 @@ export const statusMap: Record<
         twColor: "bg-cyan-500 text-white",
         label: "Đã hoàn tiền",
     },
+    canceled: {
+        cssColor: "#ef4444",
+        bsColor: "danger",
+        twColor: "bg-red-500 text-white",
+        label: "Đã huỷ",
+    },
 };
 
 export const validTransitions: Record<string, string[]> = {
