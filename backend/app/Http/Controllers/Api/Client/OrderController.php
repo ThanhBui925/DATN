@@ -35,31 +35,57 @@ class OrderController extends Controller
      * Lấy danh sách đơn hàng của user hiện tại
      */
     public function index(Request $request)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-        if (!$user) {
-            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
-        }
-
-        $query = Order::where('user_id', $user->id)
-            ->with(['customer', 'shipping', 'orderItems.product', 'orderItems.variant.size', 'orderItems.variant.color']);
-
-        // Lọc theo trạng thái
-        if ($request->has('status')) {
-            $query->where('order_status', $request->input('status'));
-        }
-
-        // Lọc theo ngày
-        if ($request->has('date')) {
-            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
-            $query->whereDate('created_at', $date);
-        }
-
-        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+    if (!$user) {
+        return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
     }
+
+    $query = Order::where('user_id', $user->id)
+        ->with([
+            'customer',
+            'shipping',
+            'user',
+            'orderItems.product',
+            'orderItems.variant.size',
+            'orderItems.variant.color',
+        ]);
+
+    // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
+    if ($request->has('status')) {
+        $query->where(function ($q) use ($request) {
+            $q->where(function ($sub) use ($request) {
+                $sub->where('use_shipping_status', 1)
+                    ->where('shipping_status', $request->input('status'));
+            })->orWhere(function ($sub) use ($request) {
+                $sub->where('use_shipping_status', 0)
+                    ->where('order_status', $request->input('status'));
+            });
+        });
+    }
+
+    // Lọc theo ngày nếu có
+    if ($request->has('date')) {
+        $date = Carbon::parse($request->input('date'))->format('Y-m-d');
+        $query->whereDate('created_at', $date);
+    }
+
+    $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+
+    // Thêm trường `status` dựa vào use_shipping_status trong từng đơn hàng
+    $orders->getCollection()->transform(function ($order) {
+        $order->status = $order->use_shipping_status
+            ? $order->shipping_status
+            : $order->order_status;
+        return $order;
+    });
+
+    return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+}
+
+
+
 
     /**
      * Tạo đơn hàng mới
@@ -137,7 +163,8 @@ class OrderController extends Controller
                 'shipping_fee'      => $shippingFee,
                 'final_amount'      => 0,
                 'shipping_status' => 'pending',
-                'use_shipping_status' => 1
+                'use_shipping_status' => 0,
+                
 
             ]);
 
