@@ -372,7 +372,7 @@ class OrderController extends Controller
             if ($shippingStatus) {
                 $order->shipping_status = $shippingStatus;
 
-                if ($shippingStatus === 'delivered' && $order->order_status !== 'delivered') {
+                if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
                     $order->use_shipping_status = 0;
                 }
