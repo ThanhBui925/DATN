@@ -65,6 +65,7 @@ class VNPayController extends Controller
             $order->payment_status = 'failed';
             $order->payment_method = 'vnpay';
             $order->order_status = 'canceled';
+            $order->use_shipping_status = 0;
             $order->cancel_reason = 'Thanh toán thất bại qua VNPay';
             $order->save();
             return redirect()->away("http://localhost:3000/chi-tiet-don-hang/{$order->id}?showMsg=0");
