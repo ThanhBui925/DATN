@@ -90,7 +90,7 @@ export const HeaderMid = () => {
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-lg-3 col md-custom-12">
-                        <div className="logo" style={{ margin: "35px 0"}}>
+                        <div className="logo logo_header_mid">
                             <Link to="/trang-chu">
                                 <img style={{ width: 120, height: 50 }} src="/img/logo/logo.png" alt=""/>
                             </Link>

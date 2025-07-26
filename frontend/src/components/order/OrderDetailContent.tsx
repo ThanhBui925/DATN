@@ -276,7 +276,7 @@ export const OrderDetailContent = () => {
                                     <th scope="col" className="fw-medium text-center">Phân loại</th>
                                     <th scope="col" className="fw-medium text-center">Số lượng</th>
                                     <th scope="col" className="fw-medium text-end">Giá</th>
-                                    {order.order_status === "completed" && (
+                                    {order.status === "completed" && (
                                         <th scope="col" className="fw-medium text-end">Đánh giá</th>
                                     )}
                                 </tr>
@@ -298,7 +298,7 @@ export const OrderDetailContent = () => {
                                         <td className="text-center">{item.variant?.size?.name}, {item.variant?.color?.name}</td>
                                         <td className="text-center">{item.quantity}</td>
                                         <td className="text-end fw-bold text-original-base">{convertToInt(item.price)}₫</td>
-                                        {order.order_status === "completed" && !item.is_review && (
+                                        {order.status === "completed" && !item.is_review && (
                                             <td className="text-end">
                                                 <button
                                                     className="btn btn-outline-success btn-sm px-4 fw-medium"
@@ -346,7 +346,7 @@ export const OrderDetailContent = () => {
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
                             <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Mua Lại</button>
-                            {["pending", "preparing", "confirmed"].includes(order.order_status) && (
+                            {["pending", "preparing", "confirmed"].includes(order.status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
