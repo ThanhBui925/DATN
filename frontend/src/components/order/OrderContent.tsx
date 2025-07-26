@@ -105,14 +105,14 @@ export const OrderContent: React.FC = () => {
 
     const tabs = {
         all: () => true,
-        pending: (order: Order) => order.order_status === 'pending',
-        confirming: (order: Order) => order.order_status === 'confirming',
-        confirmed: (order: Order) => order.order_status === 'confirmed',
-        preparing: (order: Order) => order.order_status === 'preparing',
-        shipping: (order: Order) => !internalStatuses.includes(order.order_status),
-        delivered: (order: Order) => order.order_status === 'delivered',
-        completed: (order: Order) => order.order_status === 'completed',
-        canceled: (order: Order) => order.order_status === 'canceled',
+        pending: (order: any) => order.status === 'pending',
+        confirming: (order: any) => order.status === 'confirming',
+        confirmed: (order: any) => order.status === 'confirmed',
+        preparing: (order: any) => order.status === 'preparing',
+        shipping: (order: any) => !internalStatuses.includes(order.status),
+        delivered: (order: any) => order.status === 'delivered',
+        completed: (order: any) => order.status === 'completed',
+        canceled: (order: any) => order.status === 'canceled',
     };
 
     const filteredOrders = orders.filter(tabs[activeTab as keyof typeof tabs] || tabs.all);
@@ -179,7 +179,7 @@ export const OrderContent: React.FC = () => {
                             placeholder="Bạn có thể tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
                         />
                     </div>
-                    {filteredOrders.map((order) => (
+                    {filteredOrders.map((order: any) => (
                         <div key={order.id} className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden">
                             <div className="card-header bg-white py-2 px-4 d-flex justify-content-between align-items-center border-bottom">
                                 <div className="d-flex align-items-center gap-2">
@@ -201,12 +201,12 @@ export const OrderContent: React.FC = () => {
                                     <span
                                         className="badge text-white fw-semibold"
                                         style={{
-                                            backgroundColor: statusMap[order.order_status]?.cssColor || "#6B7280",
+                                            backgroundColor: statusMap[order.status]?.cssColor || "#6B7280",
                                             padding: "0.5em 1em",
                                             fontSize: "0.9em",
                                         }}
                                     >
-                    {statusMap[order.order_status]?.label || "Không xác định"}
+                    {statusMap[order.status]?.label || "Không xác định"}
                   </span>
                                 </div>
                             </div>
