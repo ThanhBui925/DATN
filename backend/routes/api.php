@@ -46,6 +46,8 @@ Route::prefix('client')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
     });
+    Route::get('/products/{id}/reviews', [ClientProductController::class, 'getReviewsByProduct']);
+
 
     Route::middleware('auth:sanctum')->post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
 
