@@ -4,21 +4,10 @@ import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card,
 import {useState} from "react";
 import {convertToInt} from "../../../helpers/common";
 import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
-import {statusMap} from "../../../types/OrderStatusInterface";
+import {statusMap, validTransitions} from "../../../types/OrderStatusInterface";
 import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 
 const {Title, Text} = Typography;
-
-const validTransitions: Record<string, string[]> = {
-    pending: ["confirming", "canceled"],
-    confirming: ["confirmed", "canceled"],
-    confirmed: ["preparing", "canceled"],
-    preparing: ["shipping", "canceled"],
-    shipping: ["delivered", "canceled"],
-    delivered: ["completed"],
-    completed: [],
-    canceled: [],
-};
 
 export const OrdersShow = () => {
     const {queryResult} = useShow({});

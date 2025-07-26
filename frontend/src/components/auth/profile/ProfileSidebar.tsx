@@ -1,16 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import { TOKEN_KEY } from "../../../providers/authProvider";
 import { axiosInstance } from "../../../utils/axios";
 import { notification } from "antd";
 
 export const ProfileSidebar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const handleLogout = async () => {
         try {
             const res = await axiosInstance.post('/api/logout');
             if (res.data.status) {
                 localStorage.removeItem(TOKEN_KEY);
                 notification.success({ message: "Đăng xuất thành công" });
+                navigate("/dang-nhap");
             } else {
                 notification.error({ message: "Không thể đăng xuất" });
             }
