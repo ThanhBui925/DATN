@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { notification } from "antd";
 import { axiosInstance } from "../../utils/axios";
 import { TOKEN_KEY } from "../../providers/authProvider";
@@ -12,6 +12,7 @@ export const HeaderTop = () => {
     const isAuth = !!localStorage.getItem(TOKEN_KEY);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (isAuth) {
@@ -37,10 +38,11 @@ export const HeaderTop = () => {
     const handleLogout = async () => {
         try {
             const res = await axiosInstance.post("/api/logout");
-            if (res.data.success) {
+            if (res.data.status) {
                 localStorage.removeItem(TOKEN_KEY);
                 setProfile(null); // Reset profile sau khi đăng xuất
                 notification.success({ message: "Đăng xuất thành công" });
+                navigate("/dang-nhap");
             } else {
                 notification.error({ message: "Không thể đăng xuất" });
             }

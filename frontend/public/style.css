@@ -4031,3 +4031,8 @@ thead {
     width: 250px;
   }
 }
+@media (min-width: 1201px) {
+  .logo_header_mid {
+    margin: 30px 0 !important;
+  }
+}

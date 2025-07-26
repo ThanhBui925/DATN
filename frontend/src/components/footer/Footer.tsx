@@ -7,7 +7,7 @@ export const Footer = () => {
                         <div className="col-lg-4 col-md-12">
                             <div className="about-us-footer">
                                 <div className="footer-logo">
-                                    <a href="#"><img src="img/logo/logo_footer.png" alt=""/></a>
+                                    <a href="#"><img style={{ height: 140 }} src="img/logo/logo.png" alt=""/></a>
                                 </div>
                                 <div className="footer-info">
                                     <p className="phone">012 3456 789</p>

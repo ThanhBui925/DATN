@@ -38,14 +38,18 @@ class UpdateOrderStatusRequest extends FormRequest
     }
 
     protected $validTransitions = [
-        'pending' => ['confirmed', 'canceled'],
-        'confirmed' => ['preparing', 'canceled'],
-        'preparing' => ['shipping', 'canceled'],
-        'shipping' => ['delivered', 'canceled'],
-        'delivered' => ['completed'],
-        'completed' => [],
-        'canceled' => [],
+        'pending'    => ['confirmed', 'canceled'],
+        'confirmed'  => ['preparing', 'canceled'],
+        'preparing'  => ['shipping', 'canceled'],
+        'shipping'   => ['delivered', 'failed', 'canceled'],
+        'delivered'  => ['completed'],
+        'failed'     => ['returned', 'canceled'],
+        'returned'   => ['canceled', 'refunded'],
+        'refunded'   => [],
+        'completed'  => [],
+        'canceled'   => [],
     ];
+
 
     public function withValidator($validator)
     {

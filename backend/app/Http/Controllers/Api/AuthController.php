@@ -99,4 +99,16 @@ class AuthController extends Controller
         }
         return $this->successResponse($user, 'success');
     }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $user->tokens()->delete();
+
+        return $this->successResponse(null, 'Đăng xuất thành công');
+    }
 }

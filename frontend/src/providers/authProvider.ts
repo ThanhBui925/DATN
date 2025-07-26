@@ -45,7 +45,7 @@ export const authProvider: AuthProvider = {
         localStorage.removeItem(TOKEN_KEY);
         try {
             const res = await axiosInstance.post('/api/logout')
-            if (res.data.success) {
+            if (res.data.status) {
                 localStorage.removeItem(TOKEN_KEY);
                 notification.success({message: "Đăng xuất thành công"})
                 return {
