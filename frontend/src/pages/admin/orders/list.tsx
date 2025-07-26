@@ -211,7 +211,7 @@ export const OrdersList = () => {
                     />
                     <Table.Column
                         title="Trạng thái đơn hàng"
-                        dataIndex="order_status"
+                        dataIndex="status"
                         render={(value: string) => {
                             const status = statusMap[value];
                             return status ? (
