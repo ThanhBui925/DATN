@@ -50,7 +50,7 @@ export const OrdersList = () => {
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
         setIsModalVisible(true);
-        form.setFieldsValue({ order_status: order.order_status });
+        form.setFieldsValue({ order_status: order.status });
     };
 
     const handleModalOk = () => {

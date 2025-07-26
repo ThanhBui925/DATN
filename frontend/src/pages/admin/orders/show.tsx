@@ -163,12 +163,12 @@ export const OrdersShow = () => {
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái đơn hàng</Text>
                                     <div style={{marginTop: 8}}>
-                                        {record?.order_status ? (
+                                        {record?.status ? (
                                             <Tag
-                                                color={statusMap[record.order_status]?.cssColor}
+                                                color={statusMap[record.status]?.cssColor}
                                                 style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                             >
-                                                {statusMap[record.order_status]?.label || record.order_status}
+                                                {statusMap[record.status]?.label || record.status}
                                             </Tag>
                                         ) : (
                                             <TextField
@@ -455,7 +455,7 @@ export const OrdersShow = () => {
             >
                 <Form form={form}
                       layout="vertical"
-                      initialValues={{order_status: record?.order_status}}>
+                      initialValues={{order_status: record?.status}}>
                     <Form.Item
                         name="order_status"
                         label="Trạng thái đơn hàng"
