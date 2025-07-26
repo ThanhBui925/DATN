@@ -50,7 +50,7 @@ export const OrdersList = () => {
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
         setIsModalVisible(true);
-        form.setFieldsValue({ order_status: order.order_status });
+        form.setFieldsValue({ order_status: order.status });
     };
 
     const handleModalOk = () => {
@@ -69,7 +69,7 @@ export const OrdersList = () => {
 
                 try {
                     const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, {
-                        order_status: values.order_status,
+                        order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status,
                     });
                     if (response?.data?.status == "false") {
                         return notification.error({ message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại"});
