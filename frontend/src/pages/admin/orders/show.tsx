@@ -34,7 +34,7 @@ export const OrdersShow = () => {
                 return mutate({
                     resource: "orders",
                     id: record?.id,
-                    values: {order_status: values.order_status},
+                    values: {order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status},
                 }, {
                     onSuccess: () => {
                         setIsModalVisible(false);
