@@ -1,30 +1,29 @@
-import {useEffect, useState} from "react";
-import {axiosInstance} from "../../utils/axios";
-import {Skeleton} from "antd";
-import {SingleProduct} from "../SingleProduct";
-import {SingleProductList} from "../SingleProductList";
-import emitter from "../../utils/eventBus";
+import { useEffect, useState } from "react";
+import { axiosInstance } from "../../utils/axios";
+import { Skeleton } from "antd";
+import { SingleProduct } from "../SingleProduct";
+import { SingleProductList } from "../SingleProductList";
 import { useSearchParams } from "react-router-dom";
 
+interface Product {
+    id: number;
+    [key: string]: any;
+}
 
-export const ProductList = ({search, category}: { search: any, category: any }) => {
-    const [recentTab, setRecentTab] = useState("grid_view");
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [filters, setFilters] = useState({
-        priceMin: null,
-        priceMax: null,
-        sizes: [],
-        colors: [],
-        categories: [],
-        sort: "trending",
-    });
+interface ProductListProps {
+    search: string;
+}
+
+export const ProductList = ({ search }: ProductListProps) => {
+    const [recentTab, setRecentTab] = useState<"grid_view" | "list_view">("grid_view");
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const [searchParams, setSearchParams] = useSearchParams();
     const productsPerPage = 9;
-    const [searchParams] = useSearchParams();
 
-    const changeTab = (tab: string) => {
+    const changeTab = (tab: "grid_view" | "list_view") => {
         setRecentTab(tab);
     };
 
@@ -35,17 +34,18 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
                 page,
                 limit: productsPerPage,
                 search: search || undefined,
-                category: category || undefined,
-                price_min: filters.priceMin || undefined,
-                price_max: filters.priceMax || undefined,
-                size: filters.sizes.length > 0 ? filters.sizes.join(",") : undefined,
-                color: filters.colors.length > 0 ? filters.colors.join(",") : undefined,
-                categories:
-                    filters.categories.length > 0 ? filters.categories.join(",") : undefined,
-                sort: filters.sort || undefined,
+                category_id: searchParams.getAll("category_id").join(",") || undefined,
+                size_id: searchParams.getAll("size_id").join(",") || undefined,
+                color_id: searchParams.getAll("color_id").join(",") || undefined,
+                price_min: searchParams.get("price_min") || undefined,
+                price_max: searchParams.get("price_max") || undefined,
+                sort: searchParams.get("sort") || "relevance",
             };
 
-            const res = await axiosInstance.get("/api/client/products", {params});
+            const res = await axiosInstance.get<{
+                data: Product[];
+                meta?: { totalPages: number };
+            }>("/api/client/products", { params });
             setProducts(res.data.data || []);
             setTotalPages(res.data.meta?.totalPages || 1);
         } catch (err) {
@@ -55,28 +55,17 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
         }
     };
 
-    const handleFilterChange = (newFilters: any) => {
-        setFilters((prev) => ({...prev, ...newFilters}));
-        setCurrentPage(1);
-    };
-
-    const handleSortChange = (e: any) => {
-        setFilters((prev) => ({...prev, sort: e.target.value}));
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        searchParams.set("sort", e.target.value);
+        setSearchParams(searchParams, { replace: true });
         setCurrentPage(1);
     };
 
     useEffect(() => {
         fetchProducts(currentPage);
-    }, [currentPage, search, category, filters, searchParams]);
+    }, [currentPage, search, searchParams]);
 
-    useEffect(() => {
-        emitter.on("filterChange", handleFilterChange);
-        return () => {
-            emitter.off("filterChange", handleFilterChange);
-        };
-    }, []);
-
-    const handlePageChange = (page: any) => {
+    const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
@@ -99,24 +88,23 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
                         </ul>
                     </div>
                     <div className="toolbar-amount">
-                        <span>
-                            Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
-                            {Math.min(currentPage * productsPerPage, products.length)} của{" "}
-                            {products.length} sản phẩm
-                        </span>
+            <span>
+              Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
+                {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm
+            </span>
                     </div>
                 </div>
                 <div className="product-select-box">
                     <div className="product-short">
                         <p>Sắp xếp theo:</p>
-                        <select className="nice-select" onChange={handleSortChange} value={filters.sort}>
-                            <option value="trending">Mức độ liên quan</option>
-                            <option value="sales">Tên (A - Z)</option>
-                            <option value="sales">Tên (Z - A)</option>
-                            <option value="rating">Giá (Thấp &gt; Cao)</option>
-                            <option value="date">Đánh giá (Thấp nhất)</option>
-                            <option value="price-asc">Mẫu (A - Z)</option>
-                            <option value="price-asc">Mẫu (Z - A)</option>
+                        <select className="nice-select" onChange={handleSortChange} value={searchParams.get("sort") || "relevance"}>
+                            <option value="relevance">Mức độ liên quan</option>
+                            <option value="name_asc">Tên (A - Z)</option>
+                            <option value="name_desc">Tên (Z - A)</option>
+                            <option value="price_asc">Giá (Thấp &gt; Cao)</option>
+                            <option value="price_desc">Giá (Cao &gt; Thấp)</option>
+                            <option value="rating_asc">Đánh giá (Thấp nhất)</option>
+                            <option value="rating_desc">Đánh giá (Cao nhất)</option>
                         </select>
                     </div>
                 </div>
@@ -128,11 +116,11 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
                             <div className="shop-product-area">
                                 <div className="row">
                                     {loading ? (
-                                        <Skeleton active/>
+                                        <Skeleton active />
                                     ) : products.length > 0 ? (
-                                        products.map((product: any) => (
+                                        products.map((product) => (
                                             <div className="col-xl-3 col-lg-4 col-md-4 col-6 mt-40" key={product.id}>
-                                                <SingleProduct product={product}/>
+                                                <SingleProduct product={product} />
                                             </div>
                                         ))
                                     ) : (
@@ -146,10 +134,10 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
                             <div className="row">
                                 <div className="col">
                                     {loading ? (
-                                        <Skeleton active/>
+                                        <Skeleton active />
                                     ) : products.length > 0 ? (
-                                        products.map((product: any) => (
-                                            <SingleProductList key={product.id} product={product}/>
+                                        products.map((product) => (
+                                            <SingleProductList key={product.id} product={product} />
                                         ))
                                     ) : (
                                         <p>Không có sản phẩm nào.</p>
@@ -177,7 +165,7 @@ export const ProductList = ({search, category}: { search: any, category: any }) 
                                             <i className="fa fa-chevron-left"></i> Trước
                                         </a>
                                     </li>
-                                    {Array.from({length: totalPages}, (_, i) => i + 1).map((page) => (
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                         <li key={page} className={currentPage === page ? "active" : ""}>
                                             <a
                                                 href="#"

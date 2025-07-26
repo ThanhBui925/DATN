@@ -9,7 +9,7 @@ export const Register = () => {
                         <div className="col-lg-12">
                             <div className="d-sm-flex gap-4 justify-content-sm-start">
                                 <a href="/trang-chu">
-                                    <img className={`mt-2`} src="/img/logo/logo.png" alt=""/>
+                                    <img className={`mt-2`} style={{ height: 50 }} src="/img/logo/logo.png" alt=""/>
                                 </a>
                                 <hr className={`d-block d-sm-none text-danger`}/>
                                 <h1 className="cE_Tbx text-original-base mt-2 mt-sm-0">Đăng ký</h1>
