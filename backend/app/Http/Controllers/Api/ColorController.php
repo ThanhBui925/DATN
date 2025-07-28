@@ -74,7 +74,7 @@ class ColorController extends Controller
 
         if ($hasVariants) {
             return response()->json([
-                'message' => 'Cannot delete color because it is used in variant products.'
+                'message' => 'Không thể xóa màu sắc này vì đã có sản phẩm sử dụng màu này.'
             ], 400);
         }
 

@@ -97,4 +97,69 @@ class StoreProductRequest extends FormRequest
             'errors' => $validator->errors(),
         ], 422));
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $variants = $this->input('variants', []);
+            $productName = $this->input('name');
+
+            // 1. Check trùng tên biến thể trong request
+            $names = collect($variants)->pluck('name');
+            if ($names->duplicates()->isNotEmpty()) {
+                throw new HttpResponseException(response()->json([
+                    'status' => false,
+                    'message' => 'Tên các biến thể không được trùng nhau.',
+                    'errors' => 422,
+                ], 422));
+            }
+
+            // 2. Check biến thể đã tồn tại trong DB với size + color + product
+            $existingProduct = \DB::table('products')
+                ->where('name', $productName)
+                ->first();
+
+            if ($existingProduct) {
+                $productId = $existingProduct->id;
+
+                foreach ($variants as $variant) {
+                    $exists = \DB::table('product_variants')
+                        ->where('product_id', $productId)
+                        ->where('size_id', $variant['size_id'])
+                        ->where('color_id', $variant['color_id'])
+                        ->exists();
+
+                    if ($exists) {
+                        throw new HttpResponseException(response()->json([
+                            'status' => false,
+                            'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
+                            'errors' => 422,
+                        ], 422));
+                    }
+                }
+            }
+        });
+    }
+
+
+    //Tồn tại size và color trong variants
+    public function checkVariantExistence($variants)
+    {
+        $sizeIds = collect($variants)->pluck('size_id')->unique();
+        $colorIds = collect($variants)->pluck('color_id')->unique();    
+        $sizesExist = \DB::table('sizes')->whereIn('id', $sizeIds)->exists();
+        $colorsExist = \DB::table('colors')->whereIn('id', $colorIds)->exists();
+        if (!$sizesExist) {
+            throw new HttpResponseException(response()->json([
+                'status' => false,
+                'message' => 'Một hoặc nhiều kích cỡ không tồn tại.',
+            ], 422));
+        }
+        if (!$colorsExist) {
+            throw new HttpResponseException(response()->json([
+                'status' => false,
+                'message' => 'Một hoặc nhiều màu sắc không tồn tại.',
+            ], 422));
+        }
+    }    
 }
