@@ -73,7 +73,7 @@ class SizeController extends Controller
         
         if ($hasVariants) {
             return response()->json([
-                'message' => 'Cannot delete size because it is used in variant products.'
+                'message' => 'Không thể xóa size này vì đã có sản phẩm sử dụng size này.'
             ], 400);
         }
 

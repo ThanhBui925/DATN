@@ -5,9 +5,12 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Support\Facades\DB;
 
 class UpdateProductRequest extends FormRequest
 {
+    use ApiResponseTrait;
     public function authorize(): bool
     {
         return true;
@@ -76,8 +79,53 @@ class UpdateProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
+            'status' => false,
             'message' => 'Validation failed',
             'errors' => $validator->errors(),
         ], 422));
     }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $variants = $this->input('variants', []);
+            $productName = $this->input('name');
+
+            // 1. Check trùng tên biến thể trong request
+            $names = collect($variants)->pluck('name');
+            if ($names->duplicates()->isNotEmpty()) {
+                throw new HttpResponseException(response()->json([
+                    'status' => false,
+                    'message' => 'Tên các biến thể không được trùng nhau.',
+                    'errors' => 422,
+                ], 422));
+            }
+
+            // 2. Check biến thể đã tồn tại trong DB với size + color + product
+            $existingProduct = \DB::table('products')
+                ->where('name', $productName)
+                ->first();
+
+            if ($existingProduct) {
+                $productId = $existingProduct->id;
+
+                foreach ($variants as $variant) {
+                    $exists = \DB::table('variant_products')
+                        ->where('product_id', $productId)
+                        ->where('size_id', $variant['size_id'])
+                        ->where('color_id', $variant['color_id'])
+                        ->exists();
+
+                    if ($exists) {
+                        throw new HttpResponseException(response()->json([
+                            'status' => false,
+                            'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
+                            'errors' => 422,
+                        ], 422));
+                    }
+                }
+            }
+        });
+    }
+
+
 }

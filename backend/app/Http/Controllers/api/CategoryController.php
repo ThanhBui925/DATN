@@ -135,6 +135,9 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        if ($category->products()->exists()) {
+            return $this->error('Không thể xóa danh mục này vì đã tồn tại sản phẩm trong danh mục ! ', null, 400);
+        }
         $category->delete();
         return $this->success(null, 'Category deleted successfully');
     }

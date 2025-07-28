@@ -42,5 +42,9 @@ class VariantProduct extends Model
     {
         return $this->hasOne(VariantDetail::class, 'variant_id');
     }
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'variant_id');
+    }
 
 }
