@@ -9,16 +9,63 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function getTotalRevenue()
+    public function getTotalRevenue(Request $request)
     {
-        $total = DB::table('shop_order')
-            ->where('order_status', '!=', 'cancelled')
-            ->sum('total_price');
+        $query = DB::table('shop_order')
+            ->where('order_status', '!=', 'cancelled');
+
+        $now = Carbon::now();
+
+        // Hôm nay
+        if ($request->input('filter') === 'today') {
+            $query->whereDate('date_order', $now->toDateString());
+
+            // Hôm qua
+        } elseif ($request->input('filter') === 'yesterday') {
+            $yesterday = $now->copy()->subDay();
+            $query->whereDate('date_order', $yesterday->toDateString());
+
+            // Theo tháng
+        } elseif ($request->input('filter') === 'month') {
+            $month = $request->input('value');
+            if ($month) {
+                try {
+                    $parsed = Carbon::createFromFormat('Y-m', $month);
+                    $query->whereYear('date_order', $parsed->year)
+                        ->whereMonth('date_order', $parsed->month);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Tháng không hợp lệ (định dạng YYYY-MM)'], 400);
+                }
+            } else {
+                $query->whereYear('date_order', $now->year)
+                    ->whereMonth('date_order', $now->month);
+            }
+
+            // Khoảng thời gian
+        } elseif ($request->input('filter') === 'range') {
+            $from = $request->input('from');
+            $to = $request->input('to');
+
+            if (!$from || !$to) {
+                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+            }
+
+            try {
+                $fromDate = Carbon::parse($from)->startOfDay();
+                $toDate = Carbon::parse($to)->endOfDay();
+                $query->whereBetween('date_order', [$fromDate, $toDate]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
+        }
+
+        $total = $query->sum('total_price');
 
         return response()->json([
             'total_revenue' => $total
         ]);
     }
+
 
     public function getTotalOrders()
     {
