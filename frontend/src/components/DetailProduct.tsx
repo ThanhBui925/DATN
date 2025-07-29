@@ -19,6 +19,7 @@ export const DetailProduct = () => {
     const [errorQty, setErrorQty] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalReviews, setTotalReviews] = useState(0);
+    const [cartQuantity, setCartQuantity] = useState<number>(0);
     const pageSize = 5;
     const navigate = useNavigate();
     const BASE_URL = import.meta.env.VITE_APP_API_URL + '/api';
@@ -31,6 +32,7 @@ export const DetailProduct = () => {
                 setProduct(res.data.data || res.data);
             } catch (err) {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", err);
+                notification.error({ message: "Không thể tải chi tiết sản phẩm." });
             } finally {
                 setLoading(false);
             }
@@ -56,6 +58,27 @@ export const DetailProduct = () => {
         };
         fetchReviews();
     }, [id, currentPage]);
+
+    useEffect(() => {
+        const fetchCartQuantity = async () => {
+            if (!selectedSize || !selectedColor || !localStorage.getItem(TOKEN_KEY)) {
+                setCartQuantity(0);
+                return;
+            }
+            try {
+                const res = await axiosInstance.get(`${BASE_URL}/client/cart/items`, {
+                    params: { product_id: id, size_id: selectedSize, color_id: selectedColor }
+                });
+                const cartItem = res.data.data?.find(
+                    (item: any) => item.product_id === Number(id) && item.size_id === selectedSize && item.color_id === selectedColor
+                );
+                setCartQuantity(cartItem ? cartItem.quantity : 0);
+            } catch (err) {
+                console.error("Lỗi khi tải số lượng trong giỏ hàng:", err);
+            }
+        };
+        fetchCartQuantity();
+    }, [selectedSize, selectedColor, id]);
 
     const uniqueSizeOptions = Array.from(
         new Set(
@@ -96,21 +119,24 @@ export const DetailProduct = () => {
             variant.size?.id === selectedSize && variant.color?.id === selectedColor
     ) || null;
 
-    const totalInventory = product?.variants?.reduce(
-        (sum: number, variant: any) => sum + (variant.quantity || 0),
-        0
-    );
+    const availableQuantity = selectedVariant ? selectedVariant.quantity - cartQuantity : 0;
 
     useEffect(() => {
         if (selectedVariant) {
-            if (quantity > selectedVariant.quantity) {
-                setQuantity(selectedVariant.quantity);
-                setErrorQty(`Số lượng vượt quá tồn kho. Chỉ còn ${selectedVariant.quantity} sản phẩm.`);
+            const newQuantity = Math.max(1, Math.min(quantity, availableQuantity));
+            setQuantity(newQuantity);
+            if (newQuantity > availableQuantity) {
+                setErrorQty(availableQuantity > 0
+                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
             } else {
                 setErrorQty('');
             }
+        } else {
+            setQuantity(1);
+            setErrorQty('');
         }
-    }, [selectedSize, selectedColor, selectedVariant, quantity]);
+    }, [selectedSize, selectedColor, selectedVariant, availableQuantity, cartQuantity]);
 
     const handleAddToCart = async () => {
         if (!localStorage.getItem(TOKEN_KEY)) {
@@ -121,8 +147,10 @@ export const DetailProduct = () => {
             setErrorQty("Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng.");
             return;
         }
-        if (quantity > (selectedVariant?.quantity || 0)) {
-            setErrorQty(`Số lượng vượt quá tồn kho. Chỉ còn ${selectedVariant?.quantity} sản phẩm.`);
+        if (quantity > availableQuantity) {
+            setErrorQty(availableQuantity > 0
+                ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
             return;
         }
         try {
@@ -136,6 +164,7 @@ export const DetailProduct = () => {
             if (res.data.status) {
                 setErrorQty('');
                 emitter.emit('addToCart');
+                setCartQuantity((prev) => prev + quantity);
                 notification.success({ message: res.data.message || "Sản phẩm đã được thêm vào giỏ hàng!" });
             }
         } catch (err) {
@@ -146,14 +175,28 @@ export const DetailProduct = () => {
 
     const handleQuantityChange = (change: number) => {
         if (selectedVariant) {
-            const newQuantity = Math.max(1, Math.min(quantity + change, selectedVariant.quantity));
+            const newQuantity = Math.max(1, Math.min(quantity + change, availableQuantity));
             setQuantity(newQuantity);
-            if (newQuantity > selectedVariant.quantity) {
-                setErrorQty(`Số lượng vượt quá tồn kho. Chỉ còn ${selectedVariant.quantity} sản phẩm.`);
+            if (newQuantity > availableQuantity) {
+                setErrorQty(availableQuantity > 0
+                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
             } else {
                 setErrorQty('');
             }
         }
+    };
+
+    const handleSizeSelect = (size: any) => {
+        if (!availableSizes.some((s: any) => s.id === size.id)) return; // Ngăn click nếu size không khả dụng
+        setSelectedSize(selectedSize === size.id ? null : size.id);
+        setQuantity(1); // Reset quantity khi chọn size mới
+    };
+
+    const handleColorSelect = (color: any) => {
+        if (!availableColors.some((c: any) => c.id === color.id)) return; // Ngăn click nếu color không khả dụng
+        setSelectedColor(selectedColor === color.id ? null : color.id);
+        setQuantity(1); // Reset quantity khi chọn color mới
     };
 
     if (loading || !product) {
@@ -271,7 +314,7 @@ export const DetailProduct = () => {
                                         className={`border ${selectedSize === size.id ? 'border-danger' : 'border-secondary'} ${
                                             !availableSizes.some((s: any) => s.id === size.id) ? 'opacity-50' : ''
                                         }`}
-                                        onClick={() => selectedSize === size.id ? setSelectedSize(null) : setSelectedSize(size.id)}
+                                        onClick={() => handleSizeSelect(size)}
                                         style={{
                                             width: "40px",
                                             height: "30px",
@@ -279,7 +322,8 @@ export const DetailProduct = () => {
                                             alignItems: "center",
                                             justifyContent: "center",
                                             fontSize: "12px",
-                                            cursor: !availableSizes.some((s: any) => s.id === size.id) ? 'not-allowed' : 'pointer'
+                                            cursor: !availableSizes.some((s: any) => s.id === size.id) ? 'not-allowed' : 'pointer',
+                                            pointerEvents: !availableSizes.some((s: any) => s.id === size.id) ? 'none' : 'auto'
                                         }}
                                     >
                                         {size.name}
@@ -296,7 +340,7 @@ export const DetailProduct = () => {
                                         className={`border ${selectedColor === color.id ? 'border-danger' : 'border-secondary'} ${
                                             !availableColors.some((c: any) => c.id === color.id) ? 'opacity-50' : ''
                                         }`}
-                                        onClick={() => selectedColor === color.id ? setSelectedColor(null) : setSelectedColor(color.id)}
+                                        onClick={() => handleColorSelect(color)}
                                         style={{
                                             width: "40px",
                                             height: "30px",
@@ -304,7 +348,8 @@ export const DetailProduct = () => {
                                             alignItems: "center",
                                             justifyContent: "center",
                                             fontSize: "12px",
-                                            cursor: !availableColors.some((c: any) => c.id === color.id) ? 'not-allowed' : 'pointer'
+                                            cursor: !availableColors.some((c: any) => c.id === color.id) ? 'not-allowed' : 'pointer',
+                                            pointerEvents: !availableColors.some((c: any) => c.id === color.id) ? 'none' : 'auto'
                                         }}
                                     >
                                         {color.name}
@@ -330,28 +375,30 @@ export const DetailProduct = () => {
                                         value={quantity}
                                         onChange={(e) => {
                                             const value = parseInt(e.target.value) || 1;
-                                            if (selectedVariant && value > selectedVariant.quantity) {
-                                                setErrorQty(`Chỉ còn lại ${selectedVariant.quantity} sản phẩm`);
+                                            if (value > availableQuantity) {
+                                                setErrorQty(availableQuantity > 0
+                                                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                                                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
                                             } else {
                                                 setErrorQty('');
                                             }
-                                            setQuantity(Math.max(1, Math.min(value, selectedVariant?.quantity || 100)));
+                                            setQuantity(Math.max(1, Math.min(value, availableQuantity)));
                                         }}
                                         min="1"
-                                        max={selectedVariant?.quantity}
+                                        max={availableQuantity}
                                         style={{ border: "1px solid gray" }}
                                     />
                                     <button
                                         className="btn btn-outline-secondary"
                                         type="button"
                                         onClick={() => handleQuantityChange(1)}
-                                        disabled={selectedVariant && quantity >= selectedVariant.quantity}
+                                        disabled={quantity >= availableQuantity}
                                     >
                                         +
                                     </button>
                                 </div>
                                 <span
-                                    className="ms-3 text-muted">{selectedVariant ? selectedVariant.quantity : totalInventory} sản phẩm có sẵn</span>
+                                    className="ms-3 text-muted">{availableQuantity > 0 ? `${availableQuantity} sản phẩm khả dụng` : 'Hết hàng'}</span>
                             </div>
                             {errorQty && <div className="text-danger mt-1">{errorQty}</div>}
                         </div>
@@ -359,7 +406,7 @@ export const DetailProduct = () => {
                             onClick={handleAddToCart}
                             className="btn btn-danger w-100 py-2"
                             style={{ backgroundColor: "#eb3e32" }}
-                            disabled={!selectedSize || !selectedColor || quantity > (selectedVariant?.quantity || 0) || errorQty !== ''}
+                            disabled={!selectedSize || !selectedColor || quantity > availableQuantity || errorQty !== ''}
                         >
                             Thêm Vào Giỏ Hàng
                         </button>
