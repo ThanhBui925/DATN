@@ -31,7 +31,6 @@ export const DetailProduct = () => {
                 setProduct(res.data.data || res.data);
             } catch (err) {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", err);
-                alert("Không thể tải chi tiết sản phẩm.");
             } finally {
                 setLoading(false);
             }
@@ -133,10 +132,12 @@ export const DetailProduct = () => {
                 color_id: selectedColor,
                 quantity,
             };
-            await axiosInstance.post(`${BASE_URL}/client/cart/items`, payload);
-            setErrorQty('');
-            emitter.emit('addToCart');
-            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng!" });
+            const res = await axiosInstance.post(`${BASE_URL}/client/cart/items`, payload);
+            if (res.data.status) {
+                setErrorQty('');
+                emitter.emit('addToCart');
+                notification.success({ message: res.data.message || "Sản phẩm đã được thêm vào giỏ hàng!" });
+            }
         } catch (err) {
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
             setErrorQty("Không thể thêm sản phẩm vào giỏ hàng.");

@@ -61,7 +61,7 @@ export const OrdersList = () => {
                     return;
                 }
 
-                const allowed = validTransitions[selectedOrder.order_status] || [];
+                const allowed = validTransitions[selectedOrder.status] || [];
                 if (!allowed.includes(values.order_status)) {
                     message.error("Không thể chuyển sang trạng thái này!");
                     return;
@@ -299,7 +299,7 @@ export const OrdersList = () => {
                                 <Select.Option
                                     key={key}
                                     value={key}
-                                    disabled={selectedOrder ? !validTransitions[selectedOrder.order_status]?.includes(key) : true}
+                                    disabled={selectedOrder ? !validTransitions[selectedOrder.status]?.includes(key) : true}
                                 >
                                     {label}
                                 </Select.Option>

@@ -468,7 +468,7 @@ export const OrdersShow = () => {
                                     value={key}
                                     disabled={
                                         record?.order_status
-                                            ? !validTransitions[record.order_status]?.includes(key)
+                                            ? !validTransitions[record?.status]?.includes(key)
                                             : true
                                     }
                                 >

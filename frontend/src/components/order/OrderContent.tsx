@@ -263,7 +263,7 @@ export const OrderContent: React.FC = () => {
                                             >
                                                 Xem Chi Tiết
                                             </button>
-                                            {["pending", "confirmed", "confirming"].includes(order.order_status) && (
+                                            {["pending", "confirmed", "confirming"].includes(order.status) && (
                                                 <button
                                                     className="btn btn-outline-danger btn-sm px-4 fw-medium"
                                                     onClick={() => showCancelModal(order.id)}
