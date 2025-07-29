@@ -87,15 +87,15 @@ export const SliderBanner: React.FC = () => {
                                 <div className="row justify-content-end">
                                     <div className="col-lg-11 col-md-11">
                                         <div className="slider-text-info style-1 slider-text-animation">
-                                            <h4 className="title1">
+                                            <h4 className="title1 text-white">
                                                 {banner.description || "Khuyến mãi đặc biệt"}
                                             </h4>
-                                            <h1 className="title2">{banner.title}</h1>
-                                            <div className="slier-btn-1" style={{ marginTop: "20px" }}>
+                                            <h1 className="title2 text-white">{banner.title}</h1>
+                                            <div className="slier-btn-1 text-white" style={{ marginTop: "20px" }}>
                                                 <a
                                                     title="Mua sắm ngay"
                                                     href={banner.link_url || "#"}
-                                                    className="shop-btn"
+                                                    className="shop-btn border-white text-white"
                                                 >
                                                     Mua sắm ngay
                                                 </a>

@@ -260,22 +260,14 @@ export const OrdersShow = () => {
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Mã voucher</Text>
                                     <TextField
-                                        value={record?.voucher?.code || "Không sử dụng"}
+                                        value={record?.voucher_code || "Không sử dụng"}
                                         style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Giá trị giảm</Text>
                                     <TextField
-                                        value={
-                                            record?.voucher?.discount
-                                                ? record.voucher.discount_type === "percentage"
-                                                    ? `${record.voucher.discount}%`
-                                                    : record.voucher.discount_type === "fixed"
-                                                        ? `${record.voucher.discount.toLocaleString("vi-VN")} VNĐ`
-                                                        : "Miễn phí vận chuyển"
-                                                : "0 VNĐ"
-                                        }
+                                        value={ convertToInt(record?.discount_amount) + ' VNĐ'}
                                         style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
