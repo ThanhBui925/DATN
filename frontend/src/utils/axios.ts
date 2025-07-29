@@ -20,10 +20,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 500) {
-            return Promise.reject(error);
-        }
+        const isAdmin = window.location.pathname.startsWith("/admin");
 
-        return Promise.resolve(error.response);
+        if (isAdmin) {
+            return Promise.reject(error); // laf admin thì reject lỗi, provider tự xử lý báo lỗi
+        } else {
+            return Promise.resolve(error.response); // client thì xử lý lỗi
+        }
     }
 );

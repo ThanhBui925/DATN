@@ -9,6 +9,7 @@ use App\Traits\ApiResponseTrait;
 use App\Models\Category;
 use App\Models\Color;
 use App\Models\Size;
+use App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -119,7 +120,20 @@ class ProductController extends Controller
     {
         $product = Product::with(['category', 'images', 'reviews.user', 'variants','variants.images'])
             ->findOrFail($id);
-        return $this->success($product);
+        return $this->success($product); 
     }
+
+    public function getReviewsByProduct($id)
+    {
+        $reviews = Review::where('product_id', $id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $this->successResponse($reviews, 'Lấy danh sách đánh giá thành công');
+    }
+
+    
+
     
 }

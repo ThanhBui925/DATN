@@ -101,7 +101,6 @@ class ProductController extends Controller
             // Create product
             $product = Product::create($productData);
 
-            // ✅ Xử lý ảnh mô tả sản phẩm (imageDesc)
             if ($request->hasFile('imageDesc')) {
                 $images = [];
 
@@ -121,6 +120,14 @@ class ProductController extends Controller
             }
 
             // Xử lý variants
+            $existingVariant = VariantProduct::where('product_id', $product->id)
+                ->where('name', $variantInput['name'] ?? '')
+                ->first();
+
+            if ($existingVariant) {
+                // Tên biến thể đã tồn tại → có thể throw exception hoặc bỏ qua, hoặc trả lỗi
+                throw new \Exception('Tên biến thể đã tồn tại trong sản phẩm.');
+            }
             $variantsInput = $request->input('variants', []);
             foreach ($variantsInput as $index => $variantInput) {
                 $variant = VariantProduct::create([
@@ -226,24 +233,28 @@ class ProductController extends Controller
             );
 
             if (!empty($variantIdsMustDelete)) {
+                $hasOrderedVariant = VariantProduct::whereIn('id', $variantIdsMustDelete)
+                    ->whereHas('orderItems')
+                    ->exists();
 
+                if ($hasOrderedVariant) {
+                    DB::rollBack();
+                    return $this->errorResponse('Không thể xoá biến thể vì biến thể đã phát sinh đơn hàng', 400);
+                }
+
+                // Nếu không có biến thể nào đã được đặt hàng, mới xoá ảnh và biến thể
                 $variantImages = VariantImage::whereIn('variant_product_id', $variantIdsMustDelete)->get();
-
                 foreach ($variantImages as $variantImage) {
                     if (isset($variantImage->image_url)) {
                         $imageUrl = $variantImage->image_url;
-
-                        if (Str::startsWith($imageUrl, ['http://', 'https://'])) {
-                            $path = Str::after($imageUrl, '/storage/');
-                        } else {
-                            $path = Str::replaceFirst('/storage/', '', $imageUrl);
-                        }
+                        $path = Str::startsWith($imageUrl, ['http://', 'https://'])
+                            ? Str::after($imageUrl, '/storage/')
+                            : Str::replaceFirst('/storage/', '', $imageUrl);
 
                         if (Storage::disk('public')->exists($path)) {
                             Storage::disk('public')->delete($path);
                         }
                     }
-
                     $variantImage->delete();
                 }
 
@@ -292,6 +303,14 @@ class ProductController extends Controller
                             }
                         }
                     } else {
+                        $duplicate = $product->variants
+                            ->where('name', $variantInput['name'])
+                            ->first();
+
+                        if ($duplicate) {
+                            return $this->errorResponse("Tên biến thể '{$variantInput['name']}' đã tồn tại trong sản phẩm.", 422);
+                        }
+
                         $newVariant = VariantProduct::create([
                             'product_id' => $product->id,
                             'name' => $variantInput['name'],
@@ -346,28 +365,31 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::with('variants.images')->find($id);
+
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
+
         if ($product->orderItems()->exists()) {
-            return $this->errorResponse('Không thể xóa sản phẩm này vì sản phẩm đã có trong đơn hàng', 400);
+            return $this->errorResponse('Không thể xóa sản phẩm này vì sản phẩm đã phát sinh đơn hàng', 400);
+        }
+
+        foreach ($product->variants as $variant) {
+            if ($variant->orderItems()->exists()) {
+                return $this->errorResponse('Không thể xóa sản phẩm này vì có biến thể đã được đặt hàng', 400);
+            }
         }
 
         DB::beginTransaction();
         try {
-            // Xóa mềm ảnh của các biến thể
             foreach ($product->variants as $variant) {
-                $variant->images()->delete(); // xóa mềm ảnh biến thể
+                $variant->images()->delete();
             }
 
-            // Xóa mềm các biến thể
             $product->variants()->delete();
-
-            // Xóa mềm sản phẩm
             $product->delete();
 
             DB::commit();
-
             return $this->successResponse(null, 'Xóa sản phẩm thành công');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -375,6 +397,7 @@ class ProductController extends Controller
             return $this->errorResponse('Xóa sản phẩm thất bại. Vui lòng thử lại.', 500);
         }
     }
+
 
 
     public function trashed()

@@ -50,7 +50,7 @@ export const OrdersList = () => {
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
         setIsModalVisible(true);
-        form.setFieldsValue({ order_status: order.order_status });
+        form.setFieldsValue({ order_status: order.status });
     };
 
     const handleModalOk = () => {
@@ -61,7 +61,7 @@ export const OrdersList = () => {
                     return;
                 }
 
-                const allowed = validTransitions[selectedOrder.order_status] || [];
+                const allowed = validTransitions[selectedOrder.status] || [];
                 if (!allowed.includes(values.order_status)) {
                     message.error("Không thể chuyển sang trạng thái này!");
                     return;
@@ -69,7 +69,7 @@ export const OrdersList = () => {
 
                 try {
                     const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, {
-                        order_status: values.order_status,
+                        order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status,
                     });
                     if (response?.data?.status == "false") {
                         return notification.error({ message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại"});
@@ -211,7 +211,7 @@ export const OrdersList = () => {
                     />
                     <Table.Column
                         title="Trạng thái đơn hàng"
-                        dataIndex="order_status"
+                        dataIndex="status"
                         render={(value: string) => {
                             const status = statusMap[value];
                             return status ? (
@@ -299,7 +299,7 @@ export const OrdersList = () => {
                                 <Select.Option
                                     key={key}
                                     value={key}
-                                    disabled={selectedOrder ? !validTransitions[selectedOrder.order_status]?.includes(key) : true}
+                                    disabled={selectedOrder ? !validTransitions[selectedOrder.status]?.includes(key) : true}
                                 >
                                     {label}
                                 </Select.Option>
