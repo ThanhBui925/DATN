@@ -124,7 +124,7 @@ export const OrderDetailContent = () => {
         if (showMsg === '1') {
             notification.success({message: "Thanh toán thành công, đơn hàng đã được xác nhận"});
         } else if (showMsg === '0') {
-            notification.error({message: "Thanh toán thất bại, đơn hàng đã tự động hủy"});
+            notification.error({message: "Thanh toán thất bại, bạn có thể thực hiện thanh toán lại trong 15 phút ."});
         }
     }, [queryParams]);
 

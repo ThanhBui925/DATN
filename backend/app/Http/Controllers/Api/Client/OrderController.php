@@ -35,54 +35,54 @@ class OrderController extends Controller
      * Lấy danh sách đơn hàng của user hiện tại
      */
     public function index(Request $request)
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    if (!$user) {
-        return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
-    }
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
 
-    $query = Order::where('user_id', $user->id)
-        ->with([
-            'customer',
-            'shipping',
-            'user',
-            'orderItems.product',
-            'orderItems.variant.size',
-            'orderItems.variant.color',
-        ]);
+        $query = Order::where('user_id', $user->id)
+            ->with([
+                'customer',
+                'shipping',
+                'user',
+                'orderItems.product',
+                'orderItems.variant.size',
+                'orderItems.variant.color',
+            ]);
 
-    // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
-    if ($request->has('status')) {
-        $query->where(function ($q) use ($request) {
-            $q->where(function ($sub) use ($request) {
-                $sub->where('use_shipping_status', 1)
-                    ->where('shipping_status', $request->input('status'));
-            })->orWhere(function ($sub) use ($request) {
-                $sub->where('use_shipping_status', 0)
-                    ->where('order_status', $request->input('status'));
+        // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
+        if ($request->has('status')) {
+            $query->where(function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('use_shipping_status', 1)
+                        ->where('shipping_status', $request->input('status'));
+                })->orWhere(function ($sub) use ($request) {
+                    $sub->where('use_shipping_status', 0)
+                        ->where('order_status', $request->input('status'));
+                });
             });
+        }
+
+        // Lọc theo ngày nếu có
+        if ($request->has('date')) {
+            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
+            $query->whereDate('created_at', $date);
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Thêm trường `status` dựa vào use_shipping_status trong từng đơn hàng
+        $orders->getCollection()->transform(function ($order) {
+            $order->status = $order->use_shipping_status
+                ? $order->shipping_status
+                : $order->order_status;
+            return $order;
         });
+
+        return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
     }
-
-    // Lọc theo ngày nếu có
-    if ($request->has('date')) {
-        $date = Carbon::parse($request->input('date'))->format('Y-m-d');
-        $query->whereDate('created_at', $date);
-    }
-
-    $orders = $query->orderBy('created_at', 'desc')->paginate(10);
-
-    // Thêm trường `status` dựa vào use_shipping_status trong từng đơn hàng
-    $orders->getCollection()->transform(function ($order) {
-        $order->status = $order->use_shipping_status
-            ? $order->shipping_status
-            : $order->order_status;
-        return $order;
-    });
-
-    return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
-}
 
 
 
@@ -277,6 +277,25 @@ class OrderController extends Controller
             return $this->errorResponse('Lỗi khi tạo đơn hàng: ' . $e->getMessage(), null, 500);
         }
     }
+
+    public function retryVNPay(Request $request, $id)
+    {
+        $order = Order::with('orderItems')->findOrFail($id);
+
+        if ($order->order_status !== 'pending' || $order->payment_method !== 'vnpay' || $order->payment_status !== 'unpaid') {
+            return $this->errorResponse('Đơn hàng không hợp lệ để thanh toán lại.', 400);
+        }
+
+        // Tạo lại link thanh toán
+        $paymentUrl =  app(\App\Services\VnPayService::class)->createPaymentUrl($order);
+        if (!$paymentUrl) {
+            return $this->errorResponse('Không thể tạo link thanh toán, vui lòng thử lại sau.', 500);
+        }
+        return $this->successResponse([
+            'payment_url' => $paymentUrl
+        ],  'Tạo link thanh toán chuyển đến VNPay', 201);
+    }
+
 
 
     public function applyVoucher(ApplyVoucherRequest $request)
