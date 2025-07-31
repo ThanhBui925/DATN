@@ -11,8 +11,9 @@ export const authProvider: AuthProvider = {
                 await axiosInstance.get("/sanctum/csrf-cookie");
                 const response: any = await axiosInstance.post("/api/login", {email, password});
                 localStorage.setItem(TOKEN_KEY, response.data.token);
+                localStorage.setItem('role', response.data.user.role);
                 axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
-                if (response.data.user.role === 'admin') {
+                if (response.data.user.role === 'admin' || response.data.user.role === 'super_admin') {
                     notification.success({message: 'Đăng nhập trị viên thành công'})
                     return {
                         success: true,
@@ -78,7 +79,7 @@ export const authProvider: AuthProvider = {
             } catch (e) {
                 notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
             }
-            if (isAdminRoute && role !== "admin") {
+            if (isAdminRoute && (role !== "admin" && role !== "super_admin")) {
                 return {
                     authenticated: false,
                     redirectTo: "/trang-chu",

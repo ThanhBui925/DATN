@@ -10,6 +10,8 @@ export const i18nProvider: I18nProvider = {
             "buttons.cancel": "Huỷ",
             "buttons.refresh": "Tải lại trang",
             "buttons.edit": "Chỉnh sửa",
+            "buttons.create": "Thêm mới",
+            "buttons.show": "Xem chi tiết",
 
             "notifications.success": "Thành công",
             "notifications.error": "Có lỗi xảy ra",
@@ -37,6 +39,9 @@ export const i18nProvider: I18nProvider = {
             "pages.login.buttons.noAccount": "Chưa có tài khoản ?",
             "pages.login.signup": "Đăng ký tài khoản",
             "pages.login.signin": "Đăng nhập",
+
+            'admins.titles.show' : 'Chi tiết quản trị viên',
+            'admins.titles.list' : 'Danh sách quản trị viên'
         };
         return translations[key] ?? key;
     },

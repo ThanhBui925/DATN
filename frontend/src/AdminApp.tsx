@@ -18,6 +18,8 @@ import {BannerCreate, BannerEdit, BannerList, BannerShow} from "./pages/admin/ba
 import {CustomerList, CustomerShow} from "./pages/admin/customers";
 import {ReviewList, ReviewShow} from "./pages/admin/reviews";
 import React from "react";
+import {AdminList, AdminShow} from "./pages/admin/admins";
+import {ManagerAdminCreate} from "./pages/admin/admins/create";
 
 export const AdminApp = () => {
     return (
@@ -100,6 +102,12 @@ export const AdminApp = () => {
                 <Route path="/admin/customers">
                     <Route index element={<CustomerList/>}/>
                     <Route path="show/:id" element={<CustomerShow/>}/>
+                </Route>
+
+                <Route path="/admin/admins">
+                    <Route index element={<AdminList/>}/>
+                    <Route path="create" element={<ManagerAdminCreate/>}/>
+                    <Route path="show/:id" element={<AdminShow/>}/>
                 </Route>
 
                 <Route path="/admin/reviews">
