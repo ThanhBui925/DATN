@@ -16,7 +16,7 @@ class BannerController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Banner::query()->where('status', 'active');
+        $query = Banner::query()->where('status', '1');
         // Có thể lọc theo ngày hiện tại nằm trong khoảng start_date, end_date nếu muốn
         $now = now();
         $query->where(function($q) use ($now) {
@@ -34,7 +34,7 @@ class BannerController extends Controller
      */
     public function show($id)
     {
-        $banner = Banner::where('status', 'active')->find($id);
+        $banner = Banner::where('status', '1')->find($id);
         if (!$banner) {
             return $this->errorResponse('Banner không tồn tại hoặc đã bị ẩn', null, 404);
         }

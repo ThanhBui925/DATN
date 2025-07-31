@@ -40,58 +40,58 @@ class OrderController extends Controller
      * Lấy danh sách tất cả đơn hàng (Admin)
      */
     public function index(Request $request)
-{
-    $query = Order::query()->with(['customer', 'shipping', 'user']);
+    {
+        $query = Order::query()->with(['customer', 'shipping', 'user']);
 
-    // Lọc theo ngày cụ thể
-    if ($request->has('date')) {
-        $date = Carbon::parse($request->input('date'))->format('Y-m-d');
-        $query->whereDate('date_order', $date);
-    }
+        // Lọc theo ngày cụ thể
+        if ($request->has('date')) {
+            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
+            $query->whereDate('date_order', $date);
+        }
 
-    // Lọc theo tháng và năm
-    if ($request->has('month') && $request->has('year')) {
-        $query->whereMonth('date_order', $request->input('month'))
-            ->whereYear('date_order', $request->input('year'));
-    }
+        // Lọc theo tháng và năm
+        if ($request->has('month') && $request->has('year')) {
+            $query->whereMonth('date_order', $request->input('month'))
+                ->whereYear('date_order', $request->input('year'));
+        }
 
-    // Lọc theo khoảng thời gian
-    if ($request->has('start_date') && $request->has('end_date')) {
-        $query->whereBetween('date_order', [
-            Carbon::parse($request->input('start_date'))->startOfDay(),
-            Carbon::parse($request->input('end_date'))->endOfDay()
-        ]);
-    }
+        // Lọc theo khoảng thời gian
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $query->whereBetween('date_order', [
+                Carbon::parse($request->input('start_date'))->startOfDay(),
+                Carbon::parse($request->input('end_date'))->endOfDay()
+            ]);
+        }
 
-    // Lọc theo trạng thái
-    if ($request->has('status')) {
-        $query->where(function ($q) use ($request) {
-            $q->where(function ($sub) use ($request) {
-                $sub->where('use_shipping_status', 1)
-                    ->where('shipping_status', $request->input('status'));
-            })->orWhere(function ($sub) use ($request) {
-                $sub->where('use_shipping_status', 0)
-                    ->where('order_status', $request->input('status'));
+        // Lọc theo trạng thái
+        if ($request->has('status')) {
+            $query->where(function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('use_shipping_status', 1)
+                        ->where('shipping_status', $request->input('status'));
+                })->orWhere(function ($sub) use ($request) {
+                    $sub->where('use_shipping_status', 0)
+                        ->where('order_status', $request->input('status'));
+                });
             });
+        }
+
+        // Lọc theo user
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->get();
+
+        $orders->transform(function ($order) {
+            $order->status = $order->use_shipping_status
+                ? $order->shipping_status
+                : $order->order_status;
+            return $order;
         });
+
+        return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
     }
-
-    // Lọc theo user
-    if ($request->has('user_id')) {
-        $query->where('user_id', $request->input('user_id'));
-    }
-
-    $orders = $query->orderBy('created_at', 'desc')->get();
-
-    $orders->transform(function ($order) {
-        $order->status = $order->use_shipping_status
-            ? $order->shipping_status
-            : $order->order_status;
-        return $order;
-    });
-
-    return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
-}
 
 
     /**
