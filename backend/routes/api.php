@@ -16,7 +16,8 @@ use App\Http\Controllers\Api\{
     BlogController,
     CartController,
     CustomerController,
-    ForgotPasswordController
+    ForgotPasswordController,
+    ManagerAdminController
 
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
@@ -186,4 +187,13 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
     Route::put('/comments/{commentId}/restore', 'restoreComment');
+});
+
+
+Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group(function(){
+    Route::get('/','index');
+    Route::post('/','store');
+    Route::get('/{id}','show');
+    Route::put('/{id}','update');
+    Route::delete('/{id}','destroy');
 });
