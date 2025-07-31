@@ -5,7 +5,7 @@ import React from "react";
 import {AdminApp} from "./AdminApp";
 import {ClientApp} from "./ClientApp";
 import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier} from "@refinedev/react-router";
-import {authProvider} from "./providers/authProvider";
+import {authProvider, TOKEN_KEY} from "./providers/authProvider";
 import {
     BgColorsOutlined,
     DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined,
@@ -24,6 +24,23 @@ import {i18nProvider} from "./providers/i18nProvider";
 import {HelmetProvider} from "react-helmet-async";
 
 function App() {
+    const accessControlProvider = {
+        can: async ({ resource, action }: { resource: string; action: string }) => {
+            try {
+                const role = localStorage.getItem('role');
+                if (resource === "admins") {
+                    return {
+                        can: role === "super_admin",
+                        reason: role !== "super_admin" ? "Chỉ Super Admin mới có quyền truy cập Quản lý admin." : undefined,
+                    };
+                }
+                return { can: true };
+            } catch (error) {
+                console.error("Error checking access control:", error);
+                return { can: false, reason: "Lỗi khi kiểm tra quyền truy cập." };
+            }
+        },
+    };
     return (
         <HelmetProvider>
             <BrowserRouter>
@@ -38,6 +55,9 @@ function App() {
                                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                     // @ts-ignore
                                     notificationProvider={notificationProvider}
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    accessControlProvider={accessControlProvider}
                                     routerProvider={routerBindings}
                                     authProvider={authProvider}
                                     i18nProvider={i18nProvider}
@@ -157,6 +177,19 @@ function App() {
                                             show: "/admin/customers/show/:id",
                                             meta: {
                                                 label: "Quản lý khách hàng",
+                                                icon: <UserOutlined/>,
+                                                canDelete: true,
+                                            },
+                                        },
+
+                                        {
+                                            name: "admins",
+                                            list: "/admin/admins",
+                                            create: "/admin/admins/create",
+                                            edit: "/admin/admins/edit/:id",
+                                            show: "/admin/admins/show/:id",
+                                            meta: {
+                                                label: "Quản lý admin",
                                                 icon: <UserOutlined/>,
                                                 canDelete: true,
                                             },
