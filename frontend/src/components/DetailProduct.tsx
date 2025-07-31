@@ -119,7 +119,16 @@ export const DetailProduct = () => {
             variant.size?.id === selectedSize && variant.color?.id === selectedColor
     ) || null;
 
-    const availableQuantity = selectedVariant ? selectedVariant.quantity - cartQuantity : 0;
+    // Calculate total quantity across all variants when no variant is selected
+    const totalVariantQuantity = product?.variants?.reduce(
+        (sum: number, variant: any) => sum + (variant.quantity || 0),
+        0
+    ) || 0;
+
+    // Use total quantity if no variant is selected, otherwise use selected variant quantity
+    const availableQuantity = selectedVariant
+        ? selectedVariant.quantity - cartQuantity
+        : totalVariantQuantity;
 
     useEffect(() => {
         if (selectedVariant) {
@@ -128,7 +137,7 @@ export const DetailProduct = () => {
             if (newQuantity > availableQuantity) {
                 setErrorQty(availableQuantity > 0
                     ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
+                    : `Sản phẩm đã hết hàng.`);
             } else {
                 setErrorQty('');
             }
@@ -150,7 +159,7 @@ export const DetailProduct = () => {
         if (quantity > availableQuantity) {
             setErrorQty(availableQuantity > 0
                 ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
+                : `Sản phẩm đã hết hàng.`);
             return;
         }
         try {
@@ -180,7 +189,7 @@ export const DetailProduct = () => {
             if (newQuantity > availableQuantity) {
                 setErrorQty(availableQuantity > 0
                     ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
+                    : `Sản phẩm đã hết hàng.`);
             } else {
                 setErrorQty('');
             }
@@ -188,15 +197,15 @@ export const DetailProduct = () => {
     };
 
     const handleSizeSelect = (size: any) => {
-        if (!availableSizes.some((s: any) => s.id === size.id)) return; // Ngăn click nếu size không khả dụng
+        if (!availableSizes.some((s: any) => s.id === size.id)) return;
         setSelectedSize(selectedSize === size.id ? null : size.id);
-        setQuantity(1); // Reset quantity khi chọn size mới
+        setQuantity(1);
     };
 
     const handleColorSelect = (color: any) => {
-        if (!availableColors.some((c: any) => c.id === color.id)) return; // Ngăn click nếu color không khả dụng
+        if (!availableColors.some((c: any) => c.id === color.id)) return;
         setSelectedColor(selectedColor === color.id ? null : color.id);
-        setQuantity(1); // Reset quantity khi chọn color mới
+        setQuantity(1);
     };
 
     if (loading || !product) {
@@ -378,7 +387,7 @@ export const DetailProduct = () => {
                                             if (value > availableQuantity) {
                                                 setErrorQty(availableQuantity > 0
                                                     ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                                                    : `Sản phẩm đã hết hàng hoặc đã có ${cartQuantity} trong giỏ hàng.`);
+                                                    : `Sản phẩm đã hết hàng.`);
                                             } else {
                                                 setErrorQty('');
                                             }
