@@ -24,6 +24,8 @@ use App\Models\Cart;
 use App\Models\Address;
 use App\Services\ShippingFeeService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderSuccessMail;
 
 
 
@@ -249,6 +251,8 @@ class OrderController extends Controller
                     'voucher_code'    => $voucher->code,
                     'discount_amount' => round($discountAmount, 0),
                 ]);
+
+                $voucher->increment('usage_count');
             }
 
 
@@ -271,6 +275,12 @@ class OrderController extends Controller
             $cart->delete();
 
             DB::commit();
+            //Gửi mail thông báo đặt đơn hàng thành công
+            Mail::to($order->user->email)->queue(new OrderSuccessMail($order)); // người đặt
+            if ($order->recipient_email && $order->recipient_email !== $order->user->email) {
+                Mail::to($order->recipient_email)->queue(new OrderSuccessMail($order)); // người nhận nếu khác
+            }
+
             return $this->successResponse($order->load('orderItems'), 'Tạo đơn hàng thành công từ giỏ hàng', 201);
         } catch (\Exception $e) {
             DB::rollBack();

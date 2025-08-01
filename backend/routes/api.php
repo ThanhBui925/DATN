@@ -153,10 +153,10 @@ Route::apiResource('customers', CustomerController::class)->only([
 ]);
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
-Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::apiResource('sizes', SizeController::class)->only(['index']);
-Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
     Route::get('/', 'index');
@@ -198,4 +198,5 @@ Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group
     Route::get('/{id}','show');
     Route::put('/{id}','update');
     Route::delete('/{id}','destroy');
+    Route::post('/{id}', 'restore');
 });
