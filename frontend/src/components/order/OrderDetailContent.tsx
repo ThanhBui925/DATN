@@ -124,7 +124,7 @@ export const OrderDetailContent = () => {
         if (showMsg === '1') {
             notification.success({message: "Thanh toán thành công, đơn hàng đã được xác nhận"});
         } else if (showMsg === '0') {
-            notification.error({message: "Thanh toán thất bại, đơn hàng đã tự động hủy"});
+            notification.error({message: "Thanh toán thất bại, bạn có thể thực hiện thanh toán lại trong 15 phút ."});
         }
     }, [queryParams]);
 
@@ -345,7 +345,11 @@ export const OrderDetailContent = () => {
                             </p>
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
-                            <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Mua Lại</button>
+                            {
+                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && (
+                                    <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
+                                )
+                            }
                             {["pending", "preparing", "confirmed"].includes(order.status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}

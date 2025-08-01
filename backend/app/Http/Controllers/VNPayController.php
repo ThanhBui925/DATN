@@ -56,17 +56,10 @@ class VNPayController extends Controller
             return redirect()->away("http://localhost:3000/chi-tiet-don-hang/{$order->id}?showMsg=1");
             
         } else {
-            foreach ($order->orderItems as $item) {
-                $variant = \App\Models\VariantProduct::find($item->variant_id);
-                if ($variant) {
-                    $variant->increment('quantity', $item->quantity);
-                }
-            }
-            $order->payment_status = 'failed';
+            $order->payment_status = 'unpaid';
             $order->payment_method = 'vnpay';
-            $order->order_status = 'canceled';
+            $order->order_status = 'pending';
             $order->use_shipping_status = 0;
-            $order->cancel_reason = 'Thanh toán thất bại qua VNPay';
             $order->save();
             return redirect()->away("http://localhost:3000/chi-tiet-don-hang/{$order->id}?showMsg=0");
         }

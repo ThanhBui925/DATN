@@ -99,6 +99,18 @@ export const OrderContent: React.FC = () => {
         setSelectedOrderId(null);
     }, []);
 
+    const getUrlRepayVnpay = async (orderId: number) => {
+        try {
+            const res = await axiosInstance.get(`/api/client/orders/${orderId}/retry`);
+            console.log(res.data);
+            if (res.data.status) {
+                window.location.href = res.data.data.payment_url;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     useEffect(() => {
         fetchOrders();
     }, [fetchOrders]);
@@ -257,6 +269,15 @@ export const OrderContent: React.FC = () => {
                       </span>
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
+                                            {
+                                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && (
+                                                    <button
+                                                        className="btn bg-original-base text-white btn-sm px-4 fw-medium"
+                                                        onClick={() => getUrlRepayVnpay(order.id)}
+                                                    >
+                                                        Thanh toán lại
+                                                    </button>                                                )
+                                            }
                                             <button
                                                 className="btn btn-outline-secondary btn-sm px-4 fw-medium"
                                                 onClick={() => navigate(`/chi-tiet-don-hang/${order.id}`)}

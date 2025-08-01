@@ -16,7 +16,8 @@ use App\Http\Controllers\Api\{
     BlogController,
     CartController,
     CustomerController,
-    ForgotPasswordController
+    ForgotPasswordController,
+    ManagerAdminController
 
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
@@ -65,7 +66,9 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientOrderController::class, 'show']);
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
+        Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
     });
+
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
         Route::get('/', [ClientReviewController::class, 'index']);
         Route::post('/', [ClientReviewController::class, 'store']);
@@ -186,4 +189,13 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
     Route::put('/comments/{commentId}/restore', 'restoreComment');
+});
+
+
+Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group(function(){
+    Route::get('/','index');
+    Route::post('/','store');
+    Route::get('/{id}','show');
+    Route::put('/{id}','update');
+    Route::delete('/{id}','destroy');
 });

@@ -31,7 +31,7 @@ import {paymentMethodMap} from "../../../types/PaymentMethodMap";
 import {axiosInstance} from "../../../utils/axios";
 
 export const OrdersList = () => {
-    const { tableProps, setFilters } = useTable({
+    const { tableProps, setFilters, tableQueryResult } = useTable({
         syncWithLocation: true,
         filters: {
             initial: [
@@ -74,7 +74,7 @@ export const OrdersList = () => {
                     if (response?.data?.status == "false") {
                         return notification.error({ message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại"});
                     }
-
+                    tableQueryResult.refetch();
                     setIsModalVisible(false);
                     form.resetFields();
                     setSelectedOrder(null);

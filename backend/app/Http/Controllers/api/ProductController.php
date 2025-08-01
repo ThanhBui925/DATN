@@ -291,15 +291,19 @@ class ProductController extends Controller
                                     ];
                                 }
                                 VariantImage::insert($images);
-                            } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                            } elseif (array_key_exists('images', $variantInput)) {
+                                // Nếu client gửi lên 'images', kể cả rỗng → xóa ảnh cũ
                                 $variant->images()->delete();
-                                $newImages = array_map(fn ($url) => [
-                                    'variant_product_id' => $variant->id,
-                                    'image_url' => $url,
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
-                                ], $variantInput['images']);
-                                VariantImage::insert($newImages);
+
+                                if (is_array($variantInput['images']) && count($variantInput['images']) > 0) {
+                                    $newImages = array_map(fn ($url) => [
+                                        'variant_product_id' => $variant->id,
+                                        'image_url' => $url,
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ], $variantInput['images']);
+                                    VariantImage::insert($newImages);
+                                }
                             }
                         }
                     } else {
