@@ -18,7 +18,11 @@ class SizeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:2|unique:sizes,name',
+        ], [
+            'name.required' => 'Vui lòng nhập tên kích thước.',
+            'name.max' => 'Tên kích thước không được vượt quá :max ký tự.',
+            'name.unique' => 'Tên kích thước đã tồn tại.',
         ]);
 
         $size = Size::create([
@@ -34,7 +38,7 @@ class SizeController extends Controller
         $size = Size::find($id);
 
         if (!$size) {
-            return response()->json(['message' => 'Size not found'], 404);
+            return response()->json(['message' => 'Size không tồn tại'], 404);
         }
 
         return response()->json($size);
@@ -44,13 +48,17 @@ class SizeController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:2|unique:sizes,name,' . $id,
+        ], [
+            'name.required' => 'Vui lòng nhập tên kích thước.',
+            'name.max' => 'Tên kích thước không được vượt quá :max ký tự.',
+            'name.unique' => 'Tên kích thước đã tồn tại.',
         ]);
 
         $size = Size::find($id);
 
         if (!$size) {
-            return response()->json(['message' => 'Size not found'], 404);
+            return response()->json(['message' => 'Size không tồn tại'], 404);
         }
 
         $size->name = $request->name;
@@ -65,7 +73,7 @@ class SizeController extends Controller
         $size = Size::find($id);
 
         if (!$size) {
-            return response()->json(['message' => 'Size not found'], 404);
+            return response()->json(['message' => 'Size không tồn tại'], 404);
         }
 
         // Kiểm tra ràng buộc ở bảng variant_products
@@ -79,7 +87,7 @@ class SizeController extends Controller
 
         $size->delete();
 
-        return response()->json(['message' => 'Size deleted']);
+        return response()->json(['message' => 'Xóa size thành công.']);
     }
 
 
