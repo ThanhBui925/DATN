@@ -359,7 +359,7 @@ export const OrderDetailContent = () => {
                         <div className="d-flex gap-2 flex-wrap">
                             {
                                 order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status == 'pending' &&  (
-                                    <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
+                                    <button onClick={getUrlRepayVnpay} className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
                                 )
                             }
                             {["pending", "preparing", "confirmed"].includes(order.status) && (
