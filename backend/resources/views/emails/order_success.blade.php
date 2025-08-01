@@ -14,7 +14,7 @@
         <li>Ngày đặt: {{ $order->date_order }}</li>
         <li>Tổng tiền: {{ number_format($order->final_amount) }}₫</li>
         <li>Trạng thái: {{ $order->order_status }}</li>
-        <li>Địa chỉ nhận hàng : {{$order->detailed_address}}</li>
+        <li>Địa chỉ nhận hàng : {{$order->detailed_address}}, {{$order->ward_name}}, {{$order->district_name}}, {{$order->province_name}}</li>
     </ul>
 
     <p>Cảm ơn bạn đã mua sắm tại {{ config('app.name') }}!</p>

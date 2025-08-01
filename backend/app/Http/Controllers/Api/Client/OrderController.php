@@ -553,8 +553,8 @@ class OrderController extends Controller
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền hủy', null, 404);
         }
-        if (!in_array($order->order_status, ['pending', 'confirming', 'confirmed'])) {
-            return $this->errorResponse('Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đã xác nhận', null, 400);
+        if (in_array($order->order_status, ['delivered', 'canceled'])) {
+            return $this->errorResponse('Không thể hủy đơn hàng đã giao hoặc đã bị hủy', null, 400);
         }
         $request->validate([
             'cancel_reason' => 'required|string|max:500',
@@ -563,7 +563,11 @@ class OrderController extends Controller
             'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
         ]);
         try {
-            $order->order_status = 'canceled';
+            if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
+                $order->order_status = 'returned';
+            } else {
+                $order->order_status = 'canceled';
+            }
             $order->cancel_reason = $request->input('cancel_reason');
             $order->save();
 
