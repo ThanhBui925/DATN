@@ -38,6 +38,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        if ($user->status != 1) {
+            Log::warning('User is inactive or blocked', ['user_id' => $user->id, 'status' => $user->status]);
+            return response()->json(['error' => 'Tài khoản của bạn đang bị khóa.'], 403);
+        }
+        
+
         Log::info('User found', [
             'user_id' => $user->id,
             'user_email' => $user->email,
