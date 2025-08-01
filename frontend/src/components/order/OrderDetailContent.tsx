@@ -118,6 +118,18 @@ export const OrderDetailContent = () => {
         fetchOrder();
     }, [orderId]);
 
+    const getUrlRepayVnpay = async () => {
+        try {
+            const res = await axiosInstance.get(`/api/client/orders/${orderId}/retry`);
+            console.log(res.data);
+            if (res.data.status) {
+                window.location.href = res.data.data.payment_url;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     useEffect(() => {
         const showMsg = queryParams.get('showMsg');
 
@@ -346,7 +358,7 @@ export const OrderDetailContent = () => {
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
                             {
-                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && (
+                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status == 'pending' &&  (
                                     <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
                                 )
                             }

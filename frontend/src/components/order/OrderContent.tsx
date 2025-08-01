@@ -270,7 +270,7 @@ export const OrderContent: React.FC = () => {
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
                                             {
-                                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && (
+                                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status == 'pending' &&  (
                                                     <button
                                                         className="btn bg-original-base text-white btn-sm px-4 fw-medium"
                                                         onClick={() => getUrlRepayVnpay(order.id)}
