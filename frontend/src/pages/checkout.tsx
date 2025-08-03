@@ -127,7 +127,7 @@ export const Checkout = () => {
         setLoading(true);
         try {
             const res = await axiosInstance.post("/api/client/confirm_checkout", {
-                cartItemsIds: localStorage.getItem('cartItemsIds'),
+                cartItemsIds: sessionStorage.getItem('cartItemsId'),
             });
             if (res.data.status) {
                 setCartData({
