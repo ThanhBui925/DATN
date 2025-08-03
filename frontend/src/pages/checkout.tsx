@@ -123,10 +123,12 @@ export const Checkout = () => {
         }
     }, [navigate]);
 
-    const getCartData = async () => {
+    const getCheckoutData = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get("/api/client/cart");
+            const res = await axiosInstance.post("/api/client/confirm_checkout", {
+                cartItemsIds: localStorage.getItem('cartItemsIds'),
+            });
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
@@ -249,7 +251,7 @@ export const Checkout = () => {
     };
 
     useEffect(() => {
-        getCartData();
+        getCheckoutData();
         fetchProfile();
         fetchProvinces();
         fetchAddresses();
@@ -479,6 +481,7 @@ export const Checkout = () => {
                     return window.location.href = res.data.data.payment_url
                 }
                 notification.success({ message: res.data.message || "Đặt hàng thành công" });
+                sessionStorage.removeItem('cartItemsId');
                 navigate("/don-hang-cua-toi");
             } else {
                 notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
