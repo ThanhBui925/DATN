@@ -450,6 +450,7 @@ export const Checkout = () => {
             note: formData.note,
             payment_method: formData.payment_method,
             voucher_code: appliedCoupon ? appliedCoupon.voucher_code : "",
+            cartItemsId: sessionStorage.getItem("cartItemsId"),
         };
 
         if (useNewAddress) {
