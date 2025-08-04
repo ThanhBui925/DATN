@@ -82,6 +82,19 @@ export const OrderContent: React.FC = () => {
         setIsModalOpen(true);
     }, []);
 
+    const updateOrderStatus = async (orderId: number) => {
+        try {
+            const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
+            if (res.data.status) {
+                notification.success({message: "Đã nhận được hàng !"})
+            } else {
+                notification.error({message: 'Cập nhật trạng thái thất bại !'});
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     const handleModalOk = useCallback(() => {
         if (selectedOrderId && cancelReason.trim()) {
             handleCancelOrder(selectedOrderId, cancelReason);
@@ -290,6 +303,14 @@ export const OrderContent: React.FC = () => {
                                                     onClick={() => showCancelModal(order.id)}
                                                 >
                                                     Hủy Đơn
+                                                </button>
+                                            )}
+                                            {["delivered"].includes(order.status) && (
+                                                <button
+                                                    className="btn btn-outline-success btn-sm px-4 fw-medium"
+                                                    onClick={() => updateOrderStatus(order.id)}
+                                                >
+                                                    Đã nhận được hàng
                                                 </button>
                                             )}
                                         </div>

@@ -118,6 +118,19 @@ export const OrderDetailContent = () => {
         fetchOrder();
     }, [orderId]);
 
+    const updateOrderStatus = async () => {
+            try {
+                const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
+                if (res.data.status) {
+                    notification.success({message: "Đã nhận được hàng !"})
+                } else {
+                    notification.error({message: 'Cập nhật trạng thái thất bại !'});
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
     const getUrlRepayVnpay = async () => {
         try {
             const res = await axiosInstance.get(`/api/client/orders/${orderId}/retry`);
@@ -364,6 +377,14 @@ export const OrderDetailContent = () => {
                             }
                             {["pending", "preparing", "confirmed"].includes(order.status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
+                            )}
+                            {["delivered"].includes(order.status) && (
+                                <button
+                                    className="btn btn-outline-success btn-sm px-4 fw-medium"
+                                    onClick={updateOrderStatus}
+                                >
+                                    Đã nhận được hàng
+                                </button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
                                 Quay lại
