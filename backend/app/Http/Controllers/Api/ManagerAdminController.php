@@ -229,7 +229,7 @@ class ManagerAdminController extends Controller
         }
 
         if (auth()->id() === $admin->id) {
-            return $this->error('Không thể xóa tài khoản của chính mình.', null, 403);
+            return $this->error('Không thể vô hiệu hóa tài khoản của chính mình.', null, 403);
         }
 
         $admin->status = '0';

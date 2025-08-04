@@ -27,8 +27,7 @@ class ProductController extends Controller
             });
 
         if ($request->filled('colors')) {
-            $colorNames = explode(',', $request->query('colors'));
-            $colorIds = Color::whereIn('name', $colorNames)->pluck('id')->toArray();
+            $colorIds = explode(',', $request->query('colors'));
 
             $query->whereHas('variants', function ($q) use ($colorIds) {
                 $q->whereIn('color_id', $colorIds);
@@ -36,13 +35,13 @@ class ProductController extends Controller
         }
 
         if ($request->filled('sizes')) {
-            $sizeNames = explode(',', $request->query('sizes'));
-            $sizeIds = Size::whereIn('name', $sizeNames)->pluck('id')->toArray();
+            $sizeIds = explode(',', $request->query('sizes'));
 
             $query->whereHas('variants', function ($q) use ($sizeIds) {
                 $q->whereIn('size_id', $sizeIds);
             });
         }
+
 
         if ($request->filled('prices')) {
             $priceRange = explode(',', $request->query('prices'));
@@ -131,6 +130,28 @@ class ProductController extends Controller
             ->get();
 
         return $this->successResponse($reviews, 'Lấy danh sách đánh giá thành công');
+    }
+
+    public function getAllSize()
+    {
+        $sizes = Size::select('id', 'name')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Danh sách size',
+            'data' => $sizes
+        ]);
+    }
+
+    public function getAllColor()
+    {
+        $colors = Color::select('id', 'name')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Danh sách màu sắc',
+            'data' => $colors
+        ]);
     }
 
     

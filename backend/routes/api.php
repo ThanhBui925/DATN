@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
+use App\Http\Controllers\Api\Client\CheckoutController;
 
 
 Route::prefix('client')->group(function () {
@@ -42,6 +43,10 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
+
+    Route::get('sizes', [ClientProductController::class, 'getAllSize']);
+    Route::get('colors', [ClientProductController::class, 'getAllColor']);
+
 
     Route::prefix('banners')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
@@ -60,6 +65,9 @@ Route::prefix('client')->group(function () {
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
+    
+    Route::middleware('auth:sanctum')->post('/confirm_checkout', [CheckoutController::class, 'confirm']);
+    
     Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
         Route::get('/', [ClientOrderController::class, 'index']);
         Route::post('/', [ClientOrderController::class, 'store']);
@@ -68,6 +76,8 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
     });
+
+
 
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
         Route::get('/', [ClientReviewController::class, 'index']);

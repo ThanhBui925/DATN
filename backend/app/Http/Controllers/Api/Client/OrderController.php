@@ -99,10 +99,19 @@ class OrderController extends Controller
         try {
             $userId = $request->user()->id;
 
+            $cartItemsIds = json_decode($request->input('cartItemsIds'), true);
+
             $cart = Cart::with('items')->where('user_id', $userId)->first();
             if (!$cart || $cart->items->isEmpty()) {
                 return $this->errorResponse('Giỏ hàng trống hoặc không tồn tại.', null, 400);
             }
+
+            $cartItemsIds = json_decode($request->input('cartItemsIds'), true);
+            if (empty($cartItemsIds) || !is_array($cartItemsIds)) {
+                return $this->errorResponse('Danh sách sản phẩm không hợp lệ', 400);
+            }
+
+
 
             if ($request->filled('address_id')) {
                 $address = Address::where('id', $request->address_id)
@@ -170,8 +179,9 @@ class OrderController extends Controller
 
             ]);
 
+            $cartItems = $cart->items->whereIn('id', $cartItemsIds);
 
-            foreach ($cart->items as $item) {
+            foreach ($cartItems as $item) {
                 $product = $products[$item->product_id] ?? null;
                 if (!$product) {
                     throw new \Exception("Không tìm thấy sản phẩm với ID {$item->product_id}");
@@ -196,6 +206,7 @@ class OrderController extends Controller
                     'variant_id' => $item->variant_id,
                 ]);
             }
+
 
             $discountAmount = 0;
 
@@ -271,8 +282,7 @@ class OrderController extends Controller
                 ], 'Tạo đơn hàng và chuyển đến VNPay', 201);
             }
 
-            $cart->items()->delete();
-            $cart->delete();
+            $cart->items()->whereIn('id', $cartItemsIds)->delete(); 
 
             DB::commit();
             //Gửi mail thông báo đặt đơn hàng thành công
