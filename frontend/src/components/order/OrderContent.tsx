@@ -15,9 +15,15 @@ interface OrderItem {
     variant: {
         size: { name: string };
         color: { name: string };
+        images: [Images];
     };
     quantity: number;
     price: string;
+}
+
+interface Images {
+    id: number,
+    image_url?: string | null;
 }
 
 interface Order {
@@ -268,7 +274,7 @@ export const OrderContent: React.FC = () => {
                                             className={`d-flex align-items-center gap-3 ${index < order.order_items.length - 1 ? "pb-3 border-bottom" : ""}`}
                                         >
                                             <img
-                                                src={item.product?.image || "/path/to/fallback-image.jpg"}
+                                                src={item.variant?.images[0].image_url || "/path/to/fallback-image.jpg"}
                                                 alt={item.product?.name}
                                                 className="rounded"
                                                 style={{ width: "80px", height: "80px", objectFit: "cover" }}

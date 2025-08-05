@@ -1,33 +1,37 @@
-import {MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined} from "@ant-design/icons";
-import React, {useEffect, useState} from "react";
-import {useNavigate, Link} from "react-router-dom";
-import {notification, Skeleton, Select} from "antd";
-import {axiosInstance} from "../utils/axios";
-import {convertToInt} from "../helpers/common";
-import {TOKEN_KEY} from "../providers/authProvider";
-import axios from "axios";
-import {axiosGHNInstance} from "../utils/axios_ghn";
+import { MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { notification, Skeleton, Select } from "antd";
+import { axiosInstance } from "../utils/axios";
+import { convertToInt } from "../helpers/common";
+import { TOKEN_KEY } from "../providers/authProvider";
+import { axiosGHNInstance } from "../utils/axios_ghn";
 
-const {Option} = Select;
+const { Option } = Select;
 
 interface Variant {
     id: number;
     size: string;
+    size_id: number;
     color: string;
+    color_id: number;
     quantity: number;
 }
 
 interface CartItem {
-    id: number;
+    cart_item_id: number;
     product_id: number;
     product_name: string;
-    image: string;
+    image: string; // Product's default image
     price: string;
     quantity: number;
     total: string;
     size: string;
+    size_id: number;
     color: string;
+    color_id: number;
     variant_id: number;
+    variant_images: { id: number; image_url: string }[];
     available_variants: Variant[];
 }
 
@@ -72,15 +76,15 @@ interface Address {
 }
 
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    cash: {label: "Tiền mặt", color: "black", icon: <MoneyCollectOutlined/>},
-    card: {label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined/>},
-    paypal: {label: "PayPal", color: "black", icon: <WalletOutlined/>},
-    vnpay: {label: "VNPay", color: "black", icon: <BankOutlined/>},
+    cash: { label: "Tiền mặt", color: "black", icon: <MoneyCollectOutlined /> },
+    card: { label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined /> },
+    paypal: { label: "PayPal", color: "black", icon: <WalletOutlined /> },
+    vnpay: { label: "VNPay", color: "black", icon: <BankOutlined /> },
 };
 
 export const Checkout = () => {
     const navigate = useNavigate();
-    const [cartData, setCartData] = useState<CartData>({items: [], total: "0"});
+    const [cartData, setCartData] = useState<CartData>({ items: [], total: "0" });
     const [loading, setLoading] = useState<boolean>(false);
     const [voucherCode, setVoucherCode] = useState<string>("");
     const [appliedCoupon, setAppliedCoupon] = useState<CouponResponse | null>(null);
@@ -118,7 +122,7 @@ export const Checkout = () => {
 
     useEffect(() => {
         if (!localStorage.getItem(TOKEN_KEY)) {
-            notification.error({message: "Vui lòng đăng nhập."});
+            notification.error({ message: "Vui lòng đăng nhập." });
             navigate("/dang-nhap");
         }
     }, [navigate]);
@@ -135,10 +139,10 @@ export const Checkout = () => {
                     total: res.data.data.total,
                 });
             } else {
-                notification.error({message: res.data.message});
+                notification.error({ message: res.data.message });
             }
         } catch (e: any) {
-            notification.error({message: e.message || "Lỗi khi tải giỏ hàng"});
+            notification.error({ message: e.message || "Lỗi khi tải giỏ hàng" });
         } finally {
             setLoading(false);
         }
@@ -151,10 +155,10 @@ export const Checkout = () => {
             if (res.data.status) {
                 setProfile(res.data.data);
             } else {
-                notification.error({message: res.data.message || "Lỗi khi tải thông tin profile"});
+                notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
             }
         } catch (e) {
-            notification.error({message: (e as Error).message || "Lỗi khi tải thông tin profile"});
+            notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
         } finally {
             setLoading(false);
         }
@@ -193,7 +197,6 @@ export const Checkout = () => {
         }
     };
 
-
     const fetchAddresses = async () => {
         setLoading(true);
         try {
@@ -201,16 +204,16 @@ export const Checkout = () => {
             if (res.data.status) {
                 setAddresses(res.data.data);
                 const addressData: Address[] = res.data.data;
-                addressData.map((item: Address) => {
+                addressData.forEach((item: Address) => {
                     if (item.is_default) {
                         setSelectedAddressId(item.id);
                     }
-                })
+                });
             } else {
-                notification.error({message: res.data.message || "Lỗi khi tải danh sách địa chỉ"});
+                notification.error({ message: res.data.message || "Lỗi khi tải danh sách địa chỉ" });
             }
         } catch (e) {
-            notification.error({message: (e as Error).message || "Lỗi khi tải danh sách địa chỉ"});
+            notification.error({ message: (e as Error).message || "Lỗi khi tải danh sách địa chỉ" });
         } finally {
             setLoading(false);
         }
@@ -219,34 +222,34 @@ export const Checkout = () => {
     const fetchProvinces = async () => {
         try {
             const res = await axiosGHNInstance("/province");
-            if (res.data.message == 'Success') {
+            if (res.data.message === 'Success') {
                 setProvinces(res.data.data);
             }
         } catch (e) {
-            notification.error({message: "Lỗi khi tải danh sách tỉnh/thành phố"});
+            notification.error({ message: "Lỗi khi tải danh sách tỉnh/thành phố" });
         }
     };
 
     const fetchDistricts = async (provinceId: string) => {
         try {
             const res = await axiosGHNInstance(`/district?province_id=${provinceId}`);
-            if (res.data.message == 'Success') {
+            if (res.data.message === 'Success') {
                 setDistricts(res.data.data);
                 setWards([]);
             }
         } catch (e) {
-            notification.error({message: "Lỗi khi tải danh sách quận/huyện"});
+            notification.error({ message: "Lỗi khi tải danh sách quận/huyện" });
         }
     };
 
     const fetchWards = async (districtId: string) => {
         try {
             const res = await axiosGHNInstance(`/ward?district_id=${districtId}`);
-            if (res.data.message == 'Success') {
+            if (res.data.message === 'Success') {
                 setWards(res.data.data);
             }
         } catch (e) {
-            notification.error({message: "Lỗi khi tải danh sách phường/xã"});
+            notification.error({ message: "Lỗi khi tải danh sách phường/xã" });
         }
     };
 
@@ -295,10 +298,10 @@ export const Checkout = () => {
             if (res.data.status) {
                 setAppliedCoupon(res.data.data);
                 setCouponError("");
-                notification.success({message: res.data.message || "Áp mã giảm giá thành công"});
+                notification.success({ message: res.data.message || "Áp mã giảm giá thành công" });
             } else {
                 setCouponError(res.data.message || "Mã giảm giá không hợp lệ");
-                notification.error({message: res.data.message || "Mã giảm giá không hợp lệ"});
+                notification.error({ message: res.data.message || "Mã giảm giá không hợp lệ" });
             }
         } catch (e: any) {
             const errorMessage =
@@ -308,7 +311,7 @@ export const Checkout = () => {
                 "Lỗi khi áp mã giảm giá";
 
             setCouponError(errorMessage);
-            notification.error({message: errorMessage});
+            notification.error({ message: errorMessage });
         }
     };
 
@@ -316,26 +319,26 @@ export const Checkout = () => {
         setAppliedCoupon(null);
         setVoucherCode("");
         setCouponError("");
-        notification.success({message: "Đã hủy mã giảm giá"});
+        notification.success({ message: "Đã hủy mã giảm giá" });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const {name, value} = e.target;
-        setFormData((prev) => ({...prev, [name]: value}));
-        setFormErrors((prev) => ({...prev, [name]: ""}));
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handleSelectChange = (name: string, value: string) => {
-        setFormData((prev) => ({...prev, [name]: value}));
-        setFormErrors((prev) => ({...prev, [name]: ""}));
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormErrors((prev) => ({ ...prev, [name]: "" }));
 
         if (name === "province") {
-            setFormData((prev) => ({...prev, district: "", ward: ""}));
+            setFormData((prev) => ({ ...prev, district: "", ward: "" }));
             setDistricts([]);
             setWards([]);
             if (value) fetchDistricts(value);
         } else if (name === "district") {
-            setFormData((prev) => ({...prev, ward: ""}));
+            setFormData((prev) => ({ ...prev, ward: "" }));
             setWards([]);
             if (value) fetchWards(value);
         }
@@ -366,8 +369,8 @@ export const Checkout = () => {
     };
 
     const handlePaymentMethodChange = (value: string) => {
-        setFormData((prev) => ({...prev, payment_method: value}));
-        setFormErrors((prev) => ({...prev, payment_method: ""}));
+        setFormData((prev) => ({ ...prev, payment_method: value }));
+        setFormErrors((prev) => ({ ...prev, payment_method: "" }));
     };
 
     const validateForm = (data: any, useNewAddress: boolean) => {
@@ -427,7 +430,7 @@ export const Checkout = () => {
             errors.payment_method = "Vui lòng chọn phương thức thanh toán";
             isValid = false;
         }
-        return {isValid, errors};
+        return { isValid, errors };
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -478,8 +481,8 @@ export const Checkout = () => {
         try {
             const res = await axiosInstance.post("/api/client/orders", payload);
             if (res.data.status) {
-                if (res.data.data.order && res.data.data.order.payment_method == 'vnpay' && res.data.data.payment_url) {
-                    return window.location.href = res.data.data.payment_url
+                if (res.data.data.order && res.data.data.order.payment_method === 'vnpay' && res.data.data.payment_url) {
+                    return window.location.href = res.data.data.payment_url;
                 }
                 notification.success({ message: res.data.message || "Đặt hàng thành công" });
                 sessionStorage.removeItem('cartItemsId');
@@ -492,9 +495,8 @@ export const Checkout = () => {
         }
     };
 
-
     const baseTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
-    const displayTotal = baseTotal + shippingFee;
+    const displayTotal = parseFloat(baseTotal) + shippingFee;
 
     return (
         <>
@@ -503,8 +505,8 @@ export const Checkout = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="d-flex gap-4">
-                                <a className={`d-sm-block d-none`} href="/trang-chu">
-                                    <img className={`mt-2`} style={{ height: 50 }} src="/img/logo/logo.png" alt=""/>
+                                <a className="d-sm-block d-none" href="/trang-chu">
+                                    <img className="mt-2" style={{ height: 50 }} src="/img/logo/logo.png" alt="" />
                                 </a>
                                 <h1 className="cE_Tbx text-original-base">Thanh toán</h1>
                             </div>
@@ -525,12 +527,11 @@ export const Checkout = () => {
                                                 <div>
                                                     <div className="form-group mb-3">
                                                         <label className="form-label fw-medium">
-                                                            Chọn địa chỉ giao hàng <span
-                                                            className="text-danger">*</span>
+                                                            Chọn địa chỉ giao hàng <span className="text-danger">*</span>
                                                         </label>
                                                         <div className="d-flex flex-column gap-2">
                                                             {loading ? (
-                                                                <Skeleton active/>
+                                                                <Skeleton active />
                                                             ) : addresses.length > 0 ? (
                                                                 addresses.map((address) => (
                                                                     <div key={address.id} className="form-check">
@@ -547,13 +548,12 @@ export const Checkout = () => {
                                                                             className="form-check-label"
                                                                             htmlFor={`address_${address.id}`}
                                                                         >
-                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br/> {address.address}, {address.ward_name}, {address.district_name}, Tỉnh {address.province_name}
+                                                                            <strong>{address.recipient_name}</strong> - {address.recipient_phone} - {address.recipient_email} <br /> {address.address}, {address.ward_name}, {address.district_name}, Tỉnh {address.province_name}
                                                                         </label>
                                                                     </div>
                                                                 ))
                                                             ) : (
-                                                                <p className="text-muted">Chưa có địa chỉ nào được
-                                                                    lưu.</p>
+                                                                <p className="text-muted">Chưa có địa chỉ nào được lưu.</p>
                                                             )}
                                                             <div className="form-check">
                                                                 <input
@@ -564,15 +564,13 @@ export const Checkout = () => {
                                                                     checked={useNewAddress}
                                                                     onChange={() => handleAddressChange(null)}
                                                                 />
-                                                                <label className="form-check-label"
-                                                                       htmlFor="new_address">
+                                                                <label className="form-check-label" htmlFor="new_address">
                                                                     Nhập địa chỉ khác
                                                                 </label>
                                                             </div>
                                                         </div>
                                                         {formErrors.address_selection && (
-                                                            <div
-                                                                className="text-danger small">{formErrors.address_selection}</div>
+                                                            <div className="text-danger small">{formErrors.address_selection}</div>
                                                         )}
                                                     </div>
 
@@ -592,16 +590,14 @@ export const Checkout = () => {
                                                                         placeholder="Họ và tên"
                                                                     />
                                                                     {formErrors.recipient_name && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.recipient_name}</div>
+                                                                        <div className="text-danger small">{formErrors.recipient_name}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                             <div className="col-lg-6">
                                                                 <div className="form-group">
                                                                     <label className="form-label fw-medium">
-                                                                        Số điện thoại <span
-                                                                        className="text-danger">*</span>
+                                                                        Số điện thoại <span className="text-danger">*</span>
                                                                     </label>
                                                                     <input
                                                                         type="text"
@@ -612,8 +608,7 @@ export const Checkout = () => {
                                                                         placeholder="Số điện thoại"
                                                                     />
                                                                     {formErrors.recipient_phone && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.recipient_phone}</div>
+                                                                        <div className="text-danger small">{formErrors.recipient_phone}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -631,16 +626,14 @@ export const Checkout = () => {
                                                                         placeholder="Nhập email"
                                                                     />
                                                                     {formErrors.recipient_email && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.recipient_email}</div>
+                                                                        <div className="text-danger small">{formErrors.recipient_email}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                             <div className="col-lg-12">
                                                                 <div className="form-group">
                                                                     <label className="form-label fw-medium">
-                                                                        Tỉnh/Thành phố <span
-                                                                        className="text-danger">*</span>
+                                                                        Tỉnh/Thành phố <span className="text-danger">*</span>
                                                                     </label>
                                                                     <Select
                                                                         className="w-100"
@@ -653,23 +646,20 @@ export const Checkout = () => {
                                                                         }
                                                                     >
                                                                         {provinces.map((province) => (
-                                                                            <Option key={province.ProvinceID}
-                                                                                    value={province.ProvinceID}>
+                                                                            <Option key={province.ProvinceID} value={province.ProvinceID}>
                                                                                 {province.ProvinceName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
                                                                     {formErrors.province && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.province}</div>
+                                                                        <div className="text-danger small">{formErrors.province}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                             <div className="col-lg-12">
                                                                 <div className="form-group">
                                                                     <label className="form-label fw-medium">
-                                                                        Quận/Huyện <span
-                                                                        className="text-danger">*</span>
+                                                                        Quận/Huyện <span className="text-danger">*</span>
                                                                     </label>
                                                                     <Select
                                                                         className="w-100"
@@ -683,15 +673,13 @@ export const Checkout = () => {
                                                                         disabled={!formData.province}
                                                                     >
                                                                         {districts.map((district) => (
-                                                                            <Option key={district.DistrictID}
-                                                                                    value={district.DistrictID}>
+                                                                            <Option key={district.DistrictID} value={district.DistrictID}>
                                                                                 {district.DistrictName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
                                                                     {formErrors.district && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.district}</div>
+                                                                        <div className="text-danger small">{formErrors.district}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -712,23 +700,20 @@ export const Checkout = () => {
                                                                         disabled={!formData.district}
                                                                     >
                                                                         {wards.map((ward) => (
-                                                                            <Option key={ward.WardCode}
-                                                                                    value={ward.WardCode}>
+                                                                            <Option key={ward.WardCode} value={ward.WardCode}>
                                                                                 {ward.WardName}
                                                                             </Option>
                                                                         ))}
                                                                     </Select>
                                                                     {formErrors.ward && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.ward}</div>
+                                                                        <div className="text-danger small">{formErrors.ward}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                             <div className="col-lg-12">
                                                                 <div className="form-group">
                                                                     <label className="form-label fw-medium">
-                                                                        Địa chỉ chi tiết <span
-                                                                        className="text-danger">*</span>
+                                                                        Địa chỉ chi tiết <span className="text-danger">*</span>
                                                                     </label>
                                                                     <input
                                                                         type="text"
@@ -739,8 +724,7 @@ export const Checkout = () => {
                                                                         placeholder="Nhập địa chỉ chi tiết"
                                                                     />
                                                                     {formErrors.detailed_address && (
-                                                                        <div
-                                                                            className="text-danger small">{formErrors.detailed_address}</div>
+                                                                        <div className="text-danger small">{formErrors.detailed_address}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -762,15 +746,10 @@ export const Checkout = () => {
                                                     <div className="col-lg-12">
                                                         <div className="form-group">
                                                             <label className="form-label fw-medium">
-                                                                Phương thức thanh toán <span
-                                                                className="text-danger">*</span>
+                                                                Phương thức thanh toán <span className="text-danger">*</span>
                                                             </label>
                                                             <div className="d-flex flex-column gap-2">
-                                                                {Object.entries(paymentMethodMap).map(([key, {
-                                                                    label,
-                                                                    color,
-                                                                    icon
-                                                                }]) => (
+                                                                {Object.entries(paymentMethodMap).map(([key, { label, color, icon }]) => (
                                                                     <div key={key} className="form-check">
                                                                         <input
                                                                             className="form-check-input"
@@ -785,7 +764,7 @@ export const Checkout = () => {
                                                                         <label
                                                                             className="form-check-label d-flex align-items-center gap-2"
                                                                             htmlFor={`payment_${key}`}
-                                                                            style={{color}}
+                                                                            style={{ color }}
                                                                         >
                                                                             {icon}
                                                                             {label}
@@ -794,8 +773,7 @@ export const Checkout = () => {
                                                                 ))}
                                                             </div>
                                                             {formErrors.payment_method && (
-                                                                <div
-                                                                    className="text-danger small">{formErrors.payment_method}</div>
+                                                                <div className="text-danger small">{formErrors.payment_method}</div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -809,7 +787,7 @@ export const Checkout = () => {
                                             <div className="card-body p-4">
                                                 <h3 className="fw-bold mb-4 text-dark">Thông tin đơn hàng</h3>
                                                 {loading ? (
-                                                    <Skeleton active/>
+                                                    <Skeleton active />
                                                 ) : cartData.items.length > 0 ? (
                                                     <>
                                                         <div className="table-responsive">
@@ -822,11 +800,15 @@ export const Checkout = () => {
                                                                 </thead>
                                                                 <tbody>
                                                                 {cartData.items.map((item) => (
-                                                                    <tr key={item.id} className="align-middle">
+                                                                    <tr key={item.cart_item_id} className="align-middle">
                                                                         <td className="text-start">
                                                                             <div className="d-flex align-items-center gap-3">
                                                                                 <img
-                                                                                    src={item.image || "/path/to/fallback-image.jpg"}
+                                                                                    src={
+                                                                                        item.variant_images?.length > 0
+                                                                                            ? item.variant_images[0].image_url
+                                                                                            : item.image || "/img/default.jpg"
+                                                                                    }
                                                                                     alt={item.product_name}
                                                                                     className="rounded"
                                                                                     style={{ width: "60px", height: "60px", objectFit: "cover" }}
@@ -869,7 +851,9 @@ export const Checkout = () => {
                                                                 <tr>
                                                                     <th className="text-start">Phí vận chuyển</th>
                                                                     <td className="text-end">
-                                                                        <span className="fw-bold">{shippingFee > 0 ? convertToInt(shippingFee.toString()) + "₫" : "Đang tính phí vận chuyển"}</span>
+                                                                            <span className="fw-bold">
+                                                                                {shippingFee > 0 ? convertToInt(shippingFee.toString()) + "₫" : "Đang tính phí vận chuyển"}
+                                                                            </span>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>

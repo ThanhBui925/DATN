@@ -196,6 +196,10 @@ export const DetailProduct = () => {
         }
     };
 
+    const displayedImages = selectedVariant?.images?.length > 0
+        ? selectedVariant.images.map((img: any) => ({ url: img.image_url }))
+        : product?.images || [];
+
     const handleSizeSelect = (size: any) => {
         if (!availableSizes.some((s: any) => s.id === size.id)) return;
         setSelectedSize(selectedSize === size.id ? null : size.id);
@@ -225,8 +229,8 @@ export const DetailProduct = () => {
                             <div id="img-1" className="zoomWrapper single-zoom">
                                 <img
                                     id="zoom1"
-                                    src={product.image || "/img/default.jpg"}
-                                    data-zoom-image={product.image || "/img/default.jpg"}
+                                    src={displayedImages[0]?.url || product.image || "/img/default.jpg"}
+                                    data-zoom-image={displayedImages[0]?.url || product.image || "/img/default.jpg"}
                                     alt={product.name}
                                     style={{ width: "100%" }}
                                 />

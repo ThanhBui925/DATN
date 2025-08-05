@@ -26,7 +26,13 @@ interface Variant {
     id: number;
     size: { name: string };
     color: { name: string };
+    images: [Images];
     status: number;
+}
+
+interface Images {
+    id: number,
+    image_url?: string | null;
 }
 
 interface Item {
@@ -312,7 +318,7 @@ export const OrderDetailContent = () => {
                                         <td>
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
-                                                    src={item.product.image || "/path/to/fallback-image.jpg"}
+                                                    src={item.variant.images[0].image_url || "/path/to/fallback-image.jpg"}
                                                     alt={item.product.name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
