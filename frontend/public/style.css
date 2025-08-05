@@ -4036,3 +4036,14 @@ thead {
     margin: 30px 0 !important;
   }
 }
+.active-tab {
+  background-color: #e85a4f !important;
+  color: #fff !important;
+  border-color: #e85a4f !important;
+}
+
+.inactive-tab {
+  background-color: transparent;
+  color: #e85a4f;
+  border-color: #e85a4f;
+}

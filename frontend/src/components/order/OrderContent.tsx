@@ -27,7 +27,23 @@ interface Order {
     payment_method: string;
     final_amount: string;
     order_items: OrderItem[];
-    tracking_number?: string; // Số vận đơn (có thể undefined)
+    tracking_number?: string;
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginationData {
+    current_page: number;
+    last_page: number;
+    links: PaginationLink[];
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    per_page: number;
+    total: number;
 }
 
 export const OrderContent: React.FC = () => {
@@ -37,16 +53,20 @@ export const OrderContent: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [cancelReason, setCancelReason] = useState<string>('');
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [pagination, setPagination] = useState<PaginationData | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
     const internalStatuses = ['canceled', 'refunded', 'completed', 'pending', 'preparing', 'confirmed', 'delivered', 'returned'];
 
-    const fetchOrders = useCallback(async () => {
+    const fetchOrders = useCallback(async (page = 1) => {
         try {
-            const res = await axiosInstance.get<{ status: boolean; data: { data: Order[] }; message?: string }>(
-                '/api/client/orders'
+            const res = await axiosInstance.get<{ status: boolean; data: PaginationData; message?: string }>(
+                `/api/client/orders?page=${page}`
             );
             if (res.data.status) {
                 setOrders(res.data.data.data || []);
+                setPagination(res.data.data);
+                setCurrentPage(res.data.data.current_page);
             } else {
                 notification.error({ message: res.data.message || "Không thể tải danh sách đơn hàng" });
             }
@@ -65,7 +85,7 @@ export const OrderContent: React.FC = () => {
                 );
                 if (res.data.status) {
                     notification.success({ message: "Đã hủy đơn hàng thành công" });
-                    fetchOrders();
+                    fetchOrders(currentPage);
                 } else {
                     notification.error({ message: res.data.message || "Không thể hủy đơn hàng" });
                 }
@@ -74,7 +94,7 @@ export const OrderContent: React.FC = () => {
                 notification.error({ message: "Có lỗi xảy ra khi hủy đơn hàng" });
             }
         },
-        [fetchOrders]
+        [fetchOrders, currentPage]
     );
 
     const showCancelModal = useCallback((orderId: number) => {
@@ -84,16 +104,17 @@ export const OrderContent: React.FC = () => {
 
     const updateOrderStatus = async (orderId: number) => {
         try {
-            const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
+            const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered' });
             if (res.data.status) {
-                notification.success({message: "Đã nhận được hàng !"})
+                notification.success({ message: "Đã nhận được hàng!" });
+                fetchOrders(currentPage);
             } else {
-                notification.error({message: 'Cập nhật trạng thái thất bại !'});
+                notification.error({ message: 'Cập nhật trạng thái thất bại!' });
             }
         } catch (e) {
-            console.log(e)
+            console.log(e);
         }
-    }
+    };
 
     const handleModalOk = useCallback(() => {
         if (selectedOrderId && cancelReason.trim()) {
@@ -115,18 +136,22 @@ export const OrderContent: React.FC = () => {
     const getUrlRepayVnpay = async (orderId: number) => {
         try {
             const res = await axiosInstance.get(`/api/client/orders/${orderId}/retry`);
-            console.log(res.data);
             if (res.data.status) {
                 window.location.href = res.data.data.payment_url;
             }
         } catch (e) {
             console.log(e);
         }
-    }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        fetchOrders(page);
+    };
 
     useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
+        fetchOrders(currentPage);
+    }, [fetchOrders, currentPage]);
 
     const tabs = {
         all: () => true,
@@ -213,16 +238,16 @@ export const OrderContent: React.FC = () => {
                                     <span className="text-muted">Đặt ngày: {convertDate(order.date_order)}</span>
                                 </div>
                                 <div className="d-flex gap-2">
-                  <span
-                      className="badge text-white fw-semibold"
-                      style={{
-                          backgroundColor: paymentMethodMap[order.payment_method]?.color || "#6B7280",
-                          padding: "0.5em 1em",
-                          fontSize: "0.9em",
-                      }}
-                  >
-                    {paymentMethodMap[order.payment_method]?.label || "Không xác định"}
-                  </span>
+                                    <span
+                                        className="badge text-white fw-semibold"
+                                        style={{
+                                            backgroundColor: paymentMethodMap[order.payment_method]?.color || "#6B7280",
+                                            padding: "0.5em 1em",
+                                            fontSize: "0.9em",
+                                        }}
+                                    >
+                                        {paymentMethodMap[order.payment_method]?.label || "Không xác định"}
+                                    </span>
                                     <span
                                         className="badge text-white fw-semibold"
                                         style={{
@@ -231,8 +256,8 @@ export const OrderContent: React.FC = () => {
                                             fontSize: "0.9em",
                                         }}
                                     >
-                    {statusMap[order.status]?.label || "Không xác định"}
-                  </span>
+                                        {statusMap[order.status]?.label || "Không xác định"}
+                                    </span>
                                 </div>
                             </div>
                             <div className="card-body p-4">
@@ -256,9 +281,9 @@ export const OrderContent: React.FC = () => {
                                                 <p className="text-muted mb-0 small">Số lượng: {item.quantity}</p>
                                             </div>
                                             <div className="text-end">
-                        <span className="fw-bold text-original-base">
-                          {convertToInt(item.price)}₫
-                        </span>
+                                                <span className="fw-bold text-original-base">
+                                                    {convertToInt(item.price)}₫
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
@@ -267,30 +292,29 @@ export const OrderContent: React.FC = () => {
                                             <p className="text-muted mb-1">
                                                 Số vận đơn (Giao Hàng Nhanh):{' '}
                                                 <span className="fw-bold">
-                          {order.tracking_number || "Chưa có số vận đơn"}
-                        </span>
+                                                    {order.tracking_number || "Chưa có số vận đơn"}
+                                                </span>
                                             </p>
                                         </div>
                                     )}
                                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
                                         <div>
-                      <span className="fw-bold text-muted">
-                        Thành tiền:{" "}
-                          <span className="text-original-base fs-5">
-                          {convertToInt(order.final_amount)}₫
-                        </span>
-                      </span>
+                                            <span className="fw-bold text-muted">
+                                                Thành tiền:{" "}
+                                                <span className="text-original-base fs-5">
+                                                    {convertToInt(order.final_amount)}₫
+                                                </span>
+                                            </span>
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
-                                            {
-                                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status == 'pending' &&  (
-                                                    <button
-                                                        className="btn bg-original-base text-white btn-sm px-4 fw-medium"
-                                                        onClick={() => getUrlRepayVnpay(order.id)}
-                                                    >
-                                                        Thanh toán lại
-                                                    </button>                                                )
-                                            }
+                                            {order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status === 'pending' && (
+                                                <button
+                                                    className="btn bg-original-base text-white btn-sm px-4 fw-medium"
+                                                    onClick={() => getUrlRepayVnpay(order.id)}
+                                                >
+                                                    Thanh toán lại
+                                                </button>
+                                            )}
                                             <button
                                                 className="btn btn-outline-secondary btn-sm px-4 fw-medium"
                                                 onClick={() => navigate(`/chi-tiet-don-hang/${order.id}`)}
@@ -319,6 +343,103 @@ export const OrderContent: React.FC = () => {
                             </div>
                         </div>
                     ))}
+                    {/* Pagination Component */}
+                    {pagination && (
+                        <nav aria-label="Page navigation" className="mt-4">
+                            <ul className="pagination justify-content-center gap-1">
+                                <li className={`page-item ${!pagination.prev_page_url ? 'disabled' : ''}`}>
+                                    <button
+                                        className="page-link rounded-pill px-3 py-2 text-original-base"
+                                        style={{ borderColor: '#e85a4f', backgroundColor: pagination.prev_page_url ? 'transparent' : '#f8f9fa' }}
+                                        onClick={() => pagination.prev_page_url && handlePageChange(currentPage - 1)}
+                                        disabled={!pagination.prev_page_url}
+                                    >
+                                        &laquo; Previous
+                                    </button>
+                                </li>
+                                {(() => {
+                                    const totalPages = pagination.last_page;
+                                    const current = pagination.current_page;
+                                    const maxButtons = 5;
+                                    const half = Math.floor(maxButtons / 2);
+                                    let start = Math.max(1, current - half);
+                                    const end = Math.min(totalPages, start + maxButtons - 1);
+
+                                    if (end - start + 1 < maxButtons) {
+                                        start = Math.max(1, end - maxButtons + 1);
+                                    }
+
+                                    const pageButtons = [];
+                                    if (start > 1) {
+                                        pageButtons.push(
+                                            <li key="first" className="page-item">
+                                                <button
+                                                    className="page-link rounded-circle px-3 py-2 text-original-base"
+                                                    style={{ borderColor: '#e85a4f' }}
+                                                    onClick={() => handlePageChange(1)}
+                                                >
+                                                    1
+                                                </button>
+                                            </li>
+                                        );
+                                        if (start > 2) {
+                                            pageButtons.push(
+                                                <li key="ellipsis-start" className="page-item disabled">
+                                                    <span className="page-link px-3 py-2 text-original-base">...</span>
+                                                </li>
+                                            );
+                                        }
+                                    }
+
+                                    for (let i = start; i <= end; i++) {
+                                        pageButtons.push(
+                                            <li key={i} className={`page-item ${current === i ? 'active' : ''}`}>
+                                                <button
+                                                    className={`page-link rounded-circle px-3 py-2 text-original-base ${current === i ? 'active-tab' : 'inactive-tab'}`}
+                                                    onClick={() => handlePageChange(i)}
+                                                >
+                                                    {i}
+                                                </button>
+                                            </li>
+                                        );
+                                    }
+
+                                    if (end < totalPages) {
+                                        if (end < totalPages - 1) {
+                                            pageButtons.push(
+                                                <li key="ellipsis-end" className="page-item disabled">
+                                                    <span className="page-link px-3 py-2 text-original-base">...</span>
+                                                </li>
+                                            );
+                                        }
+                                        pageButtons.push(
+                                            <li key="last" className="page-item">
+                                                <button
+                                                    className="page-link rounded-circle px-3 py-2 text-original-base"
+                                                    style={{ borderColor: '#e85a4f' }}
+                                                    onClick={() => handlePageChange(totalPages)}
+                                                >
+                                                    {totalPages}
+                                                </button>
+                                            </li>
+                                        );
+                                    }
+
+                                    return pageButtons;
+                                })()}
+                                <li className={`page-item ${!pagination.next_page_url ? 'disabled' : ''}`}>
+                                    <button
+                                        className="page-link rounded-pill px-3 py-2 text-original-base"
+                                        style={{ borderColor: '#e85a4f', backgroundColor: pagination.next_page_url ? 'transparent' : '#f8f9fa' }}
+                                        onClick={() => pagination.next_page_url && handlePageChange(currentPage + 1)}
+                                        disabled={!pagination.next_page_url}
+                                    >
+                                        Next &raquo;
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
                 </div>
             </div>
             <Modal
