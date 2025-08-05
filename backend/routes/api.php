@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryControll
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
+use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
@@ -64,10 +65,10 @@ Route::prefix('client')->group(function () {
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
-    });
-    
+});
+
     Route::middleware('auth:sanctum')->post('/confirm_checkout', [CheckoutController::class, 'confirm']);
-    
+
     Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
         Route::get('/', [ClientOrderController::class, 'index']);
         Route::post('/', [ClientOrderController::class, 'store']);
@@ -94,6 +95,11 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}', [AddressController::class, 'update']);
         Route::delete('/{id}', [AddressController::class, 'destroy']);
     });
+
+    Route::middleware('auth:sanctum')->prefix('vouchers')->group(function () {
+    Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
+    Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
+});
 
 });
 
@@ -200,7 +206,7 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::get('/{blogId}/comments', 'comments');
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
-    Route::put('/comments/{commentId}/restore', 'restoreComment');
+Route::put('/comments/{commentId}/restore', 'restoreComment');
 });
 
 
