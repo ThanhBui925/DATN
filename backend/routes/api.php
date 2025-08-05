@@ -75,6 +75,8 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
+        Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
+
     });
 
 

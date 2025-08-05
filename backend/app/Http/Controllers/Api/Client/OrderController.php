@@ -26,6 +26,8 @@ use App\Services\ShippingFeeService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderSuccessMail;
+use Illuminate\Support\Facades\Cache;
+
 
 
 
@@ -99,14 +101,14 @@ class OrderController extends Controller
         try {
             $userId = $request->user()->id;
 
-            $cartItemsIds = json_decode($request->input('cartItemsIds'), true);
+            $cartItemsIds = json_decode($request->input('cartItemsId'), true);
 
             $cart = Cart::with('items')->where('user_id', $userId)->first();
             if (!$cart || $cart->items->isEmpty()) {
                 return $this->errorResponse('Giỏ hàng trống hoặc không tồn tại.', null, 400);
             }
 
-            $cartItemsIds = json_decode($request->input('cartItemsIds'), true);
+            $cartItemsIds = json_decode($request->input('cartItemsId'), true);
             if (empty($cartItemsIds) || !is_array($cartItemsIds)) {
                 return $this->errorResponse('Danh sách sản phẩm không hợp lệ', 400);
             }
@@ -275,12 +277,19 @@ class OrderController extends Controller
 
             if ($request->payment_method === 'vnpay') {
                 DB::commit();
+            
+                // Lưu cache với key là mã đơn hàng
+                Cache::put('vnpay_order_cart_items_' . $order->id, $cartItemsIds, now()->addMinutes(30)); // hoặc addHour(1)
+            
                 $paymentUrl = app(\App\Services\VnPayService::class)->createPaymentUrl($order);
+            
                 return $this->successResponse([
                     'order' => $order->load('orderItems'),
+                    'cartItemsIds' => $cartItemsIds,
                     'payment_url' => $paymentUrl
                 ], 'Tạo đơn hàng và chuyển đến VNPay', 201);
             }
+            
 
             $cart->items()->whereIn('id', $cartItemsIds)->delete(); 
 
@@ -674,4 +683,41 @@ class OrderController extends Controller
             return $this->errorResponse('Cập nhật địa chỉ đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
     }
+
+    public function complete(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền thay đổi', null, 404);
+        }
+
+        if ($order->order_status !== 'delivered') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Chỉ được xác nhận hoàn tất khi đơn đã giao.'
+            ]);
+        }
+
+        $order->order_status = 'completed';
+
+        if ($order->payment_status !== 'paid') {
+            $order->payment_status = 'paid';
+        }
+
+        $order->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Đã xác nhận hoàn tất đơn hàng.'
+        ]);
+    }
+
 }
