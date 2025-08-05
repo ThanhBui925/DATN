@@ -210,115 +210,124 @@ export const Cart = () => {
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                    {cartData.items.map((cart: any) => (
-                                                        <tr key={cart.id}>
-                                                            <td className="plantmore-product-select">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedItems[cart.id] || false}
-                                                                    onChange={() => handleCheckboxChange(cart.id)}
-                                                                />
-                                                            </td>
-                                                            <td className="plantmore-product-thumbnail">
-                                                                <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
-                                                                    <img
-                                                                        src={cart.image || "/img/default.jpg"}
-                                                                        alt={cart.product_name}
-                                                                        style={{height: "150px", width: "200px"}}
+                                                    {cartData.items.map((cart: any) => {
+                                                        const selectedVariant = cart.available_variants.find(
+                                                            (v: any) => v.size == selectedSizes[cart.id] && v.color == selectedColors[cart.id]
+                                                        );
+                                                        const displayImage = selectedVariant?.images?.length > 0
+                                                            ? selectedVariant.images[0].image_url
+                                                            : cart.image || "/img/default.jpg";
+                                                        return (
+                                                            <tr key={cart.id}>
+                                                                <td className="plantmore-product-select">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedItems[cart.id] || false}
+                                                                        onChange={() => handleCheckboxChange(cart.id)}
                                                                     />
-                                                                </a>
-                                                            </td>
-                                                            <td className="plantmore-product-name">
-                                                                <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
-                                                                    {cart.product_name}
-                                                                </a>
-                                                            </td>
-                                                            <td className="plantmore-product-size">
-                                                                <Select
-                                                                    value={selectedSizes[cart.id] || cart.size}
-                                                                    onChange={(value) => handleSizeChange(cart.id, value)}
-                                                                    style={{width: 100}}
-                                                                >
-                                                                    {cart.available_variants
-                                                                        .map((v: any) => v.size)
-                                                                        .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index)
-                                                                        .map((size: string) => (
-                                                                            <Select.Option key={size} value={size}>
-                                                                                {size}
-                                                                            </Select.Option>
-                                                                        ))}
-                                                                </Select>
-                                                            </td>
-                                                            <td className="plantmore-product-color">
-                                                                <Select
-                                                                    value={selectedColors[cart.id] || cart.color}
-                                                                    onChange={(value) => handleColorChange(cart.id, value)}
-                                                                    style={{width: 100}}
-                                                                >
-                                                                    {cart.available_variants
-                                                                        .map((v: any) => v.color)
-                                                                        .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index)
-                                                                        .map((color: string) => (
-                                                                            <Select.Option key={color} value={color}>
-                                                                                {color}
-                                                                            </Select.Option>
-                                                                        ))}
-                                                                </Select>
-                                                            </td>
-                                                            <td className="plantmore-product-price">
+                                                                </td>
+                                                                <td className="plantmore-product-thumbnail">
+                                                                    <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                                        <img
+                                                                            src={displayImage}
+                                                                            alt={cart.product_name}
+                                                                            style={{ height: "150px", width: "200px" }}
+                                                                        />
+                                                                    </a>
+                                                                </td>
+                                                                <td className="plantmore-product-name">
+                                                                    <a href={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                                        {cart.product_name}
+                                                                    </a>
+                                                                </td>
+                                                                <td className="plantmore-product-size">
+                                                                    <Select
+                                                                        value={selectedSizes[cart.id] || cart.size}
+                                                                        onChange={(value) => handleSizeChange(cart.id, value)}
+                                                                        style={{width: 100}}
+                                                                    >
+                                                                        {cart.available_variants
+                                                                            .map((v: any) => v.size)
+                                                                            .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index)
+                                                                            .map((size: string) => (
+                                                                                <Select.Option key={size} value={size}>
+                                                                                    {size}
+                                                                                </Select.Option>
+                                                                            ))}
+                                                                    </Select>
+                                                                </td>
+                                                                <td className="plantmore-product-color">
+                                                                    <Select
+                                                                        value={selectedColors[cart.id] || cart.color}
+                                                                        onChange={(value) => handleColorChange(cart.id, value)}
+                                                                        style={{width: 100}}
+                                                                    >
+                                                                        {cart.available_variants
+                                                                            .map((v: any) => v.color)
+                                                                            .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index)
+                                                                            .map((color: string) => (
+                                                                                <Select.Option key={color} value={color}>
+                                                                                    {color}
+                                                                                </Select.Option>
+                                                                            ))}
+                                                                    </Select>
+                                                                </td>
+                                                                <td className="plantmore-product-price">
                                                                 <span
                                                                     className="amount">{convertToInt(cart.price)} vnđ</span>
-                                                            </td>
-                                                            <td className="plantmore-product-quantity">
-                                                                <div className="d-flex justify-content-center">
-                                                                    <div className="input-group" style={{width: "150px"}}>
-                                                                        <button
-                                                                            className="btn btn-outline-secondary "
-                                                                            type="button"
-                                                                            onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity - 1)}
-                                                                            disabled={cart.quantity <= 1}
-                                                                        >
-                                                                            -
-                                                                        </button>
-                                                                        <input
-                                                                            type="text"
-                                                                            className="form-control text-center"
-                                                                            value={cart.quantity}
-                                                                            onChange={(e) => {
-                                                                                const value = parseInt(e.target.value) || 1;
-                                                                                handleQuantityChange(cart.id, cart.variant_id, value);
-                                                                            }}
-                                                                            min="1"
-                                                                        />
-                                                                        <button
-                                                                            className="btn btn-outline-secondary"
-                                                                            type="button"
-                                                                            onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity + 1)}
-                                                                        >
-                                                                            +
-                                                                        </button>
+                                                                </td>
+                                                                <td className="plantmore-product-quantity">
+                                                                    <div className="d-flex justify-content-center">
+                                                                        <div className="input-group"
+                                                                             style={{width: "150px"}}>
+                                                                            <button
+                                                                                className="btn btn-outline-secondary "
+                                                                                type="button"
+                                                                                onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity - 1)}
+                                                                                disabled={cart.quantity <= 1}
+                                                                            >
+                                                                                -
+                                                                            </button>
+                                                                            <input
+                                                                                type="text"
+                                                                                className="form-control text-center"
+                                                                                value={cart.quantity}
+                                                                                onChange={(e) => {
+                                                                                    const value = parseInt(e.target.value) || 1;
+                                                                                    handleQuantityChange(cart.id, cart.variant_id, value);
+                                                                                }}
+                                                                                min="1"
+                                                                            />
+                                                                            <button
+                                                                                className="btn btn-outline-secondary"
+                                                                                type="button"
+                                                                                onClick={() => handleQuantityChange(cart.id, cart.variant_id, cart.quantity + 1)}
+                                                                            >
+                                                                                +
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                {errorQty[cart.id] && <div
-                                                                    className="text-danger mt-1">{errorQty[cart.id]}</div>}
-                                                            </td>
-                                                            <td className="product-subtotal">
+                                                                    {errorQty[cart.id] && <div
+                                                                        className="text-danger mt-1">{errorQty[cart.id]}</div>}
+                                                                </td>
+                                                                <td className="product-subtotal">
                                                                 <span
                                                                     className="amount">{convertToInt(cart.total)} vnđ</span>
-                                                            </td>
-                                                            <td className="plantmore-product-remove">
-                                                                <a
-                                                                    href="#"
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        deleteCartData(cart.id);
-                                                                    }}
-                                                                >
-                                                                    <i className="fa fa-times"></i>
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
+                                                                </td>
+                                                                <td className="plantmore-product-remove">
+                                                                    <a
+                                                                        href="#"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            deleteCartData(cart.id);
+                                                                        }}
+                                                                    >
+                                                                        <i className="fa fa-times"></i>
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })}
                                                     </tbody>
                                                 </table>
                                             </div>
