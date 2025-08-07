@@ -39,7 +39,7 @@ class CartController extends Controller
             $productVariants = VariantProduct::where('product_id', $item->product_id)
                 ->where('status', 1)
                 ->where('quantity', '>', 0)
-                ->with(['size', 'color'])
+                ->with(['size', 'color', 'images'])
                 ->get()
                 ->map(function ($variant) {
                     return [
@@ -47,12 +47,19 @@ class CartController extends Controller
                         'size' => $variant->size->name ?? null,
                         'color' => $variant->color->name ?? null,
                         'quantity' => $variant->quantity,
+                        'images' => $variant->images->map(function ($image) {
+                            return [
+                                'id' => $image->id,
+                                'image_url' => $image->image_url,
+                            ];
+                        })->toArray(),
                     ];
                 });
 
             return [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
+                'product' => $item->product,
                 'product_name' => $item->product->name,
                 'variant_id' => $item->variant_id,
                 'size' => $item->variant->size->name ?? null,
@@ -72,7 +79,7 @@ class CartController extends Controller
             'total' => $total,
         ], 'Lấy giỏ hàng thành công');
     }
-
+    
     public function store(Request $request)
     {
         $userId = $request->user()->id ?? $request->input('user_id');
