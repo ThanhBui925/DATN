@@ -27,6 +27,9 @@ interface Product {
     price: number;
     sale_price?: number;
     description: string;
+    average_rating: number;
+    review_count: number;
+    total_ordered_quantity: number;
     image?: string;
     images?: ImageType[];
     variants?: Variant[];
@@ -63,7 +66,7 @@ export const DetailProduct: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalReviews, setTotalReviews] = useState<number>(0);
     const [cartQuantity, setCartQuantity] = useState<number>(0);
-    const pageSize: number = 5;
+    const pageSize = 10;
     const navigate = useNavigate();
     const BASE_URL: string = import.meta.env.VITE_APP_API_URL + '/api';
 
@@ -128,6 +131,8 @@ export const DetailProduct: React.FC = () => {
             product?.variants?.map((variant: Variant) => variant.size?.id).filter((id: any) => id)
         )
     ).map((id: any) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const variant = product?.variants.find((v: Variant) => v.size?.id === id);
         return { id: variant!.size!.id, name: variant!.size!.name };
     });
@@ -137,12 +142,16 @@ export const DetailProduct: React.FC = () => {
             product?.variants?.map((variant: Variant) => variant.color?.id).filter((id: any) => id)
         )
     ).map((id: any) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const variant = product?.variants.find((v: Variant) => v.color?.id === id);
         return { id: variant!.color!.id, name: variant!.color!.name, code: variant!.color!.code || "#eee" };
     });
 
     const availableColors: ColorOption[] = selectedSize
         ? uniqueColorOptions.filter((color) =>
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             product?.variants.some(
                 (variant: Variant) => variant.size?.id === selectedSize && variant.color?.id === color.id
             )
@@ -151,6 +160,8 @@ export const DetailProduct: React.FC = () => {
 
     const availableSizes: SizeOption[] = selectedColor
         ? uniqueSizeOptions.filter((size) =>
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             product?.variants.some(
                 (variant: Variant) => variant.color?.id === selectedColor && variant.size?.id === size.id
             )
@@ -272,6 +283,8 @@ export const DetailProduct: React.FC = () => {
 
     const carouselSettings: any = {
         dots: true,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         infinite: product?.images?.length > 4,
         speed: 500,
         slidesToShow: Math.min(4, product?.images?.length || 1),
@@ -314,8 +327,12 @@ export const DetailProduct: React.FC = () => {
                             )}
                         </div>
                         <div className="single-zoom-thumb mt-3">
+                            {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
+                            {/*@ts-ignore*/}
                             {product?.images?.length > 0 ? (
                                 <Slider {...carouselSettings}>
+                                    {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
+                                    {/*@ts-ignore*/}
                                     {product.images.map((img: ImageType, index: number) => (
                                         <div key={index} style={{ padding: "0 5px" }}>
                                             <img
@@ -349,11 +366,11 @@ export const DetailProduct: React.FC = () => {
                     </div>
                 </div>
                 <div className="col-xl-7 col-lg-6 col-md-7 col-sm-12">
-                    <div className="py-3 py-md-0">
+                    <div className="py-3 py-md-0 mt-5 mt-md-0">
                         <h2 className="fw-bold">{product.name}</h2>
                         <div className="d-flex align-items-center mb-2">
                             <div className="d-flex gap-1">
-                                <span className="text-decoration-underline">5.0</span>
+                                <span className="text-decoration-underline"> { product.average_rating }</span>
                                 <span className="text-warning">
                   {[...Array(5)].map((_, i: number) => (
                       <i key={i} className="fa fa-star"></i>
@@ -361,10 +378,10 @@ export const DetailProduct: React.FC = () => {
                 </span>
                             </div>
                             <span className="ms-2">
-                | <span className="text-decoration-underline">{totalReviews}</span> đánh giá |
+                | <span className="text-decoration-underline">{product.review_count}</span> đánh giá |
               </span>
                             <span className="ms-2">
-                Đã bán <span className="text-decoration-underline">7.2k</span>
+                Đã bán <span className="text-decoration-underline">{ product.total_ordered_quantity }</span>
               </span>
                         </div>
                         <div className="p-5" style={{ backgroundColor: "#fafafa" }}>
@@ -506,7 +523,7 @@ export const DetailProduct: React.FC = () => {
             <div className="row mt-4">
                 <div className="col">
                     <div>
-                        <section className="desc-section mb-3">
+                        <section className="desc-section mb-3 mt-4">
                             <div className="section-title-3">
                                 <h2>Mô tả sản phẩm</h2>
                             </div>
@@ -515,7 +532,7 @@ export const DetailProduct: React.FC = () => {
 
                         <section className="rate-section mb-3">
                             <div className="section-title-3">
-                                <h2>Đánh giá ({totalReviews})</h2>
+                                <h2>Đánh giá ({product.review_count})</h2>
                             </div>
                             {reviewLoading ? (
                                 <div className="text-center py-5">
@@ -563,7 +580,7 @@ export const DetailProduct: React.FC = () => {
                                     <div className="text-center mt-4">
                                         <Pagination
                                             current={currentPage}
-                                            total={totalReviews}
+                                            total={product.review_count}
                                             pageSize={pageSize}
                                             onChange={(page: number) => setCurrentPage(page)}
                                             showSizeChanger={false}
