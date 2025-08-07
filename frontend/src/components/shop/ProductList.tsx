@@ -30,22 +30,23 @@ export const ProductList = ({ search }: ProductListProps) => {
     const fetchProducts = async (page: number) => {
         setLoading(true);
         try {
-            const params = {
-                page,
-                limit: productsPerPage,
-                search: search || undefined,
-                category_id: searchParams.getAll("category_id").join(",") || undefined,
-                size_id: searchParams.getAll("size_id").join(",") || undefined,
-                color_id: searchParams.getAll("color_id").join(",") || undefined,
-                price_min: searchParams.get("price_min") || undefined,
-                price_max: searchParams.get("price_max") || undefined,
-                sort: searchParams.get("sort") || "relevance",
-            };
+            const queryString = new URLSearchParams(searchParams);
+            queryString.set("page", String(page));
+            queryString.set("limit", String(productsPerPage));
+            if (search) {
+                queryString.set("search", search);
+            } else {
+                queryString.delete("search");
+            }
+
+            const apiUrl = `/api/client/products?${queryString.toString()}`;
+
+            console.log("API Request URL:", apiUrl); // Debug URL
 
             const res = await axiosInstance.get<{
                 data: Product[];
                 meta?: { totalPages: number };
-            }>("/api/client/products", { params });
+            }>(apiUrl);
             setProducts(res.data.data || []);
             setTotalPages(res.data.meta?.totalPages || 1);
         } catch (err) {
@@ -88,10 +89,10 @@ export const ProductList = ({ search }: ProductListProps) => {
                         </ul>
                     </div>
                     <div className="toolbar-amount">
-            <span>
-              Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
-                {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm
-            </span>
+                        <span>
+                            Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
+                            {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm
+                        </span>
                     </div>
                 </div>
                 <div className="product-select-box">
