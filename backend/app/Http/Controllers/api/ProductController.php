@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
 use Illuminate\Support\Str;
+use App\Models\OrderItem;
+use App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -55,9 +57,7 @@ class ProductController extends Controller
 
         return $this->successResponse($products);
     }
-
-
-
+    
     public function show($id)
     {
         $product = Product::with([
@@ -65,15 +65,29 @@ class ProductController extends Controller
             'variants.size',
             'variants.color',
             'variants.images',
-            'images' // Thêm quan hệ ảnh mô tả sản phẩm
+            'images',
+            'reviews.user'
         ])->find($id);
-
+    
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
-
+    
+        // Tổng số lượng đơn hàng
+        $orderQuantity = OrderItem::where('product_id', $id)->sum('quantity');
+        $product->total_ordered_quantity = $orderQuantity;
+    
+        // Tính điểm đánh giá trung bình và tổng số đánh giá
+        $averageRating = $product->reviews()->avg('rating');
+        $reviewCount = $product->reviews()->count();
+    
+        $product->average_rating = round($averageRating, 1); // làm tròn 1 chữ số
+        $product->review_count = $reviewCount;
+    
         return $this->successResponse($product);
     }
+    
+
 
 
     public function store(StoreProductRequest $request)
@@ -397,7 +411,7 @@ class ProductController extends Controller
             return $this->successResponse(null, 'Xóa sản phẩm thành công');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Product deletion failed: ' . $e->getMessage());
+            log::error('Product deletion failed: ' . $e->getMessage());
             return $this->errorResponse('Xóa sản phẩm thất bại. Vui lòng thử lại.', 500);
         }
     }
