@@ -54,6 +54,7 @@ class OrderController extends Controller
                 'orderItems.product',
                 'orderItems.variant.size',
                 'orderItems.variant.color',
+                'orderItems.variant.images'
             ]);
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
@@ -417,6 +418,7 @@ class OrderController extends Controller
                 'orderItems.product',
                 'orderItems.variant.size',
                 'orderItems.variant.color',
+                'orderItems.variant.images',
             ])->first();
 
         if (!$order) {
@@ -538,6 +540,7 @@ class OrderController extends Controller
                             'name' => optional($item->variant->color)->name,
                         ],
                         'status' => $item->variant->status,
+                        'images' => $item->variant->images,
                     ] : null,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
@@ -552,7 +555,7 @@ class OrderController extends Controller
             'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
             'date_order' => $order->date_order,
         ];
-            
+
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
 
