@@ -585,6 +585,21 @@ class OrderController extends Controller
             'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
         ]);
         try {
+
+            if (!empty($order->order_code)) {
+                $ghnResponse = Http::withHeaders([
+                    'Token' => env('GHN_TOKEN'),
+                    'ShopId' => env('GHN_SHOP_ID'),
+                    'Content-Type' => 'application/json',
+                ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/switch-status/cancel', [
+                    'order_codes' => [$order->order_code],
+                ]);
+        
+                if (!$ghnResponse->successful() || $ghnResponse->json('code') != 200) {
+                    return $this->errorResponse('Không thể hủy đơn GHN: ' . $ghnResponse->json('message'), null, 400);
+                }
+            }
+
             if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
                 $order->order_status = 'returned';
             } else {
