@@ -133,6 +133,12 @@ Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRe
 Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
 Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
 
+Route::get('/dashboard/orders/status-counters', [DashboardController::class, 'getOrderStatusCounters']);
+Route::get('/dashboard/orders/by-period',       [DashboardController::class, 'getOrdersByPeriod']);
+Route::get('/dashboard/orders/cancel-rate',     [DashboardController::class, 'getCancelRate']);
+Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'getOrderStatusTimeline']);
+
+
 Route::apiResource('banners', BannerController::class);
 
 Route::prefix('categories')->controller(CategoryController::class)->group(function () {
