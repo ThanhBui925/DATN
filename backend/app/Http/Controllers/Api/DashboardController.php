@@ -9,26 +9,86 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    // Trạng thái đơn hàng được tính doanh thu (đã ghi nhận)
-    private array $orderStatusesForRevenue = ['confirmed','preparing','shipping','delivered','completed'];
+    // Trạng thái được ghi nhận doanh thu (paid + status hợp lệ)
+    private array $orderStatusesForRevenue = ['confirmed','preparing','shipping','delivered'];
 
-    // Bộ lọc đơn hàng tính doanh thu: chỉ đơn paid + trạng thái hợp lệ
+    // Gom nhóm trạng thái cho thống kê đơn
+    private array $statusBuckets = [
+        'placed'     => ['confirmed'],
+        'processing' => ['preparing','shipping'],
+        'delivered'  => ['delivered'],
+        'canceled'   => ['canceled'],
+    ];
+
     private function revenueOrderFilter($q) {
         return $q->whereIn('shop_order.order_status', $this->orderStatusesForRevenue)
                  ->where('shop_order.payment_status', 'paid');
     }
 
-    // SQL tính tổng tiền cấp đơn (KHÔNG tính phí ship)
     private function orderFinalAmountSql(): string {
         return 'COALESCE(shop_order.final_amount, (shop_order.total_price - COALESCE(shop_order.discount_amount,0)))';
     }
 
-    // SQL giá cuối cùng cấp item (ưu tiên final_price; fallback price)
     private function itemFinalPriceSql(): string {
         return 'COALESCE(shop_order_items.final_price, shop_order_items.price)';
     }
 
-    // Tổng doanh thu (snapshot)
+    // Parse khoảng thời gian theo day|month, trả về from/to + biểu thức group-by
+    private function buildPeriodFilter(Request $request, string $timeType = 'day'): array
+    {
+        $from = $request->input('from');
+        $to   = $request->input('to');
+
+        $periodExpr = $timeType === 'month'
+            ? 'DATE_FORMAT(date_order, "%Y-%m")'
+            : 'DATE(date_order)';
+
+        if (!$from && !$to) {
+            return [
+                'ok'         => true,
+                'from'       => null,
+                'to'         => null,
+                'periodExpr' => $periodExpr,
+            ];
+        }
+
+        try {
+            if ($timeType === 'month') {
+                $fromDate = $from ? Carbon::createFromFormat('Y-m', $from)->startOfMonth() : null;
+                $toDate   = $to   ? Carbon::createFromFormat('Y-m', $to)->endOfMonth()   : null;
+            } else {
+                $fromDate = $from ? Carbon::createFromFormat('Y-m-d', $from)->startOfDay() : null;
+                $toDate   = $to   ? Carbon::createFromFormat('Y-m-d', $to)->endOfDay()     : null;
+            }
+
+            if (!$fromDate || !$toDate) {
+                return ['ok' => false, 'error' => 'Thiếu ngày bắt đầu hoặc kết thúc'];
+            }
+
+            return [
+                'ok'         => true,
+                'from'       => $fromDate,
+                'to'         => $toDate,
+                'periodExpr' => $periodExpr,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'ok'    => false,
+                'error' => $timeType === 'month'
+                    ? 'Định dạng tháng không hợp lệ (YYYY-MM)'
+                    : 'Định dạng ngày không hợp lệ (YYYY-MM-DD)',
+            ];
+        }
+    }
+
+    // =========================================================
+    // ======================== PHẦN DOANH THU =================
+    // =========================================================
+
+    /**
+     * API: Tổng doanh thu (snapshot)
+     * GET /dashboard/total-revenue
+     */
     public function getTotalRevenue(Request $request)
     {
         $query = DB::table('shop_order');
@@ -77,21 +137,30 @@ class DashboardController extends Controller
         ]);
     }
 
-    // Tổng số đơn hàng
+    /**
+     * API: Tổng số đơn hàng
+     * GET /dashboard/total-orders
+     */
     public function getTotalOrders()
     {
         $total = DB::table('shop_order')->count();
         return response()->json(['total_orders' => $total]);
     }
 
-    // Tổng số khách hàng
+    /**
+     * API: Tổng số khách hàng
+     * GET /dashboard/total-customers
+     */
     public function getTotalCustomers()
     {
         $total = DB::table('customers')->count();
         return response()->json(['total_customers' => $total]);
     }
 
-    // Giá trị trung bình mỗi đơn hàng (AOV)
+    /**
+     * API: Giá trị trung bình mỗi đơn hàng (AOV)
+     * GET /dashboard/average-order-value
+     */
     public function getAverageOrderValue()
     {
         $base = DB::table('shop_order');
@@ -107,14 +176,20 @@ class DashboardController extends Controller
         ]);
     }
 
-    // Đánh giá trung bình
+    /**
+     * API: Đánh giá trung bình
+     * GET /dashboard/average-rating
+     */
     public function getAverageRating()
     {
         $averageRating = DB::table('reviews')->avg('rating');
         return response()->json(['average_rating' => round($averageRating, 2)]);
     }
 
-    // Doanh thu theo tháng
+    /**
+     * API: Doanh thu theo tháng
+     * GET /dashboard/monthly-revenue
+     */
     public function getMonthlyRevenue()
     {
         $revenues = DB::table('shop_order')
@@ -127,7 +202,10 @@ class DashboardController extends Controller
         return response()->json(['monthly_revenue' => $revenues]);
     }
 
-    // Tăng trưởng người dùng
+    /**
+     * API: Tăng trưởng người dùng
+     * GET /dashboard/user-growth
+     */
     public function getUserGrowth()
     {
         $growth = DB::table('users')
@@ -139,7 +217,10 @@ class DashboardController extends Controller
         return response()->json(['user_growth' => $growth]);
     }
 
-    // Doanh thu theo danh mục
+    /**
+     * API: Doanh thu theo danh mục
+     * GET /dashboard/revenue-by-category
+     */
     public function getRevenueByCategory(Request $request)
     {
         $from    = $request->input('from');
@@ -155,10 +236,14 @@ class DashboardController extends Controller
         $this->revenueOrderFilter($q);
 
         if ($from && $to) {
-            $q->whereBetween('shop_order.date_order', [
-                Carbon::parse($from)->startOfDay(),
-                Carbon::parse($to)->endOfDay(),
-            ]);
+            try {
+                $q->whereBetween('shop_order.date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
         }
 
         $data = $q->groupBy('categories.id','categories.name')
@@ -172,7 +257,10 @@ class DashboardController extends Controller
         return response()->json(['revenue_by_category' => $data]);
     }
 
-    // Doanh thu theo sản phẩm
+    /**
+     * API: Doanh thu theo sản phẩm
+     * GET /dashboard/revenue/by-product
+     */
     public function getRevenueByProduct(Request $request)
     {
         $from    = $request->input('from');
@@ -188,10 +276,14 @@ class DashboardController extends Controller
         $this->revenueOrderFilter($q);
 
         if ($from && $to) {
-            $q->whereBetween('shop_order.date_order', [
-                Carbon::parse($from)->startOfDay(),
-                Carbon::parse($to)->endOfDay(),
-            ]);
+            try {
+                $q->whereBetween('shop_order.date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
         }
         if ($search) {
             $q->where('products.name','like',"%{$search}%");
@@ -218,7 +310,10 @@ class DashboardController extends Controller
         ]);
     }
 
-    // Tổng doanh thu theo: Ngày / Tuần / Tháng / Năm
+    /**
+     * API: Tổng doanh thu theo thời gian
+     * GET /dashboard/revenue/summary
+     */
     public function getRevenueSummary(Request $request)
     {
         $timeType = $request->input('timeType', 'day');
@@ -229,10 +324,14 @@ class DashboardController extends Controller
         $this->revenueOrderFilter($query);
 
         if ($from && $to) {
-            $query->whereBetween('shop_order.date_order', [
-                Carbon::parse($from)->startOfDay(),
-                Carbon::parse($to)->endOfDay(),
-            ]);
+            try {
+                $query->whereBetween('shop_order.date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
         }
 
         if ($timeType === 'day') {
@@ -258,9 +357,14 @@ class DashboardController extends Controller
 
         $total = DB::table('shop_order')
             ->tap(fn($q) => $this->revenueOrderFilter($q))
-            ->when($from && $to, fn($q)=>$q->whereBetween('shop_order.date_order',[
-                Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay()
-            ]))
+            ->when($from && $to, function ($q) use ($from, $to) {
+                try {
+                    $q->whereBetween('shop_order.date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {}
+            })
             ->sum(DB::raw($this->orderFinalAmountSql()));
 
         return response()->json([
@@ -269,5 +373,138 @@ class DashboardController extends Controller
                 'total'   => (float) $total,
             ]
         ]);
+    }
+
+    // =========================================================
+    // ======================== PHẦN ĐƠN HÀNG ==================
+    // =========================================================
+
+    /**
+     * API: Thống kê đơn hàng theo trạng thái
+     * GET /dashboard/orders/status-counters
+     */
+    public function getOrderStatusCounters(Request $request)
+    {
+        $timeType = $request->input('timeType', 'day');
+        $f = $this->buildPeriodFilter($request, $timeType);
+        if (!$f['ok']) return response()->json(['error' => $f['error']], 400);
+
+        $q = DB::table('shop_order');
+        if ($f['from'] && $f['to']) {
+            $q->whereBetween('date_order', [$f['from'], $f['to']]);
+        }
+
+        $selects = [
+            DB::raw('COUNT(*) as total_orders'),
+            DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['placed'])."') THEN 1 ELSE 0 END) as placed"),
+            DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['processing'])."') THEN 1 ELSE 0 END) as processing"),
+            DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['delivered'])."') THEN 1 ELSE 0 END) as delivered"),
+            DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['canceled'])."') THEN 1 ELSE 0 END) as canceled"),
+        ];
+
+        $row = $q->select($selects)->first();
+
+        return response()->json([
+            'order_status_counters' => [
+                'total'      => (int) ($row->total_orders ?? 0),
+                'placed'     => (int) ($row->placed ?? 0),
+                'processing' => (int) ($row->processing ?? 0),
+                'delivered'  => (int) ($row->delivered ?? 0),
+                'canceled'   => (int) ($row->canceled ?? 0),
+            ]
+        ]);
+    }
+
+    /**
+     * API: Thống kê đơn hàng theo ngày/tháng
+     * GET /dashboard/orders/by-period
+     */
+    public function getOrdersByPeriod(Request $request)
+    {
+        $timeType = $request->input('timeType', 'day');
+        $f = $this->buildPeriodFilter($request, $timeType);
+        if (!$f['ok']) return response()->json(['error' => $f['error']], 400);
+
+        $q = DB::table('shop_order');
+        if ($f['from'] && $f['to']) {
+            $q->whereBetween('date_order', [$f['from'], $f['to']]);
+        }
+
+        $rows = $q->select([
+                DB::raw($f['periodExpr'].' as period'),
+                DB::raw('COUNT(*) as orders'),
+            ])
+            ->groupBy(DB::raw($f['periodExpr']))
+            ->orderBy(DB::raw($f['periodExpr']))
+            ->get()
+            ->map(fn($r) => ['time' => $r->period, 'orders' => (int)$r->orders]);
+
+        return response()->json(['orders_by_period' => $rows]);
+    }
+
+    /**
+     * API: Tỷ lệ hủy đơn hàng
+     * GET /dashboard/orders/cancel-rate
+     */
+    public function getCancelRate(Request $request)
+    {
+        $timeType = $request->input('timeType', 'day');
+        $f = $this->buildPeriodFilter($request, $timeType);
+        if (!$f['ok']) return response()->json(['error' => $f['error']], 400);
+
+        $base = DB::table('shop_order');
+        if ($f['from'] && $f['to']) {
+            $base->whereBetween('date_order', [$f['from'], $f['to']]);
+        }
+
+        $total    = (clone $base)->count();
+        $canceled = (clone $base)->whereIn('order_status', $this->statusBuckets['canceled'])->count();
+        $rate     = $total > 0 ? round($canceled * 100 / $total, 2) : 0.0;
+
+        return response()->json([
+            'cancel_rate' => [
+                'total_orders' => (int)$total,
+                'canceled'     => (int)$canceled,
+                'rate_percent' => $rate
+            ]
+        ]);
+    }
+
+    /**
+     * API: Timeline trạng thái đơn hàng
+     * GET /dashboard/orders/status-timeline
+     */
+    public function getOrderStatusTimeline(Request $request)
+    {
+        $timeType = $request->input('timeType', 'day');
+        $f = $this->buildPeriodFilter($request, $timeType);
+        if (!$f['ok']) return response()->json(['error' => $f['error']], 400);
+
+        $q = DB::table('shop_order');
+        if ($f['from'] && $f['to']) {
+            $q->whereBetween('date_order', [$f['from'], $f['to']]);
+        }
+
+        $rows = $q->select([
+                DB::raw($f['periodExpr'].' as period'),
+                DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['placed'])."') THEN 1 ELSE 0 END) as placed"),
+                DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['processing'])."') THEN 1 ELSE 0 END) as processing"),
+                DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['delivered'])."') THEN 1 ELSE 0 END) as delivered"),
+                DB::raw("SUM(CASE WHEN order_status IN ('".implode("','",$this->statusBuckets['canceled'])."') THEN 1 ELSE 0 END) as canceled"),
+                DB::raw('COUNT(*) as total'),
+            ])
+            ->groupBy(DB::raw($f['periodExpr']))
+            ->orderBy(DB::raw($f['periodExpr']))
+            ->get()
+            ->map(fn($r) => [
+                'time'       => $r->period,
+                'placed'     => (int)$r->placed,
+                'processing' => (int)$r->processing,
+                'delivered'  => (int)$r->delivered,
+                'canceled'   => (int)$r->canceled,
+                'total'      => (int)$r->total,
+            ]);
+
+        return response()->json(['order_status_timeline' => $rows]);
     }
 }
