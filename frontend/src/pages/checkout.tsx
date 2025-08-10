@@ -481,7 +481,7 @@ export const Checkout = () => {
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (profile.role === 'admin') {
+        if (profile.role === 'admin' || profile.role === 'super_admin') {
             return notification.error({ message: "Admin không thể mua hàng" });
         }
 
