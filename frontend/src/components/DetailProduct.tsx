@@ -272,11 +272,11 @@ export const DetailProduct: React.FC = () => {
 
     const sliderSettings: any = {
         dots: false,
-        infinite: true,
+        infinite: displayedImages.length > 1,
         speed: 500,
         slidesToShow: 1,
         slidesToScroll: 1,
-        autoplay: !selectedVariant,
+        autoplay: !selectedVariant && displayedImages.length > 1,
         autoplaySpeed: 2000,
         arrows: false,
     };
@@ -288,7 +288,7 @@ export const DetailProduct: React.FC = () => {
         infinite: product?.images?.length > 4,
         speed: 500,
         slidesToShow: Math.min(4, product?.images?.length || 1),
-        slidesToScroll: 1,
+        slidesToScroll: 4,
         arrows: true,
     };
 
@@ -306,7 +306,7 @@ export const DetailProduct: React.FC = () => {
                 <div className="col-xl-5 col-lg-6 col-md-5 col-sm-12">
                     <div className="single-product-tab">
                         <div className="zoomWrapper">
-                            {displayedImages.length > 0 ? (
+                            {displayedImages.length > 1 ? (
                                 <Slider {...sliderSettings}>
                                     {displayedImages.map((img: ImageType, index: number) => (
                                         <div key={index}>
@@ -318,6 +318,12 @@ export const DetailProduct: React.FC = () => {
                                         </div>
                                     ))}
                                 </Slider>
+                            ) : displayedImages.length === 1 ? (
+                                <img
+                                    src={displayedImages[0].url || "/img/default.jpg"}
+                                    alt={product.name}
+                                    style={{ width: "100%", height: "auto", objectFit: "cover" }}
+                                />
                             ) : (
                                 <img
                                     src={product.image || "/img/default.jpg"}
@@ -335,11 +341,10 @@ export const DetailProduct: React.FC = () => {
                                     {/*@ts-ignore*/}
                                     {product.images.map((img: ImageType, index: number) => (
                                         <div key={index} style={{ padding: "0 5px" }}>
-                                            <img
+                                            <Image
                                                 src={img.url}
                                                 alt={`thumb-${index}`}
                                                 style={{
-                                                    width: "100%",
                                                     height: "100px",
                                                     objectFit: "cover",
                                                     borderRadius: "6px",
