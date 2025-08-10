@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponseTrait;
+use Illuminate\Support\Facades\Storage;
 
 class ManagerAdminController extends Controller
 {
@@ -109,19 +110,27 @@ class ManagerAdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:1,0',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'dob' => 'nullable|date',
             'gender' => 'nullable|in:male,female,other',
-            'avatar' => 'nullable|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
+       
         if ($validator->fails()) {
             return $this->error('Dữ liệu không hợp lệ.', $validator->errors(), 422);
         }
 
         $data = $validator->validated();
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatar', 'public');
+            $avatarUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+            $data['avatar'] = $avatarUrl;
+        }
+
 
         $admin = User::create([
             'name' => $data['name'],
@@ -220,14 +229,32 @@ class ManagerAdminController extends Controller
         }
 
         if (auth()->id() === $admin->id) {
-            return $this->error('Không thể xóa tài khoản của chính mình.', null, 403);
+            return $this->error('Không thể vô hiệu hóa tài khoản của chính mình.', null, 403);
         }
 
-        $admin->status = 'inactive';
+        $admin->status = '0';
         $admin->save();
 
         Log::info('Vô hiệu hóa tài khoản admin', ['admin_id' => $admin->id]);
 
         return $this->success(null, 'Tài khoản admin đã bị vô hiệu hóa.');
+    }
+
+    /**
+     * Khôi phục tài khoản admin đã bị vô hiệu hóa
+     */
+    public function restore($id)
+    {
+        $admin = User::where('role', 'admin')->find($id);
+        if (!$admin) {
+            return $this->error('Tài khoản admin không tồn tại.', null, 404);
+        }
+        if ($admin->status === '1') {
+            return $this->error('Tài khoản admin đã hoạt động.', null, 400);
+        }
+        $admin->status = '1';
+        $admin->save();
+        Log::info('Khôi phục tài khoản admin', ['admin_id' => $admin->id]);
+        return $this->success(null, 'Tài khoản admin đã được khôi phục.');
     }
 }

@@ -72,18 +72,18 @@ export const ProductsEdit = () => {
             }
         }
 
-        if (
-            values.images &&
-            Array.isArray(values.images) &&
-            values.images.length > 0
-        ) {
-            values.images.forEach((file: any, index: number) => {
-                if (file.originFileObj) {
-                    formData.append(`image_desc[]`, file.originFileObj);
-                } else if (file.url) {
-                    formData.append(`image_desc[]`, file.url);
-                }
-            });
+        if (Array.isArray(values.images)) {
+            if (values.images.length === 0) {
+                formData.append("clear_image_desc", "1");
+            } else {
+                values.images.forEach((file: any, index: number) => {
+                    if (file.originFileObj) {
+                        formData.append(`image_desc[]`, file.originFileObj);
+                    } else if (file.url) {
+                        formData.append(`image_desc[]`, file.url);
+                    }
+                });
+            }
         }
 
         if (values.variants && Array.isArray(values.variants)) {
@@ -95,16 +95,18 @@ export const ProductsEdit = () => {
                 formData.append(`variants[${index}][quantity]`, variant.quantity || "0");
                 formData.append(`variants[${index}][status]`, variant.status || "1");
 
-                if (
-                    variant.images &&
-                    Array.isArray(variant.images) &&
-                    variant.images.length > 0
-                ) {
-                    variant.images.forEach((file: any, fileIndex: number) => {
-                        if (file.originFileObj) {
-                            formData.append(`variants[${index}][images][${fileIndex}]`, file.originFileObj);
-                        }
-                    });
+                if (Array.isArray(variant.images)) {
+                    if (variant.images.length === 0) {
+                        formData.append(`variants[${index}][clear_images]`, "1");
+                    } else {
+                        variant.images.forEach((file: any, fileIndex: number) => {
+                            if (file.originFileObj) {
+                                formData.append(`variants[${index}][images][${fileIndex}]`, file.originFileObj);
+                            } else if (file.url) {
+                                formData.append(`variants[${index}][images][${fileIndex}]`, file.url);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -127,9 +129,9 @@ export const ProductsEdit = () => {
                 </Breadcrumb>
             }
         >
-            <Form 
-                {...formProps} 
-                layout="vertical" 
+            <Form
+                {...formProps}
+                layout="vertical"
                 onFinish={onFinish}
                 initialValues={{
                     ...queryResult?.data?.data,
@@ -139,19 +141,19 @@ export const ProductsEdit = () => {
                         status: 'done',
                         url: queryResult?.data?.data?.image,
                     }] : [],
-                    imageDesc: queryResult?.data?.data?.imageDesc?.map((url:string, index: number) => ({
+                    images: queryResult?.data?.data?.images?.map((img: any, index: number) => ({
                         uid: index,
                         name: `imageDesc-${index}`,
                         status: 'done',
-                        url,
+                        url: img.url,
                     })) || [],
                     variants: queryResult?.data?.data?.variants?.map((variant: any, index: any) => ({
                         ...variant,
-                        images: variant.images?.map((imageUrl: any, imgIndex: any) => ({
+                        images: variant.images?.map((image: any, imgIndex: any) => ({
                             uid: `${index}-${imgIndex}`,
                             name: `variant-image-${imgIndex}`,
                             status: "done",
-                            url: imageUrl.image_url,
+                            url: image.image_url,
                         })) || [],
                     })) || [],
                 }}

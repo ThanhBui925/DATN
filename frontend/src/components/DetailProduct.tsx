@@ -6,23 +6,69 @@ import { TOKEN_KEY } from "../providers/authProvider";
 import { Col, Image, notification, Row, Pagination, Rate, Spin } from "antd";
 import emitter from "../utils/eventBus";
 import moment from "moment";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-export const DetailProduct = () => {
-    const { id } = useParams();
-    const [product, setProduct] = useState<any>(null);
-    const [reviews, setReviews] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [reviewLoading, setReviewLoading] = useState(false);
+interface ImageType {
+    url: string;
+}
+
+interface Variant {
+    size?: { id: string; name: string };
+    color?: { id: string; name: string; code?: string };
+    quantity: number;
+    images?: { image_url: string }[];
+}
+
+interface Product {
+    id?: string;
+    name: string;
+    price: number;
+    sale_price?: number;
+    description: string;
+    average_rating: number;
+    review_count: number;
+    total_ordered_quantity: number;
+    image?: string;
+    images?: ImageType[];
+    variants?: Variant[];
+}
+
+interface Review {
+    user?: { name?: string; avatar?: string };
+    rating: number;
+    comment: string;
+    created_at: string;
+}
+
+interface SizeOption {
+    id: string;
+    name: string;
+}
+
+interface ColorOption {
+    id: string;
+    name: string;
+    code: string;
+}
+
+export const DetailProduct: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const [product, setProduct] = useState<Product | null>(null);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [reviewLoading, setReviewLoading] = useState<boolean>(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-    const [errorQty, setErrorQty] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalReviews, setTotalReviews] = useState(0);
+    const [errorQty, setErrorQty] = useState<string>('');
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalReviews, setTotalReviews] = useState<number>(0);
     const [cartQuantity, setCartQuantity] = useState<number>(0);
-    const pageSize = 5;
+    const pageSize = 10;
     const navigate = useNavigate();
-    const BASE_URL = import.meta.env.VITE_APP_API_URL + '/api';
+    const BASE_URL: string = import.meta.env.VITE_APP_API_URL + '/api';
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -30,7 +76,7 @@ export const DetailProduct = () => {
             try {
                 const res = await axiosInstance.get(`${BASE_URL}/products/${id}`);
                 setProduct(res.data.data || res.data);
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", err);
                 notification.error({ message: "Không thể tải chi tiết sản phẩm." });
             } finally {
@@ -45,11 +91,11 @@ export const DetailProduct = () => {
             setReviewLoading(true);
             try {
                 const res = await axiosInstance.get(`${BASE_URL}/client/products/${id}/reviews`, {
-                    params: { page: currentPage, limit: pageSize }
+                    params: { page: currentPage, limit: pageSize },
                 });
                 setReviews(res.data.data || []);
                 setTotalReviews(res.data.total || 0);
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Lỗi khi tải đánh giá:", err);
                 notification.error({ message: "Không thể tải đánh giá." });
             } finally {
@@ -67,66 +113,72 @@ export const DetailProduct = () => {
             }
             try {
                 const res = await axiosInstance.get(`${BASE_URL}/client/cart/items`, {
-                    params: { product_id: id, size_id: selectedSize, color_id: selectedColor }
+                    params: { product_id: id, size_id: selectedSize, color_id: selectedColor },
                 });
                 const cartItem = res.data.data?.find(
                     (item: any) => item.product_id === Number(id) && item.size_id === selectedSize && item.color_id === selectedColor
                 );
                 setCartQuantity(cartItem ? cartItem.quantity : 0);
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Lỗi khi tải số lượng trong giỏ hàng:", err);
             }
         };
         fetchCartQuantity();
     }, [selectedSize, selectedColor, id]);
 
-    const uniqueSizeOptions = Array.from(
+    const uniqueSizeOptions: SizeOption[] = Array.from(
         new Set(
-            product?.variants?.map((variant: any) => variant.size?.id).filter((id: any) => id)
+            product?.variants?.map((variant: Variant) => variant.size?.id).filter((id: any) => id)
         )
     ).map((id: any) => {
-        const variant = product?.variants.find((v: any) => v.size?.id === id);
-        return { id: variant.size?.id, name: variant.size?.name };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const variant = product?.variants.find((v: Variant) => v.size?.id === id);
+        return { id: variant!.size!.id, name: variant!.size!.name };
     });
 
-    const uniqueColorOptions = Array.from(
+    const uniqueColorOptions: ColorOption[] = Array.from(
         new Set(
-            product?.variants?.map((variant: any) => variant.color?.id).filter((id: any) => id)
+            product?.variants?.map((variant: Variant) => variant.color?.id).filter((id: any) => id)
         )
     ).map((id: any) => {
-        const variant = product?.variants.find((v: any) => v.color?.id === id);
-        return { id: variant.color?.id, name: variant.color?.name, code: variant.color?.code || "#eee" };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const variant = product?.variants.find((v: Variant) => v.color?.id === id);
+        return { id: variant!.color!.id, name: variant!.color!.name, code: variant!.color!.code || "#eee" };
     });
 
-    const availableColors = selectedSize
+    const availableColors: ColorOption[] = selectedSize
         ? uniqueColorOptions.filter((color) =>
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             product?.variants.some(
-                (variant: any) => variant.size?.id === selectedSize && variant.color?.id === color.id
+                (variant: Variant) => variant.size?.id === selectedSize && variant.color?.id === color.id
             )
         )
         : uniqueColorOptions;
 
-    const availableSizes = selectedColor
+    const availableSizes: SizeOption[] = selectedColor
         ? uniqueSizeOptions.filter((size) =>
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             product?.variants.some(
-                (variant: any) => variant.color?.id === selectedColor && variant.size?.id === size.id
+                (variant: Variant) => variant.color?.id === selectedColor && variant.size?.id === size.id
             )
         )
         : uniqueSizeOptions;
 
-    const selectedVariant = product?.variants?.find(
-        (variant: any) =>
+    const selectedVariant: Variant | null = product?.variants?.find(
+        (variant: Variant) =>
             variant.size?.id === selectedSize && variant.color?.id === selectedColor
     ) || null;
 
-    // Calculate total quantity across all variants when no variant is selected
-    const totalVariantQuantity = product?.variants?.reduce(
-        (sum: number, variant: any) => sum + (variant.quantity || 0),
+    const totalVariantQuantity: number = product?.variants?.reduce(
+        (sum: number, variant: Variant) => sum + (variant.quantity || 0),
         0
     ) || 0;
 
-    // Use total quantity if no variant is selected, otherwise use selected variant quantity
-    const availableQuantity = selectedVariant
+    const availableQuantity: number = selectedVariant
         ? selectedVariant.quantity - cartQuantity
         : totalVariantQuantity;
 
@@ -135,9 +187,11 @@ export const DetailProduct = () => {
             const newQuantity = Math.max(1, Math.min(quantity, availableQuantity));
             setQuantity(newQuantity);
             if (newQuantity > availableQuantity) {
-                setErrorQty(availableQuantity > 0
-                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                    : `Sản phẩm đã hết hàng.`);
+                setErrorQty(
+                    availableQuantity > 0
+                        ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                        : `Sản phẩm đã hết hàng.`
+                );
             } else {
                 setErrorQty('');
             }
@@ -157,9 +211,11 @@ export const DetailProduct = () => {
             return;
         }
         if (quantity > availableQuantity) {
-            setErrorQty(availableQuantity > 0
-                ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                : `Sản phẩm đã hết hàng.`);
+            setErrorQty(
+                availableQuantity > 0
+                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                    : `Sản phẩm đã hết hàng.`
+            );
             return;
         }
         try {
@@ -173,10 +229,10 @@ export const DetailProduct = () => {
             if (res.data.status) {
                 setErrorQty('');
                 emitter.emit('addToCart');
-                setCartQuantity((prev) => prev + quantity);
+                setCartQuantity((prev: number) => prev + quantity);
                 notification.success({ message: res.data.message || "Sản phẩm đã được thêm vào giỏ hàng!" });
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
             setErrorQty("Không thể thêm sản phẩm vào giỏ hàng.");
         }
@@ -187,25 +243,53 @@ export const DetailProduct = () => {
             const newQuantity = Math.max(1, Math.min(quantity + change, availableQuantity));
             setQuantity(newQuantity);
             if (newQuantity > availableQuantity) {
-                setErrorQty(availableQuantity > 0
-                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                    : `Sản phẩm đã hết hàng.`);
+                setErrorQty(
+                    availableQuantity > 0
+                        ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                        : `Sản phẩm đã hết hàng.`
+                );
             } else {
                 setErrorQty('');
             }
         }
     };
 
-    const handleSizeSelect = (size: any) => {
-        if (!availableSizes.some((s: any) => s.id === size.id)) return;
+    const displayedImages: ImageType[] = selectedVariant?.images?.length
+        ? selectedVariant.images.map((img: any) => ({ url: img.image_url }))
+        : product?.images || [];
+
+    const handleSizeSelect = (size: SizeOption) => {
+        if (!availableSizes.some((s: SizeOption) => s.id === size.id)) return;
         setSelectedSize(selectedSize === size.id ? null : size.id);
         setQuantity(1);
     };
 
-    const handleColorSelect = (color: any) => {
-        if (!availableColors.some((c: any) => c.id === color.id)) return;
+    const handleColorSelect = (color: ColorOption) => {
+        if (!availableColors.some((c: ColorOption) => c.id === color.id)) return;
         setSelectedColor(selectedColor === color.id ? null : color.id);
         setQuantity(1);
+    };
+
+    const sliderSettings: any = {
+        dots: false,
+        infinite: displayedImages.length > 1,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: !selectedVariant && displayedImages.length > 1,
+        autoplaySpeed: 2000,
+        arrows: false,
+    };
+
+    const carouselSettings: any = {
+        dots: true,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        infinite: product?.images?.length > 4,
+        speed: 500,
+        slidesToShow: Math.min(4, product?.images?.length || 1),
+        slidesToScroll: 4,
+        arrows: true,
     };
 
     if (loading || !product) {
@@ -222,106 +306,105 @@ export const DetailProduct = () => {
                 <div className="col-xl-5 col-lg-6 col-md-5 col-sm-12">
                     <div className="single-product-tab">
                         <div className="zoomWrapper">
-                            <div id="img-1" className="zoomWrapper single-zoom">
-                                <img
-                                    id="zoom1"
-                                    src={product.image || "/img/default.jpg"}
-                                    data-zoom-image={product.image || "/img/default.jpg"}
-                                    alt={product.name}
-                                    style={{ width: "100%" }}
-                                />
-                            </div>
-                            <div className="single-zoom-thumb">
-                                <ul
-                                    className="s-tab-zoom single-product-active owl-carousel"
-                                    id="gallery_01"
-                                >
-                                    {product?.images?.map((img: any, index: number) => (
-                                        <li key={index}>
-                                            <a
-                                                href="#"
-                                                className="elevatezoom-gallery active"
-                                                data-image={img.url}
-                                                data-zoom-image={img.url}
-                                            >
-                                                <img src={img.url} alt={`thumb-${index}`} />
-                                            </a>
-                                        </li>
+                            {displayedImages.length > 1 ? (
+                                <Slider {...sliderSettings}>
+                                    {displayedImages.map((img: ImageType, index: number) => (
+                                        <div key={index}>
+                                            <img
+                                                src={img.url || "/img/default.jpg"}
+                                                alt={product.name}
+                                                style={{ width: "100%", height: "auto", objectFit: "cover" }}
+                                            />
+                                        </div>
                                     ))}
-                                </ul>
-                            </div>
+                                </Slider>
+                            ) : displayedImages.length === 1 ? (
+                                <img
+                                    src={displayedImages[0].url || "/img/default.jpg"}
+                                    alt={product.name}
+                                    style={{ width: "100%", height: "auto", objectFit: "cover" }}
+                                />
+                            ) : (
+                                <img
+                                    src={product.image || "/img/default.jpg"}
+                                    alt={product.name}
+                                    style={{ width: "100%", height: "auto", objectFit: "cover" }}
+                                />
+                            )}
                         </div>
-                    </div>
-
-                    <div className="row" style={{ marginTop: 20 }}>
-                        <div className="col">
-                            <Row gutter={[8, 8]}>
-                                {product?.images?.length > 0 ? (
-                                    product.images.map((img: any, index: number) => (
-                                        <Col key={index} span={6}>
+                        <div className="single-zoom-thumb mt-3">
+                            {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
+                            {/*@ts-ignore*/}
+                            {product?.images?.length > 0 ? (
+                                <Slider {...carouselSettings}>
+                                    {/*eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
+                                    {/*@ts-ignore*/}
+                                    {product.images.map((img: ImageType, index: number) => (
+                                        <div key={index} style={{ padding: "0 5px" }}>
                                             <Image
                                                 src={img.url}
+                                                alt={`thumb-${index}`}
                                                 style={{
-                                                    width: "100%",
-                                                    height: 100,
+                                                    height: "100px",
                                                     objectFit: "cover",
-                                                    borderRadius: 6,
+                                                    borderRadius: "6px",
                                                     border: "1px solid #eee",
-                                                    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                                                    cursor: "pointer",
                                                 }}
-                                                preview={true}
                                             />
-                                        </Col>
-                                    ))
-                                ) : (
-                                    <Col span={24}>
-                                        <p
-                                            style={{
-                                                marginTop: 12,
-                                                fontStyle: "italic",
-                                                color: "#888",
-                                            }}
-                                        >
-                                            Chưa có ảnh mô tả
-                                        </p>
-                                    </Col>
-                                )}
-                            </Row>
+                                        </div>
+                                    ))}
+                                </Slider>
+                            ) : (
+                                <p
+                                    style={{
+                                        marginTop: 12,
+                                        fontStyle: "italic",
+                                        color: "#888",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    Chưa có ảnh mô tả
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
                 <div className="col-xl-7 col-lg-6 col-md-7 col-sm-12">
-                    <div className="py-3 py-md-0">
+                    <div className="py-3 py-md-0 mt-5 mt-md-0">
                         <h2 className="fw-bold">{product.name}</h2>
                         <div className="d-flex align-items-center mb-2">
-                            <div className={`d-flex gap-1`}>
-                                <span className={`text-decoration-underline`}>5.0</span>
+                            <div className="d-flex gap-1">
+                                <span className="text-decoration-underline"> { product.average_rating }</span>
                                 <span className="text-warning">
-                                    {[...Array(5)].map((_, i) => (
-                                        <i key={i} className="fa fa-star"></i>
-                                    ))}
-                                </span>
+                  {[...Array(5)].map((_, i: number) => (
+                      <i key={i} className="fa fa-star"></i>
+                  ))}
+                </span>
                             </div>
-                            <span className="ms-2">| <span className={`text-decoration-underline`}>{totalReviews}</span> đánh giá |</span>
-                            <span className="ms-2">Đã bán <span
-                                className={`text-decoration-underline`}>7.2k</span></span>
+                            <span className="ms-2">
+                | <span className="text-decoration-underline">{product.review_count}</span> đánh giá |
+              </span>
+                            <span className="ms-2">
+                Đã bán <span className="text-decoration-underline">{ product.total_ordered_quantity }</span>
+              </span>
                         </div>
                         <div className="p-5" style={{ backgroundColor: "#fafafa" }}>
                             <span className="h4 text-original-base">{convertToInt(product.price)}đ</span>
                             {product.sale_price && (
                                 <span className="text-muted text-decoration-line-through ms-2">
-                                    {convertToInt(product.sale_price)}đ
-                                </span>
+                  {convertToInt(product.sale_price)}đ
+                </span>
                             )}
                         </div>
                         <div className="mb-3">
                             <label className="me-3">Chọn kích cỡ</label>
                             <div className="d-flex gap-2 flex-wrap">
-                                {uniqueSizeOptions.map((size: any, idx: number) => (
+                                {uniqueSizeOptions.map((size: SizeOption, idx: number) => (
                                     <div
                                         key={idx}
                                         className={`border ${selectedSize === size.id ? 'border-danger' : 'border-secondary'} ${
-                                            !availableSizes.some((s: any) => s.id === size.id) ? 'opacity-50' : ''
+                                            !availableSizes.some((s: SizeOption) => s.id === size.id) ? 'opacity-50' : ''
                                         }`}
                                         onClick={() => handleSizeSelect(size)}
                                         style={{
@@ -331,8 +414,8 @@ export const DetailProduct = () => {
                                             alignItems: "center",
                                             justifyContent: "center",
                                             fontSize: "12px",
-                                            cursor: !availableSizes.some((s: any) => s.id === size.id) ? 'not-allowed' : 'pointer',
-                                            pointerEvents: !availableSizes.some((s: any) => s.id === size.id) ? 'none' : 'auto'
+                                            cursor: !availableSizes.some((s: SizeOption) => s.id === size.id) ? 'not-allowed' : 'pointer',
+                                            pointerEvents: !availableSizes.some((s: SizeOption) => s.id === size.id) ? 'none' : 'auto',
                                         }}
                                     >
                                         {size.name}
@@ -343,11 +426,11 @@ export const DetailProduct = () => {
                         <div className="mb-3">
                             <label className="me-3">Chọn màu</label>
                             <div className="d-flex gap-2 flex-wrap">
-                                {uniqueColorOptions.map((color: any, idx: number) => (
+                                {uniqueColorOptions.map((color: ColorOption, idx: number) => (
                                     <div
                                         key={idx}
                                         className={`border ${selectedColor === color.id ? 'border-danger' : 'border-secondary'} ${
-                                            !availableColors.some((c: any) => c.id === color.id) ? 'opacity-50' : ''
+                                            !availableColors.some((c: ColorOption) => c.id === color.id) ? 'opacity-50' : ''
                                         }`}
                                         onClick={() => handleColorSelect(color)}
                                         style={{
@@ -357,8 +440,8 @@ export const DetailProduct = () => {
                                             alignItems: "center",
                                             justifyContent: "center",
                                             fontSize: "12px",
-                                            cursor: !availableColors.some((c: any) => c.id === color.id) ? 'not-allowed' : 'pointer',
-                                            pointerEvents: !availableColors.some((c: any) => c.id === color.id) ? 'none' : 'auto'
+                                            cursor: !availableColors.some((c: ColorOption) => c.id === color.id) ? 'not-allowed' : 'pointer',
+                                            pointerEvents: !availableColors.some((c: ColorOption) => c.id === color.id) ? 'none' : 'auto',
                                         }}
                                     >
                                         {color.name}
@@ -385,9 +468,11 @@ export const DetailProduct = () => {
                                         onChange={(e) => {
                                             const value = parseInt(e.target.value) || 1;
                                             if (value > availableQuantity) {
-                                                setErrorQty(availableQuantity > 0
-                                                    ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                                                    : `Sản phẩm đã hết hàng.`);
+                                                setErrorQty(
+                                                    availableQuantity > 0
+                                                        ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
+                                                        : `Sản phẩm đã hết hàng.`
+                                                );
                                             } else {
                                                 setErrorQty('');
                                             }
@@ -406,8 +491,9 @@ export const DetailProduct = () => {
                                         +
                                     </button>
                                 </div>
-                                <span
-                                    className="ms-3 text-muted">{availableQuantity > 0 ? `${availableQuantity} sản phẩm khả dụng` : 'Hết hàng'}</span>
+                                <span className="ms-3 text-muted">
+                  {availableQuantity > 0 ? `${availableQuantity} sản phẩm khả dụng` : 'Hết hàng'}
+                </span>
                             </div>
                             {errorQty && <div className="text-danger mt-1">{errorQty}</div>}
                         </div>
@@ -422,12 +508,17 @@ export const DetailProduct = () => {
                         <div className="mt-3">
                             <h4>Chia sẻ</h4>
                             <div className="d-flex gap-2">
-                                <a href="#" className="btn btn-outline-secondary"><i className="fa fa-facebook"></i></a>
-                                <a href="#" className="btn btn-outline-secondary"><i className="fa fa-twitter"></i></a>
-                                <a href="#" className="btn btn-outline-secondary"><i
-                                    className="fa fa-pinterest"></i></a>
-                                <button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger"><i
-                                    className="fa fa-heart"></i> Đã thích (218)
+                                <a href="#" className="btn btn-outline-secondary">
+                                    <i className="fa fa-facebook"></i>
+                                </a>
+                                <a href="#" className="btn btn-outline-secondary">
+                                    <i className="fa fa-twitter"></i>
+                                </a>
+                                <a href="#" className="btn btn-outline-secondary">
+                                    <i className="fa fa-pinterest"></i>
+                                </a>
+                                <button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger">
+                                    <i className="fa fa-heart"></i> Đã thích (218)
                                 </button>
                             </div>
                         </div>
@@ -437,7 +528,7 @@ export const DetailProduct = () => {
             <div className="row mt-4">
                 <div className="col">
                     <div>
-                        <section className="desc-section mb-3">
+                        <section className="desc-section mb-3 mt-4">
                             <div className="section-title-3">
                                 <h2>Mô tả sản phẩm</h2>
                             </div>
@@ -446,7 +537,7 @@ export const DetailProduct = () => {
 
                         <section className="rate-section mb-3">
                             <div className="section-title-3">
-                                <h2>Đánh giá ({totalReviews})</h2>
+                                <h2>Đánh giá ({product.review_count})</h2>
                             </div>
                             {reviewLoading ? (
                                 <div className="text-center py-5">
@@ -456,7 +547,7 @@ export const DetailProduct = () => {
                                 <p className="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
                             ) : (
                                 <div>
-                                    {reviews.map((review: any, index: number) => (
+                                    {reviews.map((review: Review, index: number) => (
                                         <div
                                             key={index}
                                             className="border-bottom py-3"
@@ -471,7 +562,7 @@ export const DetailProduct = () => {
                                                         height: "40px",
                                                         borderRadius: "50%",
                                                         marginRight: "10px",
-                                                        objectFit: "cover"
+                                                        objectFit: "cover",
                                                     }}
                                                 />
                                                 <div>
@@ -485,8 +576,8 @@ export const DetailProduct = () => {
                                                     </div>
                                                 </div>
                                                 <span className="ms-auto text-muted">
-                                                    {moment(review.created_at).format("DD/MM/YYYY HH:mm")}
-                                                </span>
+                          {moment(review.created_at).format("DD/MM/YYYY HH:mm")}
+                        </span>
                                             </div>
                                             <p className="mb-2">{review.comment}</p>
                                         </div>
@@ -494,9 +585,9 @@ export const DetailProduct = () => {
                                     <div className="text-center mt-4">
                                         <Pagination
                                             current={currentPage}
-                                            total={totalReviews}
+                                            total={product.review_count}
                                             pageSize={pageSize}
-                                            onChange={(page) => setCurrentPage(page)}
+                                            onChange={(page: number) => setCurrentPage(page)}
                                             showSizeChanger={false}
                                         />
                                     </div>

@@ -25,8 +25,10 @@ use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryControll
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
+use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
+use App\Http\Controllers\Api\Client\CheckoutController;
 
 
 Route::prefix('client')->group(function () {
@@ -42,6 +44,10 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
+
+    Route::get('sizes', [ClientProductController::class, 'getAllSize']);
+    Route::get('colors', [ClientProductController::class, 'getAllColor']);
+
 
     Route::prefix('banners')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
@@ -59,7 +65,10 @@ Route::prefix('client')->group(function () {
         Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
-    });
+});
+
+    Route::middleware('auth:sanctum')->post('/confirm_checkout', [CheckoutController::class, 'confirm']);
+
     Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
         Route::get('/', [ClientOrderController::class, 'index']);
         Route::post('/', [ClientOrderController::class, 'store']);
@@ -67,7 +76,11 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
+        Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
+
     });
+
+
 
     Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
         Route::get('/', [ClientReviewController::class, 'index']);
@@ -82,6 +95,11 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}', [AddressController::class, 'update']);
         Route::delete('/{id}', [AddressController::class, 'destroy']);
     });
+
+    Route::middleware('auth:sanctum')->prefix('vouchers')->group(function () {
+    Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
+    Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
+});
 
 });
 
@@ -111,6 +129,15 @@ Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverage
 Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
 Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
 Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+
+Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
+Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
+
+Route::get('/dashboard/orders/status-counters', [DashboardController::class, 'getOrderStatusCounters']);
+Route::get('/dashboard/orders/by-period',       [DashboardController::class, 'getOrdersByPeriod']);
+Route::get('/dashboard/orders/cancel-rate',     [DashboardController::class, 'getCancelRate']);
+Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'getOrderStatusTimeline']);
+
 
 Route::apiResource('banners', BannerController::class);
 
@@ -153,10 +180,10 @@ Route::apiResource('customers', CustomerController::class)->only([
 ]);
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
-Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::apiResource('sizes', SizeController::class)->only(['index']);
-Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
     Route::get('/', 'index');
@@ -188,7 +215,7 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::get('/{blogId}/comments', 'comments');
     Route::post('/{blogId}/comments', 'storeComment');
     Route::delete('/comments/{commentId}', 'softDeleteComment');
-    Route::put('/comments/{commentId}/restore', 'restoreComment');
+Route::put('/comments/{commentId}/restore', 'restoreComment');
 });
 
 
@@ -198,4 +225,5 @@ Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group
     Route::get('/{id}','show');
     Route::put('/{id}','update');
     Route::delete('/{id}','destroy');
+    Route::post('/{id}', 'restore');
 });

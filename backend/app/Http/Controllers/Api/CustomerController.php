@@ -21,7 +21,7 @@ class CustomerController extends Controller
                 'users.email as user_email',
                 'users.role as user_role',
                 'users.status as user_status'
-            );
+            ) ->whereRaw('LOWER(TRIM(users.role)) = ?', ['client']);
 
         if ($request->filled('phone')) {
             $query->where('customers.phone', 'like', '%' . trim($request->phone) . '%');
