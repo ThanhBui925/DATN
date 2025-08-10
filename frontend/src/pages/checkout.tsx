@@ -1,11 +1,12 @@
 import { MoneyCollectOutlined, CreditCardOutlined, WalletOutlined, BankOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { notification, Skeleton, Select } from "antd";
+import { notification, Skeleton, Select, Modal, Button, List } from "antd";
 import { axiosInstance } from "../utils/axios";
 import { convertToInt } from "../helpers/common";
 import { TOKEN_KEY } from "../providers/authProvider";
 import { axiosGHNInstance } from "../utils/axios_ghn";
+import {VoucherCard} from "../components/VoucherCard";
 
 const { Option } = Select;
 
@@ -22,7 +23,7 @@ interface CartItem {
     cart_item_id: number;
     product_id: number;
     product_name: string;
-    image: string; // Product's default image
+    image: string;
     price: string;
     quantity: number;
     total: string;
@@ -47,6 +48,16 @@ interface CouponResponse {
     original_price: string;
 }
 
+interface Voucher {
+    id: number;
+    code: string;
+    description: string;
+    discount: string;
+    min_order_amount: string;
+    expiry_date: string;
+    discount_type: string;
+}
+
 interface Province {
     ProvinceID: string;
     ProvinceName: string;
@@ -67,6 +78,9 @@ interface Ward {
 }
 
 interface Address {
+    province_name: any;
+    district_name: any;
+    ward_name: any;
     id: number;
     recipient_name: string;
     recipient_phone: string;
@@ -119,6 +133,8 @@ export const Checkout = () => {
         address_selection: "",
     });
     const [shippingFee, setShippingFee] = useState<number>(0);
+    const [isVoucherModalVisible, setIsVoucherModalVisible] = useState<boolean>(false);
+    const [availableVouchers, setAvailableVouchers] = useState<Voucher[]>([]);
 
     useEffect(() => {
         if (!localStorage.getItem(TOKEN_KEY)) {
@@ -253,11 +269,25 @@ export const Checkout = () => {
         }
     };
 
+    const fetchAvailableVouchers = async () => {
+        try {
+            const res = await axiosInstance.get("/api/client/vouchers");
+            if (res.data.status) {
+                setAvailableVouchers(res.data.data);
+            } else {
+                notification.error({ message: res.data.message || "Lỗi khi tải danh sách voucher" });
+            }
+        } catch (e) {
+            notification.error({ message: (e as Error).message || "Lỗi khi tải danh sách voucher" });
+        }
+    };
+
     useEffect(() => {
         getCheckoutData();
         fetchProfile();
         fetchProvinces();
         fetchAddresses();
+        fetchAvailableVouchers();
     }, []);
 
     useEffect(() => {
@@ -284,19 +314,20 @@ export const Checkout = () => {
         }
     }, [formData.province, formData.district, formData.ward, useNewAddress]);
 
-    const applyCoupon = async () => {
-        if (!voucherCode) {
+    const applyCoupon = async (code: string) => {
+        if (!code) {
             setCouponError("Vui lòng nhập mã giảm giá");
             return;
         }
 
         try {
             const res = await axiosInstance.post("/api/client/checkout/apply_coupon", {
-                voucher_code: voucherCode,
+                voucher_code: code,
             });
 
             if (res.data.status) {
                 setAppliedCoupon(res.data.data);
+                setVoucherCode(code);
                 setCouponError("");
                 notification.success({ message: res.data.message || "Áp mã giảm giá thành công" });
             } else {
@@ -371,6 +402,21 @@ export const Checkout = () => {
     const handlePaymentMethodChange = (value: string) => {
         setFormData((prev) => ({ ...prev, payment_method: value }));
         setFormErrors((prev) => ({ ...prev, payment_method: "" }));
+    };
+
+    const showVoucherModal = () => {
+        setIsVoucherModalVisible(true);
+    };
+
+    const handleVoucherModalCancel = () => {
+        setIsVoucherModalVisible(false);
+    };
+
+    const handleVoucherSelect = (voucher: Voucher) => {
+        if (appliedCoupon?.voucher_code !== voucher.code) {
+            applyCoupon(voucher.code);
+        }
+        setIsVoucherModalVisible(false);
     };
 
     const validateForm = (data: any, useNewAddress: boolean) => {
@@ -780,6 +826,61 @@ export const Checkout = () => {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div className="card shadow-sm border-0 rounded-3 mb-4">
+                                            <div className="card-body p-4">
+                                                <div className="d-flex justify-content-between">
+                                                    <h3 className="fw-bold mb-4 text-dark">Mã giảm giá</h3>
+                                                    <div
+                                                        className={`${appliedCoupon ? 'd-none' : 'd-block'} text-original-base mt-0 mt-sm-1`}
+                                                        onClick={() => !appliedCoupon && showVoucherModal()}
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            textDecoration: 'underline',
+                                                            transition: 'color 0.2s ease',
+                                                            fontSize: 18
+                                                        }}
+                                                        onMouseEnter={(e) => (e.currentTarget.style.color = '#0056b3')}
+                                                        onMouseLeave={(e) => (e.currentTarget.style.color = '#007bff')}
+                                                    >
+                                                        Chọn mã giảm giá
+                                                    </div>
+                                                </div>
+
+                                                <div className="input-group mb-3">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Nhập mã giảm giá"
+                                                        value={voucherCode}
+                                                        onChange={(e) => setVoucherCode(e.target.value)}
+                                                        disabled={!!appliedCoupon}
+                                                    />
+                                                    {appliedCoupon ? (
+                                                        <button className="btn btn-outline-danger" type="button" onClick={cancelCoupon}>
+                                                            Hủy
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            className="btn text-white bg-original-base"
+                                                            type="button"
+                                                            onClick={() => applyCoupon(voucherCode)}
+                                                        >
+                                                            Áp dụng
+                                                        </button>
+                                                    )}
+
+                                                </div>
+                                                {
+                                                    appliedCoupon && (
+                                                        <div>
+                                                            Voucher giảm: <span className="text-original-base">{convertToInt(appliedCoupon.discount_amount)}₫</span>
+                                                        </div>
+                                                    )
+                                                }
+                                                {couponError && <div className="text-danger mb-3">{couponError}</div>}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="col-lg-6 col-xl-5 col-sm-12">
@@ -866,34 +967,6 @@ export const Checkout = () => {
                                                             </table>
                                                         </div>
 
-                                                        <div className="mt-4">
-                                                            <h6 className="fw-bold mb-3 text-dark">Mã giảm giá</h6>
-                                                            <div className="input-group mb-3">
-                                                                <input
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    placeholder="Nhập mã giảm giá"
-                                                                    value={voucherCode}
-                                                                    onChange={(e) => setVoucherCode(e.target.value)}
-                                                                    disabled={!!appliedCoupon}
-                                                                />
-                                                                {appliedCoupon ? (
-                                                                    <button className="btn btn-outline-danger" type="button" onClick={cancelCoupon}>
-                                                                        Hủy
-                                                                    </button>
-                                                                ) : (
-                                                                    <button
-                                                                        className="btn text-white bg-original-base"
-                                                                        type="button"
-                                                                        onClick={applyCoupon}
-                                                                    >
-                                                                        Áp dụng
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            {couponError && <div className="text-danger mb-3">{couponError}</div>}
-                                                        </div>
-
                                                         <button
                                                             className="btn bg-original-base text-white w-100 mt-3 py-2 fw-medium"
                                                             onClick={handleSubmit}
@@ -913,6 +986,31 @@ export const Checkout = () => {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                title="Chọn mã giảm giá"
+                visible={isVoucherModalVisible}
+                onCancel={handleVoucherModalCancel}
+                footer={null}
+                width={600}
+            >
+                {availableVouchers.length > 0 ? (
+                    <List
+                        dataSource={availableVouchers}
+                        renderItem={(voucher) => (
+                            <List.Item>
+                                <VoucherCard
+                                    voucher={voucher}
+                                    onSelect={handleVoucherSelect}
+                                    isApplied={appliedCoupon?.voucher_code === voucher.code}
+                                />
+                            </List.Item>
+                        )}
+                    />
+                ) : (
+                    <p className="text-muted">Không có mã giảm giá nào khả dụng.</p>
+                )}
+            </Modal>
         </>
     );
 };
