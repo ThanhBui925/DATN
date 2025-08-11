@@ -43,23 +43,23 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = Category::findOrFail($id);
-
-        // Số lượng sản phẩm trong danh mục
+    
         $productCount = Product::where('category_id', $id)->count();
-
-        // Số lượng đơn hàng chứa sản phẩm của danh mục
+    
         $orderCount = DB::table('shop_order_items')
             ->join('products', 'shop_order_items.product_id', '=', 'products.id')
             ->where('products.category_id', $id)
-            ->distinct('shop_order_items.order_id') // tránh trùng đơn
+            ->distinct('shop_order_items.order_id')
             ->count('shop_order_items.order_id');
-
-        return $this->success([
-            'category'      => $category,
-            'product_count' => $productCount,
-            'order_count'   => $orderCount,
-        ]);
+    
+        $categoryArray = $category->toArray();
+        $categoryArray['product_count'] = $productCount;
+        $categoryArray['order_count'] = $orderCount;
+    
+        return $this->success($categoryArray);
     }
+    
+
 
 
     public function store(StoreCategoryRequest $request)

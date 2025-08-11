@@ -1199,4 +1199,60 @@ class DashboardController extends Controller
     return response()->json(['order_status_timeline' => $rows]);
 }
 
+//số lượng voucher đã sử dụng
+public function getUsedVoucherCount(Request $request)
+{
+    $query = DB::table('shop_order')
+        ->whereNotNull('voucher_code'); // Chỉ lấy các đơn có voucher_code
+
+    $now = Carbon::now();
+
+    switch ($request->input('filter')) {
+        case 'today':
+            $query->whereDate('date_order', $now->toDateString());
+            break;
+        case 'yesterday':
+            $yesterday = $now->copy()->subDay();
+            $query->whereDate('date_order', $yesterday->toDateString());
+            break;
+        case 'this_week':
+            $query->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+            break;
+        case 'last_week':
+            $start = $now->copy()->subWeek()->startOfWeek();
+            $end   = $now->copy()->subWeek()->endOfWeek();
+            $query->whereBetween('date_order', [$start, $end]);
+            break;
+        case 'this_month':
+            $query->whereYear('date_order', $now->year)
+                  ->whereMonth('date_order', $now->month);
+            break;
+        case 'last_month':
+            $lastMonth = $now->copy()->subMonth();
+            $query->whereYear('date_order', $lastMonth->year)
+                  ->whereMonth('date_order', $lastMonth->month);
+            break;
+        case 'range':
+            $from = $request->input('from');
+            $to   = $request->input('to');
+            if (!$from || !$to) {
+                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+            }
+            try {
+                $query->whereBetween('date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
+            break;
+    }
+
+    $count = $query->count();
+
+    return response()->json(['voucherUsageCount' => $count]);
+}
+
+
 }

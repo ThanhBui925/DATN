@@ -132,6 +132,8 @@ Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRe
 
 Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
 Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
+Route::get('/dashboard/voucher-usage-count', [DashboardController::class, 'getUsedVoucherCount']);
+Route::get('/dashboard/voucher-usage', [DashboardController::class, 'getUsedVoucherCount']);
 
 Route::get('/dashboard/orders/status-counters', [DashboardController::class, 'getOrderStatusCounters']);
 Route::get('/dashboard/orders/by-period',       [DashboardController::class, 'getOrdersByPeriod']);
