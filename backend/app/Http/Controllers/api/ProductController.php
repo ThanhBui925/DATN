@@ -297,7 +297,10 @@ class ProductController extends Controller
                             } elseif ($request->hasFile($variantImagesKey) || isset($variantInput['images'])) {
                                 $variant->images()->delete();
 
-                                $varUrls = isset($variantInput['images']) && is_array($variantInput['images']) ? $variantInput['images'] : [];
+                                $varUrls = [];
+                                if (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                                    $varUrls = array_filter($variantInput['images'], fn($img) => is_string($img) && !empty($img));
+                                }
                                 $varUploaded = [];
                                 if ($request->hasFile($variantImagesKey)) {
                                     foreach ($request->file($variantImagesKey) as $file) {
@@ -338,7 +341,10 @@ class ProductController extends Controller
                         ]);
 
                         if (!$clearVarImages && ($request->hasFile($variantImagesKey) || isset($variantInput['images']))) {
-                            $varUrls = isset($variantInput['images']) && is_array($variantInput['images']) ? $variantInput['images'] : [];
+                            $varUrls = [];
+                            if (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                                $varUrls = array_filter($variantInput['images'], fn($img) => is_string($img) && !empty($img));
+                            }
                             $varUploaded = [];
                             if ($request->hasFile($variantImagesKey)) {
                                 foreach ($request->file($variantImagesKey) as $file) {
