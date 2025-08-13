@@ -148,6 +148,7 @@ Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymen
 Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
 Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
 Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
 
 Route::apiResource('banners', BannerController::class);
 

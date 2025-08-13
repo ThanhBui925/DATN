@@ -1694,6 +1694,18 @@ class DashboardController extends Controller
         return response()->json(['low_stock_products' => $data]);
     }
 
+    // ======================== ACTIVE PRODUCTS COUNT ========================
+    // GET /dashboard/active-products-count
+    public function getActiveProductsCount(Request $request)
+    {
+        $count = DB::table('products')
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->count();
+        
+        return response()->json(['active_products_count' => $count]);
+    }
+
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
     public function getShippingStatus(Request $request)
