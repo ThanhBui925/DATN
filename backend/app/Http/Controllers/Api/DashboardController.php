@@ -1563,7 +1563,15 @@ class DashboardController extends Controller
         
         $q = DB::table('shop_order_items')
             ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-            ->join('products', 'products.id', '=', 'shop_order_items.product_id');
+            ->join('products', 'products.id', '=', 'shop_order_items.product_id')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('images', function($join) {
+                $join->on('images.product_id', '=', 'products.id')
+                     ->where('images.is_main', '=', 1)
+                     ->whereNull('images.deleted_at');
+            })
+            ->leftJoin(DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                      'product_ratings.product_id', '=', 'products.id');
         
         $this->revenueOrderFilter($q);
         
@@ -1610,16 +1618,32 @@ class DashboardController extends Controller
                 break;
         }
         
-        $data = $q->groupBy('shop_order_items.product_id', 'products.name')
+        $data = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
             ->select([
-                'shop_order_items.product_id as product_id',
-                'products.name as product_name',
-                DB::raw('SUM(shop_order_items.quantity) as total_quantity'),
+                'products.id as id',
+                'products.name as name',
+                'products.sku as sku',
+                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
+                DB::raw('SUM(shop_order_items.quantity) as total_sold'),
+                DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
+                'products.price as price',
+                'products.sale_price as original_price',
+                DB::raw('CASE WHEN products.sale_price > 0 AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) ELSE 0 END as discount_percent'),
+                'products.stock as stock',
+                DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as stock_status'),
+                'categories.name as category_name',
+                DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
+                DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
             ])
-            ->orderBy('total_quantity', 'desc')
+            ->orderBy('total_sold', 'desc')
             ->limit($limit)
-            ->get();
+            ->get()
+            ->map(function($item) {
+                // Tính toán slug từ tên sản phẩm (đơn giản hóa)
+                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+                return $item;
+            });
         
         return response()->json(['best_selling_products' => $data]);
     }
