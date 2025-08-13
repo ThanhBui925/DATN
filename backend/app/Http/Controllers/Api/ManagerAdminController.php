@@ -62,7 +62,8 @@ class ManagerAdminController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('users.status', trim($request->status));
+            $status = trim($request->status) === 'active' ? '1' : (trim($request->status) === 'inactive' ? '0' : trim($request->status));
+            $query->where('users.status', $status);
         }
 
         $admins = $query->orderBy('users.id', 'desc')->get();
