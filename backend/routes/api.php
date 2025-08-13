@@ -142,6 +142,9 @@ Route::get('/dashboard/orders/by-period',       [DashboardController::class, 'ge
 Route::get('/dashboard/orders/cancel-rate',     [DashboardController::class, 'getCancelRate']);
 Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'getOrderStatusTimeline']);
 
+Route::get('/dashboard/product-ratings', [DashboardController::class, 'getProductRatings']);
+Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class, 'getProductRatings'])->whereNumber('productId');
+
 
 Route::apiResource('banners', BannerController::class);
 
