@@ -1543,4 +1543,90 @@ class DashboardController extends Controller
 
         return response()->json(['payment_methods' => $rows]);
     }
+
+    // ======================== SHIPPING STATUS ========================
+    // GET /dashboard/shipping-status
+    public function getShippingStatus(Request $request)
+    {
+        $statuses = ['pending', 'ready_to_pick', 'picking', 'picked', 'delivering', 'delivered'];
+
+        $q = DB::table('shop_order');
+        $this->revenueOrderFilter($q);
+
+        $filter = $request->input('filter');
+        $now = Carbon::now();
+
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('shop_order.date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('shop_order.date_order', [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear('shop_order.date_order', $now->year)
+                    ->whereMonth('shop_order.date_order', $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('shop_order.date_order', $lastMonth->year)
+                    ->whereMonth('shop_order.date_order', $lastMonth->month);
+                break;
+            case 'month': // ?filter=month&value=YYYY-MM
+                $value = $request->input('value');
+                if ($value) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $value);
+                        $q->whereYear('shop_order.date_order', $parsed->year)
+                            ->whereMonth('shop_order.date_order', $parsed->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
+                }
+                break;
+            case 'range': // ?filter=range&from=YYYY-MM-DD&to=YYYY-MM-DD
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('shop_order.date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        // Đếm theo shipping_status
+        $rows = $q->select([
+            'shipping_status',
+            DB::raw('COUNT(*) as orders_count'),
+        ])
+            ->groupBy('shipping_status')
+            ->get()
+            ->keyBy('shipping_status');
+
+        // Đảm bảo trả đủ các trạng thái với count = 0 nếu không có dữ liệu
+        $data = [];
+        foreach ($statuses as $st) {
+            $data[] = [
+                'status'       => $st,
+                'orders_count' => (int)($rows[$st]->orders_count ?? 0),
+            ];
+        }
+
+        return response()->json(['shipping_status' => $data]);
+    }
 }
