@@ -13,7 +13,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use App\Http\Requests\StoreVoucherRequest;
 use App\Http\Requests\UpdateVoucherRequest;
+use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponseTrait;
+
 class VoucherController extends Controller
 {
     use ApiResponseTrait;
@@ -89,18 +91,30 @@ class VoucherController extends Controller
     public function destroy($id)
     {
         $voucher = Voucher::find($id);
-
+    
         if (!$voucher) {
             return response()->json([
                 'message' => 'Voucher not found'
             ], 404);
         }
-
+    
+        // Kiểm tra voucher đã được dùng trong đơn hàng chưa
+        $usedInOrder = DB::table('shop_order')
+            ->where('voucher_code', $voucher->code)
+            
+            ->exists();
+    
+        if ($usedInOrder) {
+            return response()->json([
+                'message' => 'Voucher đã được sử dụng trong đơn hàng, không thể xóa'
+            ], 400);
+        }
+    
         $voucher->delete();
-
+    
         return $this->success(null, 'Xóa voucher thành công', 204);
-
     }
+    
 
     public function apply(Request $request)
     {

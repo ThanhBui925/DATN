@@ -26,7 +26,13 @@ interface Variant {
     id: number;
     size: { name: string };
     color: { name: string };
+    images: [Images];
     status: number;
+}
+
+interface Images {
+    id: number,
+    image_url?: string | null;
 }
 
 interface Item {
@@ -117,6 +123,31 @@ export const OrderDetailContent = () => {
         };
         fetchOrder();
     }, [orderId]);
+
+    const updateOrderStatus = async () => {
+            try {
+                const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
+                if (res.data.status) {
+                    notification.success({message: "Đã nhận được hàng !"})
+                } else {
+                    notification.error({message: 'Cập nhật trạng thái thất bại !'});
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+    const getUrlRepayVnpay = async () => {
+        try {
+            const res = await axiosInstance.get(`/api/client/orders/${orderId}/retry`);
+            console.log(res.data);
+            if (res.data.status) {
+                window.location.href = res.data.data.payment_url;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
     useEffect(() => {
         const showMsg = queryParams.get('showMsg');
@@ -287,7 +318,7 @@ export const OrderDetailContent = () => {
                                         <td>
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
-                                                    src={item.product.image || "/path/to/fallback-image.jpg"}
+                                                    src={item.variant.images[0].image_url || "/path/to/fallback-image.jpg"}
                                                     alt={item.product.name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
@@ -346,12 +377,20 @@ export const OrderDetailContent = () => {
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
                             {
-                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && (
-                                    <button className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
+                                order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status == 'pending' &&  (
+                                    <button onClick={getUrlRepayVnpay} className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
                                 )
                             }
                             {["pending", "preparing", "confirmed"].includes(order.status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
+                            )}
+                            {["delivered"].includes(order.status) && (
+                                <button
+                                    className="btn btn-outline-success btn-sm px-4 fw-medium"
+                                    onClick={updateOrderStatus}
+                                >
+                                    Đã nhận được hàng
+                                </button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
                                 Quay lại

@@ -6,6 +6,7 @@ import { TOKEN_KEY } from "../../providers/authProvider";
 
 interface UserProfile {
     name: string;
+    role: string;
 }
 
 export const HeaderTop = () => {
@@ -87,6 +88,11 @@ export const HeaderTop = () => {
                                                 {loading ? "Đang tải..." : profile?.name || "User"} <i className="fa fa-angle-down"></i>
                                             </a>
                                             <ul className="open-dropdown setting">
+                                                {
+                                                    profile?.role == "admin" || profile?.role == "super_admin" && (
+                                                        <li><Link to="/admin/dashboard">Trang quản trị viên</Link></li>
+                                                    )
+                                                }
                                                 <li><Link to="tai-khoan-cua-toi">Tài khoản của tôi</Link></li>
                                                 <li><Link to="don-hang-cua-toi">Đơn mua</Link></li>
                                                 <li><Link to="#" onClick={handleLogout}>Đăng xuất</Link></li>

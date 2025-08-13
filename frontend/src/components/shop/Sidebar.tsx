@@ -218,7 +218,7 @@ export const Sidebar = () => {
 
                 <div className="filter-sub-area">
                     <h5 className="filter-sub-titel">Lọc theo màu sắc</h5>
-                    <div className="color-categoriy">
+                    <div className="color-categori">
                         {loading ? (
                             <Skeleton />
                         ) : (

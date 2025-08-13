@@ -17,6 +17,7 @@ class OrderItem extends Model
         'quantity',
         'price',
         'variant_id',
+        'is_review'
     ];
 
 

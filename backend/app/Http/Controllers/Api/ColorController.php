@@ -19,7 +19,11 @@ class ColorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:50|unique:colors,name',
+        ], [
+            'name.required' => 'Vui lòng nhập tên màu sắc.',
+            'name.max' => 'Tên màu sắc không được vượt quá :max ký tự.',
+            'name.unique' => 'Tên màu sắc đã tồn tại.',
         ]);
 
         $color = Color::create([
@@ -35,7 +39,7 @@ class ColorController extends Controller
         $color = Color::find($id);
 
         if (!$color) {
-            return response()->json(['message' => 'Color not found'], 404);
+            return response()->json(['message' => 'Màu sắc không tồn tại'], 404);
         }
 
         return response()->json($color);
@@ -45,13 +49,17 @@ class ColorController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:50|unique:colors,name,' . $id,
+        ], [
+            'name.required' => 'Vui lòng nhập tên màu sắc.',
+            'name.max' => 'Tên màu sắc không được vượt quá :max ký tự.',
+            'name.unique' => 'Tên màu sắc đã tồn tại.',
         ]);
 
         $color = Color::find($id);
 
         if (!$color) {
-            return response()->json(['message' => 'Color not found'], 404);
+            return response()->json(['message' => 'Màu sắc không tồn tại'], 404);
         }
 
         $color->name = $request->name;
@@ -66,7 +74,7 @@ class ColorController extends Controller
         $color = Color::find($id);
 
         if (!$color) {
-            return response()->json(['message' => 'Color not found'], 404);
+            return response()->json(['message' => 'Màu sắc không tồn tại'], 404);
         }
 
         // Kiểm tra xem có bản ghi variant_products nào tham chiếu đến color này không
@@ -80,7 +88,7 @@ class ColorController extends Controller
 
         $color->delete();
 
-        return response()->json(['message' => 'Color deleted']);
+        return response()->json(['message' => 'Xóa màu sắc thành công.']);
     }
 
 }
