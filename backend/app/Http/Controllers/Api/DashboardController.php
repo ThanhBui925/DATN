@@ -1462,4 +1462,85 @@ class DashboardController extends Controller
 
         return response()->json(['product_ratings' => $rows]);
     }
+
+    // ======================== THANH TOÁN ========================
+    // GET /api/dashboard/payment-methods
+    public function getPaymentMethods(Request $request)
+    {
+        // Chỉ tính các đơn đã thanh toán và đã hoàn tất/giao hàng
+        $q = DB::table('shop_order')
+            ->where('payment_status', 'paid')
+            ->whereIn('order_status', ['delivered', 'completed']);
+
+        $now    = Carbon::now();
+        $filter = $request->input('filter');
+
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('date_order', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('date_order', [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear('date_order', $now->year)->whereMonth('date_order', $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('date_order', $lastMonth->year)->whereMonth('date_order', $lastMonth->month);
+                break;
+            case 'month': // ?value=YYYY-MM
+                $month = $request->input('value');
+                if ($month) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $month);
+                        $q->whereYear('date_order', $parsed->year)->whereMonth('date_order', $parsed->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
+                }
+                break;
+            case 'range': // ?from=YYYY-MM-DD&to=YYYY-MM-DD
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        $amountSql = 'COALESCE(final_amount, (total_price - COALESCE(discount_amount,0)))';
+
+        $rows = $q->select([
+            'payment_method as method',
+            DB::raw('COUNT(*) as orders_count'),
+            DB::raw("SUM($amountSql) as total_amount"),
+        ])
+            ->groupBy('payment_method')
+            ->orderBy('method')
+            ->get()
+            ->map(fn($r) => [
+                'method'       => (string)$r->method,
+                'orders_count' => (int)$r->orders_count,
+                'total_amount' => (float)$r->total_amount,
+            ]);
+
+        return response()->json(['payment_methods' => $rows]);
+    }
 }

@@ -144,6 +144,7 @@ Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'ge
 
 Route::get('/dashboard/product-ratings', [DashboardController::class, 'getProductRatings']);
 Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class, 'getProductRatings'])->whereNumber('productId');
+Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
 
 
 Route::apiResource('banners', BannerController::class);
