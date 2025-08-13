@@ -1554,6 +1554,76 @@ class DashboardController extends Controller
         return response()->json(['payment_methods' => $rows]);
     }
 
+    // ======================== BEST SELLING PRODUCTS ========================
+    // GET /dashboard/best-selling-products
+    public function getBestSellingProducts(Request $request)
+    {
+        $limit = $request->input('limit', 10);
+        $filter = $request->input('filter');
+        
+        $q = DB::table('shop_order_items')
+            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
+            ->join('products', 'products.id', '=', 'shop_order_items.product_id');
+        
+        $this->revenueOrderFilter($q);
+        
+        $now = Carbon::now();
+        
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('shop_order.date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('shop_order.date_order', [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear('shop_order.date_order', $now->year)
+                    ->whereMonth('shop_order.date_order', $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('shop_order.date_order', $lastMonth->year)
+                    ->whereMonth('shop_order.date_order', $lastMonth->month);
+                break;
+            case 'range':
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('shop_order.date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+        
+        $data = $q->groupBy('shop_order_items.product_id', 'products.name')
+            ->select([
+                'shop_order_items.product_id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(shop_order_items.quantity) as total_quantity'),
+                DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
+            ])
+            ->orderBy('total_quantity', 'desc')
+            ->limit($limit)
+            ->get();
+        
+        return response()->json(['best_selling_products' => $data]);
+    }
+
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
     public function getShippingStatus(Request $request)
