@@ -150,6 +150,8 @@ Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLow
 Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
 
+Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
+Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
 Route::apiResource('banners', BannerController::class);
 
 Route::prefix('categories')->controller(CategoryController::class)->group(function () {

@@ -1706,6 +1706,46 @@ class DashboardController extends Controller
         return response()->json(['active_products_count' => $count]);
     }
 
+    // ======================== OUT OF STOCK PRODUCTS ========================
+    // GET /dashboard/out-of-stock-products
+    public function getOutOfStockProducts(Request $request)
+    {
+        $limit = $request->input('limit', 10);
+        
+        $q = DB::table('products')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('images', function($join) {
+                $join->on('images.product_id', '=', 'products.id')
+                     ->where('images.is_main', '=', 1)
+                     ->whereNull('images.deleted_at');
+            })
+            ->where('products.stock', 0)
+            ->where('products.status', 1)
+            ->whereNull('products.deleted_at');
+        
+        $data = $q->select([
+            'products.id as id',
+            'products.name as name',
+            'products.sku as sku',
+            'categories.name as category',
+            'products.price as price',
+            'products.stock as stock',
+            DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as status'),
+            DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
+        ])
+        ->limit($limit)
+        ->get()
+        ->map(function($item) {
+            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+            return $item;
+        });
+        
+        return response()->json([
+            'total_out_of_stock' => count($data),
+            'products' => $data
+        ]);
+    }
+
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
     public function getShippingStatus(Request $request)
