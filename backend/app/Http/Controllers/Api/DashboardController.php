@@ -1439,6 +1439,16 @@ class DashboardController extends Controller
         $orderBy = $request->input('orderBy', 'avg');   // avg|count
         $sortDir = strtolower($request->input('sortDir', 'desc')) === 'asc' ? 'asc' : 'desc';
         $limit   = (int)($request->input('limit', 10));
+        $ratingFilter = $request->input('ratingFilter'); // best|worst
+
+        // Xử lý ratingFilter
+        if ($ratingFilter === 'best') {
+            $orderBy = 'avg';
+            $sortDir = 'desc';
+        } elseif ($ratingFilter === 'worst') {
+            $orderBy = 'avg';
+            $sortDir = 'asc';
+        }
 
         $allowed = ['avg', 'count'];
         if (!in_array($orderBy, $allowed)) $orderBy = 'avg';

@@ -17,7 +17,10 @@ class ManagerAdminController extends Controller
     use ApiResponseTrait;
 
     /**
-     * Lấy danh sách tài khoản admin với các bộ lọc tương tự CustomerController
+     * Lấy danh sách tài khoản admin với các bộ lọc
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -60,7 +63,7 @@ class ManagerAdminController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('users.status', (int) $request->status);
+            $query->where('users.status', trim($request->status));
         }
 
         $admins = $query->orderBy('users.id', 'desc')->get();
@@ -73,7 +76,10 @@ class ManagerAdminController extends Controller
     }
 
     /**
-     * Lấy chi tiết tài khoản admin theo id
+     * Lấy chi tiết tài khoản admin theo ID
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -81,6 +87,10 @@ class ManagerAdminController extends Controller
 
         if (!$admin) {
             return $this->error('Tài khoản admin không tồn tại.', null, 404);
+        }
+
+        if ($admin->status === 'inactive') {
+            return $this->error('Tài khoản admin đã bị khóa.', null, 403);
         }
 
         $result = [
@@ -103,6 +113,9 @@ class ManagerAdminController extends Controller
 
     /**
      * Tạo mới tài khoản admin
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -118,7 +131,7 @@ class ManagerAdminController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-       
+
         if ($validator->fails()) {
             return $this->error('Dữ liệu không hợp lệ.', $validator->errors(), 422);
         }
@@ -157,6 +170,10 @@ class ManagerAdminController extends Controller
 
     /**
      * Cập nhật tài khoản admin
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -183,6 +200,7 @@ class ManagerAdminController extends Controller
         }
 
         $data = $validator->validated();
+        Log::info('Dữ liệu cập nhật admin:', ['admin_id' => $id, 'data' => $data]); // Debug
 
         $admin->fill($data);
 
@@ -219,6 +237,9 @@ class ManagerAdminController extends Controller
 
     /**
      * Vô hiệu hóa tài khoản admin (xóa mềm)
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
