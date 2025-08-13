@@ -146,6 +146,7 @@ Route::get('/dashboard/product-ratings', [DashboardController::class, 'getProduc
 Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class, 'getProductRatings'])->whereNumber('productId');
 Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
 Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
+Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
 Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
 
 Route::apiResource('banners', BannerController::class);

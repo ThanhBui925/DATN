@@ -1648,6 +1648,52 @@ class DashboardController extends Controller
         return response()->json(['best_selling_products' => $data]);
     }
 
+    // ======================== LOW STOCK PRODUCTS ========================
+    // GET /dashboard/low-stock-products
+    public function getLowStockProducts(Request $request)
+    {
+        $limit = $request->input('limit', 10);
+        $threshold = $request->input('threshold', 10); // Ngưỡng tồn kho thấp, mặc định là 10
+        
+        $q = DB::table('products')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('images', function($join) {
+                $join->on('images.product_id', '=', 'products.id')
+                     ->where('images.is_main', '=', 1)
+                     ->whereNull('images.deleted_at');
+            })
+            ->leftJoin(DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                      'product_ratings.product_id', '=', 'products.id')
+            ->where('products.stock', '<=', $threshold)
+            ->where('products.stock', '>', 0)
+            ->where('products.status', 1);
+        
+        $data = $q->groupBy('products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
+            ->select([
+                'products.id as id',
+                'products.name as name',
+                'products.sku as sku',
+                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
+                'products.stock as stock',
+                DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as stock_status'),
+                'products.price as price',
+                'products.sale_price as original_price',
+                DB::raw('CASE WHEN products.sale_price > 0 AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) ELSE 0 END as discount_percent'),
+                'categories.name as category_name',
+                DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
+                DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
+            ])
+            ->orderBy('products.stock', 'asc')
+            ->limit($limit)
+            ->get()
+            ->map(function($item) {
+                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+                return $item;
+            });
+        
+        return response()->json(['low_stock_products' => $data]);
+    }
+
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
     public function getShippingStatus(Request $request)
