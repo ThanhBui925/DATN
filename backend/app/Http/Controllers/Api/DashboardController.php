@@ -1318,4 +1318,148 @@ class DashboardController extends Controller
 
         return response()->json(['voucherUsageCount' => $count]);
     }
+
+    // ======================== PRODUCT RATINGS ========================
+    /**
+     * GET /dashboard/product-ratings
+     * GET /dashboard/product-ratings/{productId}
+     */
+    public function getProductRatings(Request $request, $productId = null)
+    {
+        $productId = $productId ?? $request->input('product_id');
+
+        // Base query
+        $q = DB::table('reviews')
+            ->join('products', 'products.id', '=', 'reviews.product_id')
+            ->where('reviews.is_visible', 1); // chỉ lấy review hiển thị
+
+        // ===== Apply time filter (format cũ – switch case) =====
+        $filter = $request->input('filter');
+        $now = Carbon::now();
+
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('reviews.created_at', $now->toDateString());
+                break;
+
+            case 'yesterday':
+                $q->whereDate('reviews.created_at', $now->copy()->subDay()->toDateString());
+                break;
+
+            case 'this_week':
+                $q->whereBetween('reviews.created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('reviews.created_at', [$start, $end]);
+                break;
+
+            case 'this_month':
+                $q->whereYear('reviews.created_at', $now->year)
+                    ->whereMonth('reviews.created_at', $now->month);
+                break;
+
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('reviews.created_at', $lastMonth->year)
+                    ->whereMonth('reviews.created_at', $lastMonth->month);
+                break;
+
+            case 'month':
+                $month = $request->input('value');
+                if ($month) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $month);
+                        $q->whereYear('reviews.created_at', $parsed->year)
+                            ->whereMonth('reviews.created_at', $parsed->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
+                }
+                break;
+
+            case 'range':
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('reviews.created_at', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        // ===== Nếu truyền product_id -> trả chi tiết một sản phẩm (kèm breakdown) =====
+        if ($productId) {
+            $row = $q->where('reviews.product_id', $productId)
+                ->select([
+                    'reviews.product_id',
+                    'products.name as product_name',
+                    DB::raw('AVG(reviews.rating) as average'),
+                    DB::raw('COUNT(*) as total_reviews'),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 5 THEN 1 ELSE 0 END) as star_5"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 4 THEN 1 ELSE 0 END) as star_4"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 3 THEN 1 ELSE 0 END) as star_3"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 2 THEN 1 ELSE 0 END) as star_2"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 1 THEN 1 ELSE 0 END) as star_1"),
+                ])
+                ->groupBy('reviews.product_id', 'products.name')
+                ->first();
+
+            if (!$row) {
+                return response()->json(['product_ratings' => null]);
+            }
+
+            return response()->json([
+                'product_ratings' => [
+                    'product_id'     => (int)$row->product_id,
+                    'product_name'   => $row->product_name,
+                    'average'        => round((float)$row->average, 2),
+                    'total_reviews'  => (int)$row->total_reviews,
+                    'breakdown'      => [
+                        '5' => (int)$row->star_5,
+                        '4' => (int)$row->star_4,
+                        '3' => (int)$row->star_3,
+                        '2' => (int)$row->star_2,
+                        '1' => (int)$row->star_1,
+                    ],
+                ]
+            ]);
+        }
+
+        // ===== Nếu không truyền product_id -> trả danh sách theo avg hoặc count =====
+        $orderBy = $request->input('orderBy', 'avg');   // avg|count
+        $sortDir = strtolower($request->input('sortDir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $limit   = (int)($request->input('limit', 10));
+
+        $allowed = ['avg', 'count'];
+        if (!in_array($orderBy, $allowed)) $orderBy = 'avg';
+
+        $rows = $q->select([
+            'reviews.product_id',
+            'products.name as product_name',
+            DB::raw('AVG(reviews.rating) as average'),
+            DB::raw('COUNT(*) as total_reviews'),
+        ])
+            ->groupBy('reviews.product_id', 'products.name')
+            ->orderBy($orderBy === 'avg' ? DB::raw('AVG(reviews.rating)') : DB::raw('COUNT(*)'), $sortDir)
+            ->limit($limit)
+            ->get()
+            ->map(fn($r) => [
+                'product_id'    => (int)$r->product_id,
+                'product_name'  => $r->product_name,
+                'average'       => round((float)$r->average, 2),
+                'total_reviews' => (int)$r->total_reviews,
+            ]);
+
+        return response()->json(['product_ratings' => $rows]);
+    }
 }
