@@ -15,6 +15,7 @@ interface ImageType {
 }
 
 interface Variant {
+    id: number;
     size?: { id: string; name: string };
     color?: { id: string; name: string; code?: string };
     quantity: number;
@@ -107,16 +108,18 @@ export const DetailProduct: React.FC = () => {
 
     useEffect(() => {
         const fetchCartQuantity = async () => {
-            if (!selectedSize || !selectedColor || !localStorage.getItem(TOKEN_KEY)) {
+            if (!localStorage.getItem(TOKEN_KEY)) {
+                setCartQuantity(0);
+                return;
+            }
+            if (!selectedSize || !selectedColor) {
                 setCartQuantity(0);
                 return;
             }
             try {
-                const res = await axiosInstance.get(`${BASE_URL}/client/cart/items`, {
-                    params: { product_id: id, size_id: selectedSize, color_id: selectedColor },
-                });
-                const cartItem = res.data.data?.find(
-                    (item: any) => item.product_id === Number(id) && item.size_id === selectedSize && item.color_id === selectedColor
+                const res = await axiosInstance.get(`${BASE_URL}/client/cart`);
+                const cartItem = res.data.data.items?.find(
+                    (item: any) => item.product_id === Number(id) && item.variant_id === selectedVariant?.id
                 );
                 setCartQuantity(cartItem ? cartItem.quantity : 0);
             } catch (err: any) {
