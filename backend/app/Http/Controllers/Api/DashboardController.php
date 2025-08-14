@@ -1906,7 +1906,7 @@ class DashboardController extends Controller
             ->select([
                 'products.id as product_id',
                 'products.name as product_name',
-                'products.image as image',      
+                'products.image as image',
                 DB::raw('SUM(shop_order_items.quantity) as total_quantity'),
                 DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
@@ -1935,5 +1935,95 @@ class DashboardController extends Controller
         });
 
         return response()->json(['top_products' => $data]);
+    }
+
+    // ======================== ORDER STATUS ========================
+    // GET /dashboard/order-status
+    public function getOrderStatus(Request $request)
+    {
+        $statuses = ['confirmed', 'preparing', 'shipping', 'delivered', 'canceled'];
+
+        $q = DB::table('shop_order');
+
+        $filter = $request->input('filter');
+        $now    = Carbon::now();
+
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('shop_order.date_order', $now->toDateString());
+                break;
+
+            case 'yesterday':
+                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
+                break;
+
+            case 'this_week':
+                $q->whereBetween('shop_order.date_order', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('shop_order.date_order', [$start, $end]);
+                break;
+
+            case 'this_month':
+                $q->whereYear('shop_order.date_order', $now->year)
+                    ->whereMonth('shop_order.date_order', $now->month);
+                break;
+
+            case 'last_month':
+                $last = $now->copy()->subMonth();
+                $q->whereYear('shop_order.date_order', $last->year)
+                    ->whereMonth('shop_order.date_order', $last->month);
+                break;
+
+            case 'month':
+                if ($v = $request->input('value')) {
+                    try {
+                        $m = Carbon::createFromFormat('Y-m', $v);
+                        $q->whereYear('shop_order.date_order', $m->year)
+                            ->whereMonth('shop_order.date_order', $m->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
+                }
+                break;
+
+            case 'range':
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('shop_order.date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        // ===== Đếm theo order_status =====
+        $rows = $q->select([
+            'order_status',
+            DB::raw('COUNT(*) as orders_count'),
+        ])
+            ->groupBy('order_status')
+            ->get()
+            ->keyBy('order_status');
+
+        $data = [];
+        foreach ($statuses as $st) {
+            $data[] = [
+                'status'       => $st,
+                'orders_count' => (int)($rows[$st]->orders_count ?? 0),
+            ];
+        }
+
+        return response()->json(['order_status' => $data]);
     }
 }
