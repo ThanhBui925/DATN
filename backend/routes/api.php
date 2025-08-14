@@ -151,6 +151,8 @@ Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippi
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
 Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatus']);
 Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'getTopProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
 
 Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
 Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
