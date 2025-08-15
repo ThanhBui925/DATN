@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
+use App\Http\Controllers\Api\Client\BlogController as ClientBlogController;
 
 
 Route::prefix('client')->group(function () {
@@ -43,6 +44,11 @@ Route::prefix('client')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+
+     Route::prefix('blogs')->group(function () {
+        Route::get('/', [ClientBlogController::class, 'index']);
+        Route::get('/{id}', [ClientBlogController::class, 'show']);
     });
 
     Route::get('sizes', [ClientProductController::class, 'getAllSize']);
@@ -147,9 +153,15 @@ Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class
 Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
 Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
 Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
-Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatus']);
+Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'getTopProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
 
+Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
+Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
 Route::apiResource('banners', BannerController::class);
 
 Route::prefix('categories')->controller(CategoryController::class)->group(function () {
