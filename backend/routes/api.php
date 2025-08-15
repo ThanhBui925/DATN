@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
+use App\Http\Controllers\Api\Client\BlogController as ClientBlogController;
 
 
 Route::prefix('client')->group(function () {
@@ -43,6 +44,11 @@ Route::prefix('client')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+
+     Route::prefix('blogs')->group(function () {
+        Route::get('/', [ClientBlogController::class, 'index']);
+        Route::get('/{id}', [ClientBlogController::class, 'show']);
     });
 
     Route::get('sizes', [ClientProductController::class, 'getAllSize']);
