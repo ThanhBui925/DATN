@@ -1560,27 +1560,23 @@ class DashboardController extends Controller
     {
         $limit = $request->input('limit', 10);
         $filter = $request->input('filter');
-
+        
         $q = DB::table('shop_order_items')
             ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
             ->join('products', 'products.id', '=', 'shop_order_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('images', function ($join) {
+            ->leftJoin('images', function($join) {
                 $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
+                     ->where('images.is_main', '=', 1)
+                     ->whereNull('images.deleted_at');
             })
-            ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
-                'product_ratings.product_id',
-                '=',
-                'products.id'
-            );
-
+            ->leftJoin(DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                      'product_ratings.product_id', '=', 'products.id');
+        
         $this->revenueOrderFilter($q);
-
+        
         $now = Carbon::now();
-
+        
         switch ($filter) {
             case 'today':
                 $q->whereDate('shop_order.date_order', $now->toDateString());
@@ -1621,13 +1617,13 @@ class DashboardController extends Controller
                 }
                 break;
         }
-
+        
         $data = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
             ->select([
                 'products.id as id',
                 'products.name as name',
-                'products.sku as sku',
-                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
+                // 'products.sku as sku',
+                DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
                 DB::raw('SUM(shop_order_items.quantity) as total_sold'),
                 DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
@@ -1643,12 +1639,12 @@ class DashboardController extends Controller
             ->orderBy('total_sold', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function ($item) {
+            ->map(function($item) {
                 // Tính toán slug từ tên sản phẩm (đơn giản hóa)
                 $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
                 return $item;
             });
-
+        
         return response()->json(['best_selling_products' => $data]);
     }
 
@@ -1658,24 +1654,20 @@ class DashboardController extends Controller
     {
         $limit = $request->input('limit', 10);
         $threshold = $request->input('threshold', 10); // Ngưỡng tồn kho thấp, mặc định là 10
-
+        
         $q = DB::table('products')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('images', function ($join) {
+            ->leftJoin('images', function($join) {
                 $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
+                     ->where('images.is_main', '=', 1)
+                     ->whereNull('images.deleted_at');
             })
-            ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
-                'product_ratings.product_id',
-                '=',
-                'products.id'
-            )
+            ->leftJoin(DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                      'product_ratings.product_id', '=', 'products.id')
             ->where('products.stock', '<=', $threshold)
             ->where('products.stock', '>', 0)
             ->where('products.status', 1);
-
+        
         $data = $q->groupBy('products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
             ->select([
                 'products.id as id',
@@ -1694,11 +1686,11 @@ class DashboardController extends Controller
             ->orderBy('products.stock', 'asc')
             ->limit($limit)
             ->get()
-            ->map(function ($item) {
+            ->map(function($item) {
                 $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
                 return $item;
             });
-
+        
         return response()->json(['low_stock_products' => $data]);
     }
 
@@ -1710,49 +1702,50 @@ class DashboardController extends Controller
             ->where('status', 1)
             ->whereNull('deleted_at')
             ->count();
-
+        
         return response()->json(['active_products_count' => $count]);
     }
 
     // ======================== OUT OF STOCK PRODUCTS ========================
     // GET /dashboard/out-of-stock-products
     public function getOutOfStockProducts(Request $request)
-    {
-        $limit = $request->input('limit', 10);
+{
+    $limit = $request->input('limit', 10);
 
-        $q = DB::table('products')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('images', function ($join) {
-                $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
+    $q = DB::table('products')
+        ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+        ->leftJoin('images', function ($join) {
+                $join->on('images.product_id', '=', 'products.id');
             })
-            ->where('products.stock', 0)
-            ->where('products.status', 1)
-            ->whereNull('products.deleted_at');
+        ->where('products.status', 1)
+        ->whereNull('products.deleted_at')
+        ->groupBy('products.id', 'products.name', 'products.price', 'categories.name', 'images.url')
+        ->havingRaw('SUM(variant_products.quantity) = 0'); 
 
-        $data = $q->select([
+    $data = $q->select([
             'products.id as id',
             'products.name as name',
-            'products.sku as sku',
             'categories.name as category',
             'products.price as price',
-            'products.stock as stock',
-            DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as status'),
+            DB::raw('SUM(variant_products.quantity) as stock'),
+            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock" 
+                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock" 
+                          ELSE "out_of_stock" END as status'),
             DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
         ])
-            ->limit($limit)
-            ->get()
-            ->map(function ($item) {
-                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-                return $item;
-            });
+        ->limit($limit)
+        ->get()
+        ->map(function ($item) {
+            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+            return $item;
+        });
 
-        return response()->json([
-            'total_out_of_stock' => count($data),
-            'products' => $data
-        ]);
-    }
+    return response()->json([
+        'total_out_of_stock' => count($data),
+        'products' => $data
+    ]);
+}
 
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
@@ -1838,328 +1831,5 @@ class DashboardController extends Controller
         }
 
         return response()->json(['shipping_status' => $data]);
-    }
-
-    // ======================== WEEKLY SALES ========================
-    // GET /dashboard/weekly-sales
-    public function getWeeklySales(Request $request)
-    {
-        // Mặc định: tuần hiện tại (ISO, Monday-first)
-        $filter = $request->input('filter');
-        $now    = Carbon::now();
-
-        // Xác định khoảng tuần [start, end]
-        $start = $now->copy()->startOfWeek(); // Mon
-        $end   = $now->copy()->endOfWeek();   // Sun
-
-        switch ($filter) {
-            case 'today':
-                // Nếu người dùng cố dùng today → ta vẫn trả weekly (tuần hiện tại)
-                $start = $now->copy()->startOfWeek();
-                $end   = $now->copy()->endOfWeek();
-                break;
-
-            case 'yesterday':
-                $y = $now->copy()->subDay();
-                $start = $y->copy()->startOfWeek();
-                $end   = $y->copy()->endOfWeek();
-                break;
-
-            case 'this_week':
-                $start = $now->copy()->startOfWeek();
-                $end   = $now->copy()->endOfWeek();
-                break;
-
-            case 'last_week':
-                $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
-                break;
-
-            case 'this_month':
-                // Lấy tuần hiện tại trong tháng hiện tại (thực chất vẫn là tuần hiện tại)
-                $start = $now->copy()->startOfWeek();
-                $end   = $now->copy()->endOfWeek();
-                break;
-
-            case 'last_month':
-                // Lấy tuần chứa ngày cuối cùng của tháng trước
-                $lm = $now->copy()->subMonth()->endOfMonth();
-                $start = $lm->copy()->startOfWeek();
-                $end   = $lm->copy()->endOfWeek();
-                break;
-
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                if (!$from || !$to) {
-                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-                }
-                try {
-                    $fromDate = Carbon::parse($from)->startOfDay();
-                    $toDate   = Carbon::parse($to)->endOfDay();
-                    // Chuẩn hóa về tuần chứa ngày FROM (để luôn trả đúng 7 ngày)
-                    $start = $fromDate->copy()->startOfWeek();
-                    $end   = $start->copy()->endOfWeek();
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-                }
-                break;
-
-                // mặc định giữ tuần hiện tại
-        }
-
-        // Base query: chỉ tính đơn hợp lệ ghi nhận doanh thu
-        $q = DB::table('shop_order');
-        $this->revenueOrderFilter($q);
-
-        // Lọc trong khoảng tuần đã xác định
-        $q->whereBetween('shop_order.date_order', [$start, $end]);
-
-        // Lấy dữ liệu thô theo ngày
-        $rows = $q->select([
-            DB::raw('DATE(shop_order.date_order) as d'),
-            DB::raw('COUNT(*) as orders_count'),
-            DB::raw('SUM(' . $this->orderFinalAmountSql() . ') as revenue'),
-        ])
-            ->groupBy(DB::raw('DATE(shop_order.date_order)'))
-            ->get()
-            ->keyBy('d');
-
-        // Build đủ 7 ngày (Mon..Sun)
-        $days = [];
-        $totalOrders  = 0;
-        $totalRevenue = 0.0;
-
-        for ($i = 0; $i < 7; $i++) {
-            $day = $start->copy()->addDays($i);
-            $key = $day->toDateString();
-
-            $orders  = (int)($rows[$key]->orders_count ?? 0);
-            $revenue = (float)($rows[$key]->revenue ?? 0.0);
-
-            $days[] = [
-                'date'   => $key,
-                'label'  => $day->format('D'),
-                'orders' => $orders,
-                'revenue' => $revenue,
-            ];
-
-            $totalOrders  += $orders;
-            $totalRevenue += $revenue;
-        }
-
-        return response()->json([
-            'weekly_sales' => [
-                'week' => [
-                    'start' => $start->toDateString(),
-                    'end'   => $end->toDateString(),
-                ],
-                'days' => $days,
-                'total_orders'  => $totalOrders,
-                'total_revenue' => $totalRevenue,
-            ]
-        ]);
-    }
-
-    // ======================== TOP PRODUCTS ========================
-    // GET /dashboard/top-products
-    public function getTopProducts(Request $request)
-    {
-        $limit  = (int) $request->input('limit', 10);
-        $sortBy = $request->input('sortBy', 'total_quantity'); // total_quantity | total_revenue | orders_count
-        $filter = $request->input('filter');                   // today|yesterday|this_week|last_week|this_month|last_month|month|range
-
-        $q = DB::table('shop_order_items')
-            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-            ->join('products', 'products.id', '=', 'shop_order_items.product_id');
-
-        // Chỉ tính đơn hợp lệ (giống các API revenue khác)
-        $this->revenueOrderFilter($q);
-
-        $now = Carbon::now();
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('shop_order.date_order', $now->toDateString());
-                break;
-            case 'yesterday':
-                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
-                break;
-            case 'this_week':
-                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-                break;
-            case 'last_week':
-                $q->whereBetween('shop_order.date_order', [
-                    $now->copy()->subWeek()->startOfWeek(),
-                    $now->copy()->subWeek()->endOfWeek()
-                ]);
-                break;
-            case 'this_month':
-                $q->whereYear('shop_order.date_order', $now->year)
-                    ->whereMonth('shop_order.date_order', $now->month);
-                break;
-            case 'last_month':
-                $last = $now->copy()->subMonth();
-                $q->whereYear('shop_order.date_order', $last->year)
-                    ->whereMonth('shop_order.date_order', $last->month);
-                break;
-            case 'month':
-                if ($v = $request->input('value')) {
-                    $m = Carbon::createFromFormat('Y-m', $v);
-                    $q->whereYear('shop_order.date_order', $m->year)
-                        ->whereMonth('shop_order.date_order', $m->month);
-                }
-                break;
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                $q->whereBetween('shop_order.date_order', [
-                    Carbon::parse($from)->startOfDay(),
-                    Carbon::parse($to)->endOfDay()
-                ]);
-                break;
-        }
-
-        // Chỉ lấy sản phẩm active, chưa xóa
-        $q->where('products.status', 1)
-            ->whereNull('products.deleted_at');
-
-        $rows = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.image', 'products.price', 'products.sale_price', 'products.sale_end')
-            ->select([
-                'products.id as product_id',
-                'products.name as product_name',
-                'products.image as image',
-                DB::raw('SUM(shop_order_items.quantity) as total_quantity'),
-                DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
-                DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
-                'products.price',
-                'products.sale_price',
-                'products.sale_end',
-            ]);
-
-        // Sắp xếp
-        $allowed = ['total_quantity', 'total_revenue', 'orders_count', 'product_name'];
-        if (!in_array($sortBy, $allowed)) $sortBy = 'total_quantity';
-        $rows->orderBy($sortBy, 'desc')->limit($limit);
-
-        $data = $rows->get()->map(function ($r) {
-            return [
-                'id'             => (int) $r->product_id,
-                'name'           => $r->product_name,
-                'image_url'      => $r->image ? url('/storage/' . $r->image) : null,
-                'total_quantity' => (int) $r->total_quantity,
-                'total_revenue'  => (float) $r->total_revenue,
-                'orders_count'   => (int) $r->orders_count,
-                'price'          => (float) $r->price,
-                'sale_price'     => $r->sale_price !== null ? (float) $r->sale_price : null,
-                'sale_end'       => $r->sale_end,
-            ];
-        });
-
-        return response()->json(['top_products' => $data]);
-    }
-
-    // ======================== ORDER COMPLETION TIME ========================
-    // GET /dashboard/order-completion-time
-    public function getOrderCompletionTime(Request $request)
-    {
-        $q = DB::table('shop_order')
-            ->where('payment_status', 'paid')
-            ->where('order_status', 'delivered');
-
-        $filter = $request->input('filter');
-        $now    = Carbon::now();
-
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('date_order', $now->toDateString());
-                break;
-
-            case 'yesterday':
-                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
-                break;
-
-            case 'this_week':
-                $q->whereBetween('date_order', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
-                break;
-
-            case 'last_week':
-                $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
-                $q->whereBetween('date_order', [$start, $end]);
-                break;
-
-            case 'this_month':
-                $q->whereYear('date_order', $now->year)->whereMonth('date_order', $now->month);
-                break;
-
-            case 'last_month':
-                $lm = $now->copy()->subMonth();
-                $q->whereYear('date_order', $lm->year)->whereMonth('date_order', $lm->month);
-                break;
-
-            case 'month': // ?value=YYYY-MM
-                if ($v = $request->input('value')) {
-                    try {
-                        $m = Carbon::createFromFormat('Y-m', $v);
-                        $q->whereYear('date_order', $m->year)->whereMonth('date_order', $m->month);
-                    } catch (\Exception $e) {
-                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
-                    }
-                }
-                break;
-
-            case 'range': // ?from=YYYY-MM-DD&to=YYYY-MM-DD
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                if (!$from || !$to) {
-                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-                }
-                try {
-                    $q->whereBetween('date_order', [
-                        Carbon::parse($from)->startOfDay(),
-                        Carbon::parse($to)->endOfDay(),
-                    ]);
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-                }
-                break;
-        }
-
-        // ===== Tính toán thời gian hoàn tất =====
-        $summary = (clone $q)->selectRaw("
-            COUNT(*) as orders_count,
-            AVG(TIMESTAMPDIFF(HOUR, date_order, delivered_at)) as avg_hours
-        ")->first();
-
-        $ordersCount = (int) ($summary->orders_count ?? 0);
-        $avgHours    = (float) ($summary->avg_hours ?? 0);
-        $avgDays     = $avgHours > 0 ? round($avgHours / 24, 2) : 0.0;
-
-        // ===== Timeline theo ngày =====
-        $rows = $q->selectRaw("
-            DATE(date_order) as day,
-            COUNT(*) as orders_count,
-            AVG(TIMESTAMPDIFF(HOUR, date_order, delivered_at)) as avg_hours
-        ")
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get()
-            ->map(fn($r) => [
-                'date'       => $r->day,
-                'orders'     => (int)$r->orders_count,
-                'avg_hours'  => round((float)$r->avg_hours, 2),
-                'avg_days'   => round(((float)$r->avg_hours) / 24, 2),
-            ]);
-
-        return response()->json([
-            'order_completion_time' => [
-                'summary' => [
-                    'orders_count' => $ordersCount,
-                    'avg_hours'    => round($avgHours, 2),
-                    'avg_days'     => $avgDays,
-                ],
-                'timeline' => $rows,
-            ]
-        ]);
     }
 }
