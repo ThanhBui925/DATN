@@ -1557,7 +1557,6 @@ class DashboardController extends Controller
     }
 
     // ======================== BEST SELLING PRODUCTS ========================
-    // GET /dashboard/best-selling-products
     public function getBestSellingProducts(Request $request)
     {
         $limit = $request->input('limit', 10);
@@ -1568,12 +1567,13 @@ class DashboardController extends Controller
             ->join('products', 'products.id', '=', 'shop_order_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
             ->leftJoin('images', function ($join) {
-                $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
+                $join->on('images.product_id', '=', 'products.id');
             })
             ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
+                      FROM reviews 
+                      WHERE is_visible = 1 
+                      GROUP BY product_id) as product_ratings'),
                 'product_ratings.product_id',
                 '=',
                 'products.id'
@@ -1624,75 +1624,75 @@ class DashboardController extends Controller
                 break;
         }
 
-        $data = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
+        $data = $q->groupBy(
+            'shop_order_items.product_id',
+            'products.id',
+            'products.name',
+            'products.price',
+            'products.sale_price',
+            'products.sale_end',
+            'categories.name',
+            'images.url',
+            'product_ratings.avg_rating',
+            'product_ratings.review_count'
+        )
             ->select([
                 'products.id as id',
                 'products.name as name',
-                'products.sku as sku',
-                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
+                DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
                 DB::raw('SUM(shop_order_items.quantity) as total_sold'),
                 DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
                 'products.price as price',
                 'products.sale_price as original_price',
-                DB::raw('CASE WHEN products.sale_price > 0 AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) ELSE 0 END as discount_percent'),
-                'products.stock as stock',
-                DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as stock_status'),
+                DB::raw('CASE WHEN products.sale_price > 0 
+                       AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) 
+                       THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) 
+                       ELSE 0 END as discount_percent'),
                 'categories.name as category_name',
                 DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
                 DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
             ])
             ->orderBy('total_sold', 'desc')
-            ->limit($limit)
+            ->limit(1)
             ->get()
             ->map(function ($item) {
-                // Tính toán slug từ tên sản phẩm (đơn giản hóa)
                 $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
                 return $item;
             });
-
         return response()->json(['best_selling_products' => $data]);
     }
 
-    // ======================== LOW STOCK PRODUCTS ========================
-    // GET /dashboard/low-stock-products
-    public function getLowStockProducts(Request $request)
-    {
-        $threshold = $request->input('threshold', 10);
+// ======================== LOW STOCK PRODUCT (Single) ========================
+public function getLowStockProducts(Request $request)
+{
+    $threshold = $request->input('threshold', 10);
 
-        $q = DB::table('products')
-            ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            // ->leftJoin('images', function ($join) {
-            //         $join->on('images.product_id', '=', 'products.id');
-            //     })
-            ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
+    $q = DB::table('products')
+        ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+        ->leftJoin('images', function ($join) {
+                $join->on('images.product_id', '=', 'products.id');
+            })
+        ->leftJoin(
+            DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
                       FROM reviews 
                       WHERE is_visible = 1 
                       GROUP BY product_id) as product_ratings'),
-                'product_ratings.product_id',
-                '=',
-                'products.id'
-            )
-            ->where('products.status', 1)
-            ->whereNull('products.deleted_at')
-            ->groupBy(
-                'products.id',
-                'products.name',
-                'products.price',
-                'products.sale_price',
-                'products.sale_end',
-                'categories.name',
-                'images.url',
-                'product_ratings.avg_rating',
-                'product_ratings.review_count'
-            )
-            ->havingRaw('SUM(variant_products.quantity) > 0 AND SUM(variant_products.quantity) <= ?', [$threshold])
-            ->orderByRaw('SUM(variant_products.quantity) ASC') // ✅ thấp nhất trước
-            ->limit(1);
+            'product_ratings.product_id',
+            '=',
+            'products.id'
+        )
+        ->where('products.status', 1)
+        ->whereNull('products.deleted_at')
+        ->groupBy('products.id', 'products.name', 'products.price', 'products.sale_price', 
+                  'products.sale_end', 'categories.name', 'images.url', 
+                  'product_ratings.avg_rating', 'product_ratings.review_count')
+        ->havingRaw('SUM(variant_products.quantity) > 0 AND SUM(variant_products.quantity) <= ?', [$threshold])
+        ->orderByRaw('SUM(variant_products.quantity) ASC') // ✅ thấp nhất trước
+        ->limit(1);
 
-        $data = $q->select([
+    $data = $q->select([
             'products.id as id',
             'products.name as name',
             DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
@@ -1710,14 +1710,67 @@ class DashboardController extends Controller
             DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
             DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
         ])
-            ->get()
-            ->map(function ($item) {
-                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-                return $item;
-            });
+        ->get()
+        ->map(function ($item) {
+            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+            return $item;
+        });
 
-        return response()->json(['low_stock_products' => $data]);
+    return response()->json(['low_stock_products' => $data]);
+}
+
+    // ======================== ACTIVE PRODUCTS COUNT ========================
+    // GET /dashboard/active-products-count
+    public function getActiveProductsCount(Request $request)
+    {
+        $count = DB::table('products')
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->count();
+
+        return response()->json(['active_products_count' => $count]);
     }
+
+    // ======================== OUT OF STOCK PRODUCTS ========================
+    // GET /dashboard/out-of-stock-products
+    public function getOutOfStockProducts(Request $request)
+{
+    $limit = $request->input('limit', 10);
+
+    $q = DB::table('products')
+        ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+        ->leftJoin('images', function ($join) {
+                $join->on('images.product_id', '=', 'products.id');
+            })
+        ->where('products.status', 1)
+        ->whereNull('products.deleted_at')
+        ->groupBy('products.id', 'products.name', 'products.price', 'categories.name', 'images.url')
+        ->havingRaw('SUM(variant_products.quantity) = 0'); 
+
+    $data = $q->select([
+            'products.id as id',
+            'products.name as name',
+            'categories.name as category',
+            'products.price as price',
+            DB::raw('SUM(variant_products.quantity) as stock'),
+            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock" 
+                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock" 
+                          ELSE "out_of_stock" END as status'),
+            DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
+        ])
+        ->limit($limit)
+        ->get()
+        ->map(function ($item) {
+            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+            return $item;
+        });
+
+    return response()->json([
+        'total_out_of_stock' => count($data),
+        'products' => $data
+    ]);
+}
 
 
     // ======================== SHIPPING STATUS ========================
