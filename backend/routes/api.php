@@ -25,9 +25,11 @@ use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryControll
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
+use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
+use App\Http\Controllers\Api\Client\BlogController as ClientBlogController;
 
 
 Route::prefix('client')->group(function () {
@@ -42,6 +44,11 @@ Route::prefix('client')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+    });
+
+     Route::prefix('blogs')->group(function () {
+        Route::get('/', [ClientBlogController::class, 'index']);
+        Route::get('/{id}', [ClientBlogController::class, 'show']);
     });
 
     Route::get('sizes', [ClientProductController::class, 'getAllSize']);
@@ -65,9 +72,9 @@ Route::prefix('client')->group(function () {
         Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
-    
+
     Route::middleware('auth:sanctum')->post('/confirm_checkout', [CheckoutController::class, 'confirm']);
-    
+
     Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
         Route::get('/', [ClientOrderController::class, 'index']);
         Route::post('/', [ClientOrderController::class, 'store']);
@@ -75,6 +82,8 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
+        Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
+
     });
 
 
@@ -91,6 +100,11 @@ Route::prefix('client')->group(function () {
         Route::get('/', [AddressController::class, 'index']);
         Route::put('/{id}', [AddressController::class, 'update']);
         Route::delete('/{id}', [AddressController::class, 'destroy']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('vouchers')->group(function () {
+        Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
+        Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
     });
 
 });
@@ -122,6 +136,32 @@ Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthl
 Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
 Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
 
+Route::get('/dashboard/products-by-category', [DashboardController::class, 'getProductsByCategory']);
+
+Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
+Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
+Route::get('/dashboard/voucher-usage-count', [DashboardController::class, 'getUsedVoucherCount']);
+Route::get('/dashboard/voucher-usage', [DashboardController::class, 'getUsedVoucherCount']);
+
+Route::get('/dashboard/orders/status-counters', [DashboardController::class, 'getOrderStatusCounters']);
+Route::get('/dashboard/orders/by-period', [DashboardController::class, 'getOrdersByPeriod']);
+Route::get('/dashboard/orders/cancel-rate', [DashboardController::class, 'getCancelRate']);
+Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'getOrderStatusTimeline']);
+
+Route::get('/dashboard/product-ratings', [DashboardController::class, 'getProductRatings']);
+Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class, 'getProductRatings'])->whereNumber('productId');
+Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
+Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
+Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
+Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatus']);
+Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'getTopProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
+
+Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
+Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
 Route::apiResource('banners', BannerController::class);
 
 Route::prefix('categories')->controller(CategoryController::class)->group(function () {
@@ -202,11 +242,11 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
 });
 
 
-Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group(function(){
-    Route::get('/','index');
-    Route::post('/','store');
-    Route::get('/{id}','show');
-    Route::put('/{id}','update');
-    Route::delete('/{id}','destroy');
+Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::get('/{id}', 'show');
+    Route::put('/{id}', 'update');
+    Route::delete('/{id}', 'destroy');
     Route::post('/{id}', 'restore');
 });

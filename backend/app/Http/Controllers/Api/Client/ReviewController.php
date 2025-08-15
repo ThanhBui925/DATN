@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Review;
 use App\Models\Order;
 use Illuminate\Support\Facades\Validator;
+use App\Models\OrderItem;
 
 class ReviewController extends Controller
 {
@@ -79,6 +80,13 @@ class ReviewController extends Controller
             'comment' => $comment,
             'is_visible' => $isVisible,
         ]);
+
+        OrderItem::whereHas('order', function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id)
+              ->whereIn('order_status', ['completed', 'delivered']);
+        })
+        ->where('product_id', $request->product_id)
+        ->update(['is_review' => true]);
 
         return response()->json([
             'message' => $isVisible

@@ -7,6 +7,9 @@ use App\Models\Order;
 use App\Models\Cart;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderSuccessMail;
 
 
 class VNPayController extends Controller
@@ -37,9 +40,7 @@ class VNPayController extends Controller
 
         $order = Order::find($orderId);
 
-        $userId = $order->user_id;
-        $cart = Cart::with('items')->where('user_id', $userId)->first();
-
+        $cartItemsIds = Cache::get('vnpay_order_cart_items_' . $order->id);
         if (!$order) {
             return response('Order not found', 404);
         }
@@ -50,9 +51,16 @@ class VNPayController extends Controller
             $order->order_status = 'confirmed';
             $order->save();
 
-            $cart->items()->delete();
-            $cart->delete();
-
+            if (!empty($cartItemsIds)) {
+                \App\Models\ShoppingCartItem::whereIn('id', $cartItemsIds)->delete();
+            }
+    
+            // Xoá cache sau khi xử lý xong
+            Cache::forget('vnpay_order_cart_items_' . $order->id);
+            Mail::to($order->user->email)->queue(new OrderSuccessMail($order)); // người đặt
+            if ($order->recipient_email && $order->recipient_email !== $order->user->email) {
+                Mail::to($order->recipient_email)->queue(new OrderSuccessMail($order)); // người nhận nếu khác
+            }
             return redirect()->away("http://localhost:3000/chi-tiet-don-hang/{$order->id}?showMsg=1");
             
         } else {

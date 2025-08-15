@@ -9,6 +9,9 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -40,8 +43,24 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = Category::findOrFail($id);
-        return $this->success($category);
+    
+        $productCount = Product::where('category_id', $id)->count();
+    
+        $orderCount = DB::table('shop_order_items')
+            ->join('products', 'shop_order_items.product_id', '=', 'products.id')
+            ->where('products.category_id', $id)
+            ->distinct('shop_order_items.order_id')
+            ->count('shop_order_items.order_id');
+    
+        $categoryArray = $category->toArray();
+        $categoryArray['product_count'] = $productCount;
+        $categoryArray['order_count'] = $orderCount;
+    
+        return $this->success($categoryArray);
     }
+    
+
+
 
     public function store(StoreCategoryRequest $request)
     {
@@ -69,7 +88,7 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         // Lấy dữ liệu thô từ request để debug
-        \Log::info('Raw request data: ', $request->all());
+        Log::info('Raw request data: ', $request->all());
 
         // Lấy dữ liệu đã qua validation (có thể rỗng nếu không gửi trường nào)
         $validatedData = $request->validated();
@@ -94,12 +113,12 @@ class CategoryController extends Controller
             : null;
 
         if ($imageUrl) {
-            \Log::info('File received: ' . $request->file('image')->getClientOriginalName());
-            \Log::info('File size: ' . $request->file('image')->getSize() . ' bytes');
-            \Log::info('File mime type: ' . $request->file('image')->getMimeType());
+            Log::info('File received: ' . $request->file('image')->getClientOriginalName());
+            Log::info('File size: ' . $request->file('image')->getSize() . ' bytes');
+            Log::info('File mime type: ' . $request->file('image')->getMimeType());
             if ($request->file('image')->isValid()) {
                 $data['image'] = env('APP_URL', "http://127.0.0.1:8000") . $imageUrl;
-                \Log::info('New image path: ' . $data['image']);
+                Log::info('New image path: ' . $data['image']);
 
                 if (!empty($category->image)) {
                     $oldImagePath = str_replace(env('APP_URL', "http://127.0.0.1:8000") . '/storage/', '', $category->image);
@@ -108,24 +127,24 @@ class CategoryController extends Controller
                     }
                 }
             } else {
-                \Log::error('Invalid file uploaded');
+                Log::error('Invalid file uploaded');
                 $data['image'] = $category->image; // Giữ ảnh cũ nếu file không hợp lệ
             }
         }
 
         // Log dữ liệu trước khi update
-        \Log::info('Data to update: ', $data);
+        Log::info('Data to update: ', $data);
 
         // Cập nhật
         $category->update($data);
         $category->refresh();
 
         // Log dữ liệu sau khi update
-        \Log::info('Updated category: ', $category->toArray());
+        Log::info('Updated category: ', $category->toArray());
 
         return $this->success($category, 'Category updated successfully');
     } catch (\Exception $e) {
-        \Log::error('Update failed: ' . $e->getMessage());
+        Log::error('Update failed: ' . $e->getMessage());
         return $this->error('Server error', $e->getMessage(), 500);
     }
 }

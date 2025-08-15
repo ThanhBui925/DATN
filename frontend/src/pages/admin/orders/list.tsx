@@ -205,10 +205,12 @@ export const OrdersList = () => {
                     <Table.Column
                         title="Tổng tiền"
                         dataIndex="total_price"
-                        render={(value: number) =>
-                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
-                        }
+                        render={(_, record) => {
+                            const finalPrice = (record.total_price || 0) - (record.discount_amount || 0);
+                            return `${convertToInt(finalPrice)} VNĐ`;
+                        }}
                     />
+
                     <Table.Column
                         title="Trạng thái đơn hàng"
                         dataIndex="status"

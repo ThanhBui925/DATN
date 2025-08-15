@@ -30,6 +30,7 @@ export const i18nProvider: I18nProvider = {
             "banners.titles.list": "Danh sách banner",
             "customers.titles.list": "Danh sách khách hàng",
             "reviews.titles.list": "Danh sách đánh giá",
+            "categories.titles.list": "Danh sách danh mục",
 
             "pages.login.title": "Đăng nhập",
             "pages.login.fields.email": "Email",
