@@ -153,8 +153,12 @@ Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class
 Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
 Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
 Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
-Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatus']);
+Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'getTopProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
 
 Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
 Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
