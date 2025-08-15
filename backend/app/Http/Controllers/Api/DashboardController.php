@@ -1556,7 +1556,7 @@ class DashboardController extends Controller
 
     // ======================== BEST SELLING PRODUCTS ========================
     // GET /dashboard/best-selling-products
-    public function getBestSellingProducts(Request $request)
+     public function getBestSellingProducts(Request $request)
     {
         $limit = $request->input('limit', 10);
         $filter = $request->input('filter');
@@ -1566,12 +1566,13 @@ class DashboardController extends Controller
             ->join('products', 'products.id', '=', 'shop_order_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
             ->leftJoin('images', function ($join) {
-                $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
+                $join->on('images.product_id', '=', 'products.id');
             })
             ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
+                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
+                      FROM reviews 
+                      WHERE is_visible = 1 
+                      GROUP BY product_id) as product_ratings'),
                 'product_ratings.product_id',
                 '=',
                 'products.id'
@@ -1593,7 +1594,7 @@ class DashboardController extends Controller
                 break;
             case 'last_week':
                 $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
+                $end = $now->copy()->subWeek()->endOfWeek();
                 $q->whereBetween('shop_order.date_order', [$start, $end]);
                 break;
             case 'this_month':
@@ -1607,7 +1608,7 @@ class DashboardController extends Controller
                 break;
             case 'range':
                 $from = $request->input('from');
-                $to   = $request->input('to');
+                $to = $request->input('to');
                 if (!$from || !$to) {
                     return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
                 }
@@ -1622,137 +1623,45 @@ class DashboardController extends Controller
                 break;
         }
 
-        $data = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
+        $data = $q->groupBy(
+            'shop_order_items.product_id',
+            'products.id',
+            'products.name',
+            'products.price',
+            'products.sale_price',
+            'products.sale_end',
+            'categories.name',
+            'images.url',
+            'product_ratings.avg_rating',
+            'product_ratings.review_count'
+        )
             ->select([
                 'products.id as id',
                 'products.name as name',
-                'products.sku as sku',
-                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
+                DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
                 DB::raw('SUM(shop_order_items.quantity) as total_sold'),
                 DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
                 'products.price as price',
                 'products.sale_price as original_price',
-                DB::raw('CASE WHEN products.sale_price > 0 AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) ELSE 0 END as discount_percent'),
-                'products.stock as stock',
-                DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as stock_status'),
+                DB::raw('CASE WHEN products.sale_price > 0 
+                       AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) 
+                       THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) 
+                       ELSE 0 END as discount_percent'),
                 'categories.name as category_name',
                 DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
                 DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
             ])
             ->orderBy('total_sold', 'desc')
-            ->limit($limit)
+            ->limit(1)
             ->get()
             ->map(function ($item) {
-                // Tính toán slug từ tên sản phẩm (đơn giản hóa)
                 $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
                 return $item;
             });
-
         return response()->json(['best_selling_products' => $data]);
     }
 
-    // ======================== LOW STOCK PRODUCTS ========================
-    // GET /dashboard/low-stock-products
-    public function getLowStockProducts(Request $request)
-    {
-        $limit = $request->input('limit', 10);
-        $threshold = $request->input('threshold', 10); // Ngưỡng tồn kho thấp, mặc định là 10
-
-        $q = DB::table('products')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('images', function ($join) {
-                $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
-            })
-            ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE is_visible = 1 GROUP BY product_id) as product_ratings'),
-                'product_ratings.product_id',
-                '=',
-                'products.id'
-            )
-            ->where('products.stock', '<=', $threshold)
-            ->where('products.stock', '>', 0)
-            ->where('products.status', 1);
-
-        $data = $q->groupBy('products.id', 'products.name', 'products.sku', 'products.price', 'products.sale_price', 'products.sale_end', 'products.stock', 'categories.name', 'images.image_path', 'product_ratings.avg_rating', 'product_ratings.review_count')
-            ->select([
-                'products.id as id',
-                'products.name as name',
-                'products.sku as sku',
-                DB::raw('CONCAT("/storage/", COALESCE(images.image_path, "default.jpg")) as image_url'),
-                'products.stock as stock',
-                DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as stock_status'),
-                'products.price as price',
-                'products.sale_price as original_price',
-                DB::raw('CASE WHEN products.sale_price > 0 AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) ELSE 0 END as discount_percent'),
-                'categories.name as category_name',
-                DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
-                DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
-            ])
-            ->orderBy('products.stock', 'asc')
-            ->limit($limit)
-            ->get()
-            ->map(function ($item) {
-                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-                return $item;
-            });
-
-        return response()->json(['low_stock_products' => $data]);
-    }
-
-    // ======================== ACTIVE PRODUCTS COUNT ========================
-    // GET /dashboard/active-products-count
-    public function getActiveProductsCount(Request $request)
-    {
-        $count = DB::table('products')
-            ->where('status', 1)
-            ->whereNull('deleted_at')
-            ->count();
-
-        return response()->json(['active_products_count' => $count]);
-    }
-
-    // ======================== OUT OF STOCK PRODUCTS ========================
-    // GET /dashboard/out-of-stock-products
-    public function getOutOfStockProducts(Request $request)
-    {
-        $limit = $request->input('limit', 10);
-
-        $q = DB::table('products')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('images', function ($join) {
-                $join->on('images.product_id', '=', 'products.id')
-                    ->where('images.is_main', '=', 1)
-                    ->whereNull('images.deleted_at');
-            })
-            ->where('products.stock', 0)
-            ->where('products.status', 1)
-            ->whereNull('products.deleted_at');
-
-        $data = $q->select([
-            'products.id as id',
-            'products.name as name',
-            'products.sku as sku',
-            'categories.name as category',
-            'products.price as price',
-            'products.stock as stock',
-            DB::raw('CASE WHEN products.stock > 10 THEN "in_stock" WHEN products.stock > 0 THEN "low_stock" ELSE "out_of_stock" END as status'),
-            DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
-        ])
-            ->limit($limit)
-            ->get()
-            ->map(function ($item) {
-                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-                return $item;
-            });
-
-        return response()->json([
-            'total_out_of_stock' => count($data),
-            'products' => $data
-        ]);
-    }
 
     // ======================== SHIPPING STATUS ========================
     // GET /dashboard/shipping-status
@@ -1838,102 +1747,5 @@ class DashboardController extends Controller
         }
 
         return response()->json(['shipping_status' => $data]);
-    }
-
-    // ======================== TOP PRODUCTS ========================
-    // GET /dashboard/top-products
-    public function getTopProducts(Request $request)
-    {
-        $limit  = (int) $request->input('limit', 10);
-        $sortBy = $request->input('sortBy', 'total_quantity'); // total_quantity | total_revenue | orders_count
-        $filter = $request->input('filter');                   // today|yesterday|this_week|last_week|this_month|last_month|month|range
-
-        $q = DB::table('shop_order_items')
-            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-            ->join('products', 'products.id', '=', 'shop_order_items.product_id');
-
-        // Chỉ tính đơn hợp lệ (giống các API revenue khác)
-        $this->revenueOrderFilter($q);
-
-        $now = Carbon::now();
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('shop_order.date_order', $now->toDateString());
-                break;
-            case 'yesterday':
-                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
-                break;
-            case 'this_week':
-                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-                break;
-            case 'last_week':
-                $q->whereBetween('shop_order.date_order', [
-                    $now->copy()->subWeek()->startOfWeek(),
-                    $now->copy()->subWeek()->endOfWeek()
-                ]);
-                break;
-            case 'this_month':
-                $q->whereYear('shop_order.date_order', $now->year)
-                    ->whereMonth('shop_order.date_order', $now->month);
-                break;
-            case 'last_month':
-                $last = $now->copy()->subMonth();
-                $q->whereYear('shop_order.date_order', $last->year)
-                    ->whereMonth('shop_order.date_order', $last->month);
-                break;
-            case 'month':
-                if ($v = $request->input('value')) {
-                    $m = Carbon::createFromFormat('Y-m', $v);
-                    $q->whereYear('shop_order.date_order', $m->year)
-                        ->whereMonth('shop_order.date_order', $m->month);
-                }
-                break;
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                $q->whereBetween('shop_order.date_order', [
-                    Carbon::parse($from)->startOfDay(),
-                    Carbon::parse($to)->endOfDay()
-                ]);
-                break;
-        }
-
-        // Chỉ lấy sản phẩm active, chưa xóa
-        $q->where('products.status', 1)
-            ->whereNull('products.deleted_at');
-
-        $rows = $q->groupBy('shop_order_items.product_id', 'products.id', 'products.name', 'products.image', 'products.price', 'products.sale_price', 'products.sale_end')
-            ->select([
-                'products.id as product_id',
-                'products.name as product_name',
-                'products.image as image',      
-                DB::raw('SUM(shop_order_items.quantity) as total_quantity'),
-                DB::raw('SUM(shop_order_items.quantity * shop_order_items.price) as total_revenue'),
-                DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
-                'products.price',
-                'products.sale_price',
-                'products.sale_end',
-            ]);
-
-        // Sắp xếp
-        $allowed = ['total_quantity', 'total_revenue', 'orders_count', 'product_name'];
-        if (!in_array($sortBy, $allowed)) $sortBy = 'total_quantity';
-        $rows->orderBy($sortBy, 'desc')->limit($limit);
-
-        $data = $rows->get()->map(function ($r) {
-            return [
-                'id'             => (int) $r->product_id,
-                'name'           => $r->product_name,
-                'image_url'      => $r->image ? url('/storage/' . $r->image) : null,
-                'total_quantity' => (int) $r->total_quantity,
-                'total_revenue'  => (float) $r->total_revenue,
-                'orders_count'   => (int) $r->orders_count,
-                'price'          => (float) $r->price,
-                'sale_price'     => $r->sale_price !== null ? (float) $r->sale_price : null,
-                'sale_end'       => $r->sale_end,
-            ];
-        });
-
-        return response()->json(['top_products' => $data]);
     }
 }
