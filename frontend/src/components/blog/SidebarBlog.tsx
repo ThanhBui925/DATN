@@ -10,9 +10,9 @@ export const SidebarBlog = ({ onSearch }: SidebarBlogProps) => {
     return (
         <div className="col-lg-3 order-2 order-lg-1">
             <Search onSearch={onSearch} />
-            <Category/>
+            {/*<Category/>*/}
             <RecentBlog/>
-            <Tag/>
+            {/*<Tag/>*/}
         </div>
     )
 }
