@@ -76,7 +76,7 @@ export const AdminList = () => {
                                 confirmTitle={
                                     record.status === 1
                                         ? "Bạn có muốn ngừng hoạt động quản trị viên này?"
-                                        : "Bạn có muốn kích hoạt lại quản trị viên này?"
+                                        : "Bạn có muốn kích hoạt quản trị viên này?"
                                 }
                                 confirmOkText={record.status === 1 ? "Ngừng hoạt động" : "Kích hoạt"}
                                 confirmCancelText="Hủy"
@@ -84,6 +84,13 @@ export const AdminList = () => {
                                     action: "toggle-status",
                                     payload: { status: record.status === 1 ? 0 : 1 },
                                 }}
+                                successNotification={() => ({
+                                    type: "success",
+                                    message: record.status === 1
+                                        ? "Đã ngừng hoạt động quản trị viên thành công"
+                                        : "Đã kích hoạt quản trị viên thành công",
+                                    description: "Thao tác đã được thực hiện.", // Tùy chọn thêm mô tả
+                                })}
                             />
                         </Space>
                     )}

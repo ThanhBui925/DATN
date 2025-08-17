@@ -56,7 +56,7 @@ export const CustomerList = () => {
                 <Table.Column
                     dataIndex={["created_at"]}
                     title="Ngày Tạo"
-                    render={(value: any) => <DateField value={value} />}
+                    render={(value: any) => <DateField value={value}/>}
                 />
                 <Table.Column
                     dataIndex={["deleted_at"]}
@@ -70,27 +70,37 @@ export const CustomerList = () => {
                 <Table.Column
                     title="Hành Động"
                     dataIndex="actions"
-                    render={(_, record: BaseRecord) => {
-
-                        return (
-                            <Space>
-                                <ShowButton hideText size="large" recordItemId={record.id} />
-                                <DeleteButton
-                                    hideText
-                                    size="large"
-                                    recordItemId={record.id}
-                                    icon={record.user_status ? <PauseOutlined /> : <PlayCircleOutlined />}
-                                    confirmTitle={
-                                        record.user_status
-                                            ? 'Bạn có muốn ngừng hoạt động khách hàng này?'
-                                            : 'Bạn có muốn kích hoạt lại khách hàng này?'
-                                    }
-                                    confirmOkText={record.user_status ? 'Ngừng hoạt động' : 'Kích hoạt'}
-                                    confirmCancelText="Hủy"
-                                />
-                            </Space>
-                        );
-                    }}
+                    render={(_, record: BaseRecord) => (
+                        <Space>
+                            <ShowButton hideText size="large" recordItemId={record.id}/>
+                            <DeleteButton
+                                hideText
+                                size="large"
+                                recordItemId={record.id}
+                                resource="customers"
+                                icon={record.user_status === 1 ? <PauseOutlined/> : <PlayCircleOutlined/>}
+                                confirmTitle={
+                                    record.user_status === 1
+                                        ? "Bạn có muốn ngừng hoạt động khách hàng này?"
+                                        : "Bạn có muốn kích hoạt khách hàng này?"
+                                }
+                                confirmOkText={record.user_status === 1 ? "Ngừng hoạt động" : "Kích hoạt"}
+                                confirmCancelText="Hủy"
+                                meta={{
+                                    action: "toggle-status",
+                                    payload: {status: record.user_status === 1 ? 0 : 1},
+                                }}
+                                successNotification={() => ({
+                                    type: "success",
+                                    message: record.user_status === 1
+                                        ? "Đã ngừng hoạt động khách hàng thành công"
+                                        : "Đã kích hoạt khách hàng thành công",
+                                    description: "Thao tác đã được thực hiện.", // Tùy chọn thêm mô tả
+                                })}
+                            />
+                        </Space>
+                    )
+                    }
                 />
             </Table>
         </List>
