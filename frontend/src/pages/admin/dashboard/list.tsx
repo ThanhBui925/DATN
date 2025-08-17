@@ -772,6 +772,17 @@ const Dashboard = () => {
                 <Col xs={24} sm={12} md={8}>
                     <Card>
                         <Statistic
+                            title="Tổng Doanh Thu"
+                            value={stats.totalRevenue}
+                            precision={0}
+                            valueStyle={{ color: "#3f8600" }}
+                            prefix={<ArrowUpOutlined />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <Card>
+                        <Statistic
                             title="Tổng Số Đơn Hàng"
                             value={stats.totalOrders}
                             valueStyle={{ color: "#1890ff" }}
@@ -1024,7 +1035,7 @@ const Dashboard = () => {
                         <Pie {...paymentMethodsConfig} />
                     </Card>
                 </Col>
-                <Col xs={24} md={12}>
+                {/* <Col xs={24} md={12}>
                     <Card style={{ padding: 10 }}
                         title={
                             <div>
@@ -1064,8 +1075,8 @@ const Dashboard = () => {
                     >
                         <Bar {...productsByCategoryConfig} />
                     </Card>
-                </Col>
-                <Col xs={24} md={12}>
+                </Col> */}
+                {/* <Col xs={24} md={12}>
                     <Card style={{ padding: 10 }}
                         title={
                             <div>
@@ -1105,8 +1116,8 @@ const Dashboard = () => {
                     >
                         <Column {...voucherUsageConfig} />
                     </Card>
-                </Col>
-                <Col xs={24} md={12}>
+                </Col> */}
+                {/* <Col xs={24} md={12}>
                     <Card style={{ padding: 10 }}
                         title={
                             <div>
@@ -1146,49 +1157,9 @@ const Dashboard = () => {
                     >
                         <Pie {...productRatingsConfig} />
                     </Card>
-                </Col>
-                <Col xs={24} md={12}>
-                    <Card style={{ padding: 10 }}
-                        title={
-                            <div>
-                                Doanh Thu Theo Tuần
-                                <div className="mt-2">
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <AntSelect
-                                                value={chartFilterTypes.weeklySales}
-                                                onChange={(value) => handleFilterChange('weeklySales', value)}
-                                                style={{ width: '100%' }}
-                                            >
-                                                <Option value="all">Tất cả</Option>
-                                                <Option value="today">Hôm nay</Option>
-                                                <Option value="yesterday">Hôm qua</Option>
-                                                <Option value="last_week">Tuần trước</Option>
-                                                <Option value="last_month">Tháng trước</Option>
-                                                <Option value="this_month">Tháng này</Option>
-                                                <Option value="custom">Tùy chọn</Option>
-                                            </AntSelect>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Button onClick={() => handleChartReset('weeklySales')} style={{ width: '100%' }}>Bỏ lọc</Button>
-                                        </Col>
-                                    </Row>
-                                    {chartFilterTypes.weeklySales === 'custom' && (
-                                        <RangePicker
-                                            value={chartFilters.weeklySales}
-                                            onChange={(dates) => handleDateChange('weeklySales', dates)}
-                                            style={{ width: '100%', marginTop: 8 }}
-                                            showTime
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        }
-                    >
-                        <Line {...weeklySalesConfig} />
-                    </Card>
-                </Col>
-                <Col xs={24} md={12}>
+                </Col> */}
+                
+                {/* <Col xs={24} md={12}>
                     <Card style={{ padding: 10 }}
                         title={
                             <div>
@@ -1228,8 +1199,8 @@ const Dashboard = () => {
                     >
                         <Pie {...shippingStatusConfig} />
                     </Card>
-                </Col>
-                <Col xs={24} md={12}>
+                </Col> */}
+                {/* <Col xs={24} md={12}>
                     <Card style={{ padding: 10 }}
                         title={
                             <div>
@@ -1269,7 +1240,7 @@ const Dashboard = () => {
                     >
                         <Bar {...topProductsConfig} />
                     </Card>
-                </Col>
+                </Col> */}
             </Row>
         </List>
     );
