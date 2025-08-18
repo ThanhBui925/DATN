@@ -70,6 +70,8 @@ export const OrderContent: React.FC = () => {
                 `/api/client/orders?page=${page}`
             );
             if (res.data.status) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 setOrders(res.data.data.data || []);
                 setPagination(res.data.data);
                 setCurrentPage(res.data.data.current_page);
@@ -274,7 +276,7 @@ export const OrderContent: React.FC = () => {
                                             className={`d-flex align-items-center gap-3 ${index < order.order_items.length - 1 ? "pb-3 border-bottom" : ""}`}
                                         >
                                             <img
-                                                src={item.variant?.images[0].image_url || "/path/to/fallback-image.jpg"}
+                                                src={item.variant?.images[0]?.image_url || item.product?.image || "/path/to/fallback-image.jpg"}
                                                 alt={item.product?.name}
                                                 className="rounded"
                                                 style={{ width: "80px", height: "80px", objectFit: "cover" }}
