@@ -227,86 +227,63 @@ class OrderController extends Controller
     /**
      * Cập nhật trạng thái đơn hàng (Admin)
      */
-    public function updateStatus(UpdateOrderStatusRequest $request, $id)
-    {
-        $order = Order::findOrFail($id);
+public function updateStatus(UpdateOrderStatusRequest $request, $id)
+{
+    $order = Order::findOrFail($id);
+    $oldStatus = $order->order_status; // lưu trạng thái cũ
+    $newStatus = $request->input('order_status');
 
-        $currentStatus = $order->order_status;
-        $newStatus = $request->input('order_status');
+    // Kiểm tra chuyển trạng thái hợp lệ
+    if (!in_array($newStatus, $this->validTransitions[$oldStatus] ?? [])) {
+        return $this->errorResponse(
+            'Chuyển trạng thái không hợp lệ từ ' . $oldStatus . ' sang ' . $newStatus,
+            null,
+            400
+        );
+    }
 
-        if (!in_array($newStatus, $this->validTransitions[$currentStatus] ?? [])) {
-            return $this->errorResponse(
-                'Chuyển trạng thái không hợp lệ từ ' . $currentStatus . ' sang ' . $newStatus,
-                null,
-                400
-            );
+    $order->order_status = $newStatus;
+
+    if ($request->has('payment_status')) {
+        if ($newStatus === 'canceled' && $request->input('payment_status') === 'paid') {
+            return $this->errorResponse('Không thể đặt trạng thái thanh toán là paid cho đơn đã hủy', null, 400);
         }
+        $order->payment_status = $request->input('payment_status');
+    }
 
-        $order->order_status = $newStatus;
+    $order->cancel_reason = $newStatus === 'canceled' ? $request->input('cancel_reason') : null;
+    if ($newStatus === 'shipping' && !$order->shipped_at) $order->shipped_at = Carbon::now();
+    if ($newStatus === 'delivered' && !$order->delivered_at) $order->delivered_at = Carbon::now();
 
-        if ($request->has('payment_status')) {
-            if ($newStatus === 'canceled' && $request->input('payment_status') === 'paid') {
-                return $this->errorResponse('Không thể đặt trạng thái thanh toán là paid cho đơn đã hủy', null, 400);
-            }
-            $order->payment_status = $request->input('payment_status');
-        }
+    $order->save();
 
-        if ($newStatus === 'canceled') {
-            $order->cancel_reason = $request->input('cancel_reason');
-        } else {
-            $order->cancel_reason = null;
-        }
-
-        if ($newStatus === 'shipping' && !$order->shipped_at) {
-            $order->shipped_at = Carbon::now();
-        } elseif ($newStatus === 'delivered' && !$order->delivered_at) {
-            $order->delivered_at = Carbon::now();
-        }
-
+    // Xử lý GHN nếu trạng thái là shipping và chưa có order_code
+    if ($newStatus === 'shipping' && !$order->order_code) {
         try {
-            $order->save();
-            Log::info('Order status updated', [
-                'order_id' => $id,
-                'new_status' => $newStatus
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to update order status', [
-                'error' => $e->getMessage(),
-                'order_id' => $id,
-                'new_status' => $newStatus
-            ]);
-            return $this->errorResponse('Cập nhật trạng thái đơn hàng thất bại: ' . $e->getMessage(), null, 500);
-        }
-
-        if($newStatus === 'shipping' && !$order->order_code){
-            if(isset($order->address_id) && $order->address_id){
-                // Nếu có address_id, lấy thông tin từ địa chỉ đã lưu
+            if ($order->address_id && $order->address) {
                 $address = $order->address;
-                if(!$address) {
-                    return $this->errorResponse('Địa chỉ không tồn tại', null, 400);
-                }
                 $recipientName = $address->recipient_name;
                 $recipientPhone = $address->recipient_phone;
-                $recipientEmail = $address->recipient_email;
                 $detailed_address = $address->address;
                 $wardName = $address->ward_name;
                 $districtName = $address->district_name;
                 $provinceName = $address->province_name;
             } else {
-                // Nếu không có address_id, dùng thông tin từ request
                 $recipientName = $order->recipient_name;
                 $recipientPhone = $order->recipient_phone;
-                $recipientEmail = $order->recipient_email;
                 $detailed_address = $order->detailed_address;
                 $wardName = $order->ward_name;
                 $districtName = $order->district_name;
                 $provinceName = $order->province_name;
             }
+
             $toProvinceId = ShippingFeeService::matchProvinceByName($provinceName);
             $toDistrictId = ShippingFeeService::matchDistrictByName($toProvinceId['ProvinceID'], $districtName);
             $toWardCode = ShippingFeeService::matchWardByName($toDistrictId['DistrictID'], $wardName);
 
             if (!$toProvinceId || !$toDistrictId || !$toWardCode) {
+                $order->order_status = $oldStatus;
+                $order->save();
                 return $this->errorResponse("Không tìm được ID địa chỉ từ tên đã lưu trong đơn hàng.", null, 400);
             }
 
@@ -315,65 +292,38 @@ class OrderController extends Controller
                 'district_id' => $toDistrictId['DistrictID'],
                 'ward_code' => $toWardCode['WardCode'],
             ];
-            
-            $shippingAddress = implode(', ', array_filter([
-                $detailed_address,
-                $wardName,
-                $districtName,
-                $provinceName,
-            ]));
-            $items = $order->orderItems->map(function ($item) {
-                return [
-                    'name' => $item->product->name ?? 'Sản phẩm',
-                    'quantity' => (int) $item->quantity,
-                    'price' => (int) $item->price,
-                ];
-            })->toArray();
 
-            $totalWeight = $order->orderItems->sum(function ($item) {
-                return $item->product->weight * $item->quantity;
-            });
+            $shippingAddress = implode(', ', array_filter([$detailed_address, $wardName, $districtName, $provinceName]));
+            $items = $order->orderItems->map(fn($item) => [
+                'name' => $item->product->name ?? 'Sản phẩm',
+                'quantity' => (int)$item->quantity,
+                'price' => (int)$item->price,
+            ])->toArray();
 
-            $ghnResponse = ShippingFeeService::createOrder(
-                $order,
-                $recipientName,
-                $recipientPhone,
-                $shippingAddress,
-                $shippingData,
-                $items
-            );
-            if (is_null($ghnResponse) || !isset($ghnResponse['code']) || $ghnResponse['code'] != 200) {
-                Log::error('GHN order creation failed', [
-                    'order_id' => $order->id,
-                    'response' => $ghnResponse,
-                ]);
-                return $this->errorResponse('Tạo đơn hàng GHN thất bại: ' . (isset($ghnResponse['message']) ? $ghnResponse['message'] : json_encode($ghnResponse)), null, 500);
+            $ghnResponse = ShippingFeeService::createOrder($order, $recipientName, $recipientPhone, $shippingAddress, $shippingData, $items, $oldStatus);
+
+            if (!isset($ghnResponse['code']) || $ghnResponse['code'] != 200) {
+                $order->order_status = $oldStatus;
+                $order->save();
+                return $this->errorResponse('Tạo đơn GHN thất bại: ' . ($ghnResponse['message'] ?? json_encode($ghnResponse)), null, 500);
             }
-            if ($ghnResponse['data']['order_code']) {
-                $token = env('GHN_TOKEN');
-                $shopId = env('GHN_SHOP_ID');
 
-                $res = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Token' => $token,
-                    'ShopId' => $shopId,
-                ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail', [
-                    'order_code' => $ghnResponse['data']['order_code']
-                ]);
-
-                if ($res->successful() && isset($res['data'])) {
-                    $ghnShippingInfo = $res['data'];
-                    $shippingStatus = $ghnShippingInfo['status'] ?? null;
-                }
-            }
-            $order->order_code = $ghnResponse['data']['order_code'];
-            $order->shipping_status = $shippingStatus;
+            // Cập nhật thông tin GHN
+            $order->order_code = $ghnResponse['data']['order_code'] ?? null;
             $order->use_shipping_status = 1;
+            $order->shipping_status = 'ready_to_pick';
             $order->save();
-        }
 
-        return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
+        } catch (\Exception $e) {
+            $order->order_status = $oldStatus;
+            $order->save();
+            return $this->errorResponse("GHN tạo đơn thất bại: " . $e->getMessage(), null, 500);
+        }
     }
+
+    return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
+}
+
 
     /**
      * Tìm kiếm đơn hàng theo sản phẩm (Admin)

@@ -81,7 +81,7 @@ export const OrdersList = () => {
                     notification.success({ message: response?.data?.message || "Cập nhật đơn hàng thành công !"});
                 } catch (error) {
                     console.error("Cập nhật thất bại:", error);
-                    notification.error({ message: "Cập nhật đơn hàng thất bại"});
+                    notification.error({ message: "GHN đang quá tải khu vực này, vui lòng thử lại sau !" });
                 }
             })
             .catch(() => {

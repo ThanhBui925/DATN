@@ -195,6 +195,7 @@ export const Cart = () => {
                                             handleSubmit();
                                         }}>
                                             <div className="table-content table-responsive">
+                                                <i class="text-danger">* Lưu ý : Một số sản phẩm đã ngừng kinh doanh sẽ không hiển thị trong giỏ hàng của quý khách</i>
                                                 <table className="table">
                                                     <thead>
                                                     <tr>

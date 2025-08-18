@@ -300,6 +300,10 @@ class OrderController extends Controller
             if ($order->recipient_email && $order->recipient_email !== $order->user->email) {
                 Mail::to($order->recipient_email)->queue(new OrderSuccessMail($order)); // người nhận nếu khác
             }
+            // //Gửi mail thông báo cho admin
+            // $emails = $admins->pluck('email')->toArray();
+            // Mail::to($emails)->queue(new OrderSuccessMail($order, true));
+
 
             return $this->successResponse($order->load('orderItems'), 'Tạo đơn hàng thành công từ giỏ hàng', 201);
         } catch (\Exception $e) {
@@ -544,6 +548,7 @@ class OrderController extends Controller
                     ] : null,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
+                    'is_review' => $item->is_review,
                 ];
             }),
             'subtotal' => $order->orderItems->reduce(function ($carry, $item) {
