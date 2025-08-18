@@ -381,7 +381,7 @@ export const OrderDetailContent = () => {
                                     <button onClick={getUrlRepayVnpay} className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
                                 )
                             }
-                            {["pending", "preparing", "confirmed"].includes(order.status) && (
+                            {["pending", "preparing", "confirmed", "preparing"].includes(order.status) && (
                                 <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
                             )}
                             {["delivered"].includes(order.status) && (

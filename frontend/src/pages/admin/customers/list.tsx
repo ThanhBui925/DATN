@@ -1,20 +1,53 @@
-import {DeleteOutlined, PauseOutlined, PlayCircleOutlined} from "@ant-design/icons";
+import { DeleteOutlined, PauseOutlined, PlayCircleOutlined, SearchOutlined } from "@ant-design/icons";
 import {
-    CreateButton, DateField,
+    CreateButton,
+    DateField,
     DeleteButton,
-    EditButton,
     List,
     ShowButton,
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag } from "antd";
+import { Breadcrumb, Button, Form, Input, Select, Space, Table, Tag } from "antd";
+import { useForm } from "antd/es/form/Form";
 
 export const CustomerList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
         resource: "customers",
     });
+
+    const [form] = useForm();
+
+    const handleSearch = (values: any) => {
+        setFilters([
+            {
+                field: "user_name",
+                operator: "contains",
+                value: values.name || undefined,
+            },
+            {
+                field: "user_email",
+                operator: "contains",
+                value: values.email || undefined,
+            },
+            {
+                field: "phone",
+                operator: "contains",
+                value: values.phone || undefined,
+            },
+            {
+                field: "user_status",
+                operator: "eq",
+                value: values.status !== undefined ? values.status : undefined,
+            },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([]);
+    };
 
     return (
         <List
@@ -25,8 +58,37 @@ export const CustomerList = () => {
                     <Breadcrumb.Item>Khách Hàng</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={false}
+            headerButtons={() => (
+                <CreateButton>Thêm khách hàng</CreateButton>
+            )}
         >
+            <Form form={form} layout="inline" onFinish={handleSearch} style={{ marginBottom: 16 }}>
+                <Form.Item name="name" label="Tên khách hàng">
+                    <Input placeholder="Tìm theo tên" allowClear />
+                </Form.Item>
+                <Form.Item name="email" label="Email">
+                    <Input placeholder="Tìm theo email" allowClear />
+                </Form.Item>
+                <Form.Item name="phone" label="Số điện thoại">
+                    <Input placeholder="Tìm theo số điện thoại" allowClear />
+                </Form.Item>
+                <Form.Item name="status" label="Trạng thái">
+                    <Select placeholder="Chọn trạng thái" allowClear style={{ width: 150 }}>
+                        <Select.Option value="1">Hoạt động</Select.Option>
+                        <Select.Option value="0">Ngừng hoạt động</Select.Option>
+                    </Select>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                        Tìm kiếm
+                    </Button>
+                </Form.Item>
+                <Form.Item>
+                    <Button onClick={handleReset}>
+                        Đặt lại
+                    </Button>
+                </Form.Item>
+            </Form>
             <Table {...tableProps} rowKey="id">
                 <Table.Column
                     title="STT"
@@ -95,12 +157,11 @@ export const CustomerList = () => {
                                     message: record.user_status === 1
                                         ? "Đã ngừng hoạt động khách hàng thành công"
                                         : "Đã kích hoạt khách hàng thành công",
-                                    description: "Thao tác đã được thực hiện.", // Tùy chọn thêm mô tả
+                                    description: "Thao tác đã được thực hiện.",
                                 })}
                             />
                         </Space>
-                    )
-                    }
+                    )}
                 />
             </Table>
         </List>
