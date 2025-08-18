@@ -26,7 +26,6 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 style={{width: "100%", height: "250px", objectFit: "cover"}}
                             />
                         </Link>
-                        <div className="label-product">-10% off</div>
                     </div>
 
                     <div className="product_desc">

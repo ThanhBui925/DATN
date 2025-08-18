@@ -20,7 +20,7 @@ export const BlogList = ({ keyword }: BlogListProps)  => {
             const res = await axios.get(
                 `${import.meta.env.VITE_APP_API_URL}/api/client/blogs?page=${page}&limit=${pageSize}&search=${keyword}`
             );
-            setBlogs(res.data.data ?? []);
+            setBlogs(res.data.data.data ?? []);
             setTotalItems(res.data.total ?? 0);
         } catch (err) {
             console.error(err);

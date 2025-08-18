@@ -9,6 +9,8 @@ import moment from "moment";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Markdown from "@uiw/react-md-editor/lib/components/TextArea/Markdown";
+import MDEditor from "@uiw/react-md-editor";
 
 interface ImageType {
     url: string;
@@ -520,9 +522,9 @@ export const DetailProduct: React.FC = () => {
                                 <a href="#" className="btn btn-outline-secondary">
                                     <i className="fa fa-pinterest"></i>
                                 </a>
-                                <button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger">
-                                    <i className="fa fa-heart"></i> Đã thích (218)
-                                </button>
+                                {/*<button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger">*/}
+                                {/*    <i className="fa fa-heart"></i> Đã thích (218)*/}
+                                {/*</button>*/}
                             </div>
                         </div>
                     </div>
@@ -535,7 +537,7 @@ export const DetailProduct: React.FC = () => {
                             <div className="section-title-3">
                                 <h2>Mô tả sản phẩm</h2>
                             </div>
-                            <p>{product.description}</p>
+                            <MDEditor.Markdown source={product.description} />
                         </section>
 
                         <section className="rate-section mb-3">

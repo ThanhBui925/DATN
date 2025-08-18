@@ -1,26 +1,59 @@
-import type {AuthProvider} from "@refinedev/core";
-import {axiosInstance} from "../utils/axios";
-import {notification} from "antd";
+import type { AccessControlProvider, AuthProvider } from "@refinedev/core";
+import { axiosInstance } from "../utils/axios";
+import { notification } from "antd";
 
 export const TOKEN_KEY = "authentication_token";
 
+let cachedProfile: any = null;
+let profilePromise: Promise<any> | null = null;
+
+const getProfile = async () => {
+    if (cachedProfile) {
+        return cachedProfile;
+    }
+    if (!profilePromise) {
+        profilePromise = axiosInstance.get("/api/profile")
+            .then((res) => {
+                if (res.data.status) {
+                    cachedProfile = res.data.data;
+                    profilePromise = null;
+                    return cachedProfile;
+                } else {
+                    throw new Error(res.data.message || "Lỗi khi tải thông tin profile");
+                }
+            })
+            .catch((e) => {
+                profilePromise = null;
+                throw e;
+            });
+    }
+    return profilePromise;
+};
+
+const resetProfileCache = () => {
+    cachedProfile = null;
+    profilePromise = null;
+};
+
 export const authProvider: AuthProvider = {
-    login: async ({email, password}) => {
+    login: async ({ email, password }) => {
         if (email && password) {
             try {
                 await axiosInstance.get("/sanctum/csrf-cookie");
-                const response: any = await axiosInstance.post("/api/login", {email, password});
+                const response: any = await axiosInstance.post("/api/login", { email, password });
                 localStorage.setItem(TOKEN_KEY, response.data.token);
-                localStorage.setItem('role', response.data.user.role);
                 axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
-                if (response.data.user.role === 'admin' || response.data.user.role === 'super_admin') {
-                    notification.success({message: 'Đăng nhập trị viên thành công'})
+                resetProfileCache();
+                const profile = await getProfile();
+                const role = profile.role;
+                if (role === 'admin' || role === 'super_admin') {
+                    notification.success({ message: 'Đăng nhập quản trị viên thành công' });
                     return {
                         success: true,
                         redirectTo: "/admin/dashboard",
                     };
                 } else {
-                    notification.success({message: 'Đăng nhập thành công'})
+                    notification.success({ message: 'Đăng nhập thành công' });
                     return {
                         success: true,
                         redirectTo: "/trang-chu",
@@ -29,11 +62,10 @@ export const authProvider: AuthProvider = {
             } catch (error) {
                 return {
                     success: false,
-                    error: {name: "Tài khoản mật khẩu không tồn tại !", message: "Đăng nhập thất bại !"}
+                    error: { name: "Tài khoản mật khẩu không tồn tại !", message: "Đăng nhập thất bại !" }
                 };
             }
         }
-
         return {
             success: false,
             error: {
@@ -44,20 +76,20 @@ export const authProvider: AuthProvider = {
     },
     logout: async () => {
         localStorage.removeItem(TOKEN_KEY);
+        resetProfileCache();
         try {
-            const res = await axiosInstance.post('/api/logout')
+            const res = await axiosInstance.post('/api/logout');
             if (res.data.status) {
-                localStorage.removeItem(TOKEN_KEY);
-                notification.success({message: "Đăng xuất thành công"})
+                notification.success({ message: "Đăng xuất thành công" });
                 return {
                     success: true,
                     redirectTo: "/dang-nhap",
                 };
             } else {
-                notification.error({message: "Không thể đăng xuất"})
+                notification.error({ message: "Không thể đăng xuất" });
             }
         } catch (e) {
-            notification.error({message: (e as Error).message})
+            notification.error({ message: (e as Error).message });
         }
         return {
             success: true,
@@ -67,48 +99,38 @@ export const authProvider: AuthProvider = {
     check: async () => {
         const token = localStorage.getItem(TOKEN_KEY);
         const isAdminRoute = window.location.pathname.startsWith("/admin");
-        let role = 'client';
         if (token) {
             try {
-                const res = await axiosInstance.get("/api/profile");
-                if (res.data.status) {
-                    role = res.data.data.role;
-                } else {
-                    notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
+                const profile = await getProfile();
+                const role = profile.role;
+                if (isAdminRoute && (role !== "admin" && role !== "super_admin")) {
+                    return {
+                        authenticated: false,
+                        redirectTo: "/trang-chu",
+                        error: {
+                            name: "Quyền truy cập bị từ chối",
+                            message: "Chỉ quản trị viên mới được truy cập vào khu vực này!",
+                        },
+                    };
                 }
             } catch (e) {
                 notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
-            }
-            if (isAdminRoute && (role !== "admin" && role !== "super_admin")) {
-                return {
-                    authenticated: false,
-                    redirectTo: "/trang-chu",
-                    error: {
-                        name: "Quyền truy cập bị từ chối",
-                        message: "Chỉ quản trị viên mới được truy cập vào khu vực này!",
-                    },
-                };
             }
             return {
                 authenticated: true,
             };
         }
-
         return {
             authenticated: false,
-            redirectTo: "/trang-chu",
+            redirectTo: "/dang-nhap",
         };
     },
     getPermissions: async () => {
         const token = localStorage.getItem(TOKEN_KEY);
         if (token) {
             try {
-                const res = await axiosInstance.get("/api/profile");
-                if (res.data.status) {
-                    return res.data.data.role;
-                } else {
-                    notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
-                }
+                const profile = await getProfile();
+                return profile.role;
             } catch (e) {
                 notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
             }
@@ -119,12 +141,8 @@ export const authProvider: AuthProvider = {
         const token = localStorage.getItem(TOKEN_KEY);
         if (token) {
             try {
-                const res = await axiosInstance.get("/api/profile");
-                if (res.data.status) {
-                    return res.data.data;
-                } else {
-                    notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
-                }
+                const profile = await getProfile();
+                return profile;
             } catch (e) {
                 notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
             }
@@ -134,15 +152,33 @@ export const authProvider: AuthProvider = {
     onError: async (error: any) => {
         if (error?.response?.status === 401 || error?.response?.status === 403) {
             localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem("role");
-            notification.error({message: "Phiên đăng nhập hết hạn hoặc không có quyền truy cập!"});
+            resetProfileCache();
+            notification.error({ message: "Phiên đăng nhập hết hạn hoặc không có quyền truy cập!" });
             return {
                 error,
                 logout: true,
-                redirectTo: "/trang-chu",
+                redirectTo: "/dang-nhap",
             };
         }
         console.error(error);
-        return {error};
+        return { error };
+    },
+};
+
+export const accessControlProvider: AccessControlProvider = {
+    can: async ({ resource }) => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return { can: false };
+        try {
+            const profile = await getProfile();
+            const role = profile.role;
+            if (resource === "admins" && role !== "super_admin") {
+                return { can: false, reason: "Chỉ Super Admin mới có quyền truy cập Quản lý admin." };
+            }
+            return { can: true };
+        } catch (error) {
+            console.error("Error in access control:", error);
+            return { can: false, reason: "Lỗi khi kiểm tra quyền truy cập." };
+        }
     },
 };
