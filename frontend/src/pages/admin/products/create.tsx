@@ -11,7 +11,7 @@ export const ProductsCreate = () => {
     });
 
     const { selectProps: categorySelectProps } = useSelect({
-        resource: "categories",
+        resource: "categories/get-list",
         optionLabel: "name",
         optionValue: "id",
         queryOptions: {

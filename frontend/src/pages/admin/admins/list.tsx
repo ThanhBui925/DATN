@@ -1,5 +1,6 @@
-import { DeleteOutlined, PauseOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PauseOutlined, PlayCircleOutlined, SearchOutlined } from "@ant-design/icons";
 import {
+    CreateButton,
     DateField,
     DeleteButton,
     List,
@@ -7,13 +8,46 @@ import {
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag } from "antd";
+import { Breadcrumb, Button, Form, Input, Select, Space, Table, Tag } from "antd";
+import { useForm } from "antd/es/form/Form";
 
 export const AdminList = () => {
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
         resource: "manager-admin",
     });
+
+    const [form] = useForm();
+
+    const handleSearch = (values: any) => {
+        setFilters([
+            {
+                field: "name",
+                operator: "contains",
+                value: values.name || undefined,
+            },
+            {
+                field: "email",
+                operator: "contains",
+                value: values.email || undefined,
+            },
+            {
+                field: "phone",
+                operator: "contains",
+                value: values.phone || undefined,
+            },
+            {
+                field: "status",
+                operator: "eq",
+                value: values.status !== undefined ? values.status : undefined,
+            },
+        ]);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setFilters([]);
+    };
 
     return (
         <List
@@ -24,8 +58,37 @@ export const AdminList = () => {
                     <Breadcrumb.Item>Quản trị viên</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={false}
+            headerButtons={() => (
+                <CreateButton>Thêm quản trị viên</CreateButton>
+            )}
         >
+            <Form form={form} layout="inline" onFinish={handleSearch} style={{ marginBottom: 16 }}>
+                <Form.Item name="name" label="Tên quản trị viên">
+                    <Input placeholder="Tìm theo tên" allowClear />
+                </Form.Item>
+                <Form.Item name="email" label="Email">
+                    <Input placeholder="Tìm theo email" allowClear />
+                </Form.Item>
+                <Form.Item name="phone" label="Số điện thoại">
+                    <Input placeholder="Tìm theo số điện thoại" allowClear />
+                </Form.Item>
+                <Form.Item name="status" label="Trạng thái">
+                    <Select placeholder="Chọn trạng thái" allowClear style={{ width: 150 }}>
+                        <Select.Option value="1">Hoạt động</Select.Option>
+                        <Select.Option value="0">Ngừng hoạt động</Select.Option>
+                    </Select>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                        Tìm kiếm
+                    </Button>
+                </Form.Item>
+                <Form.Item>
+                    <Button onClick={handleReset}>
+                        Đặt lại
+                    </Button>
+                </Form.Item>
+            </Form>
             <Table {...tableProps} rowKey="id">
                 <Table.Column
                     title="STT"
@@ -89,7 +152,7 @@ export const AdminList = () => {
                                     message: record.status === 1
                                         ? "Đã ngừng hoạt động quản trị viên thành công"
                                         : "Đã kích hoạt quản trị viên thành công",
-                                    description: "Thao tác đã được thực hiện.", // Tùy chọn thêm mô tả
+                                    description: "Thao tác đã được thực hiện.",
                                 })}
                             />
                         </Space>
