@@ -253,7 +253,7 @@ class ManagerAdminController extends Controller
             return $this->error('Không thể vô hiệu hóa tài khoản của chính mình.', null, 403);
         }
 
-        $admin->status = '0';
+        $admin->status = !$admin->status;
         $admin->save();
 
         Log::info('Vô hiệu hóa tài khoản admin', ['admin_id' => $admin->id]);

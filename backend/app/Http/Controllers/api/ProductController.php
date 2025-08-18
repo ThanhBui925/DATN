@@ -289,7 +289,7 @@ class ProductController extends Controller
                                 'quantity' => $variantInput['quantity'],
                                 'size_id' => $variantInput['size_id'],
                                 'color_id' => $variantInput['color_id'],
-                                'status' => $variantInput['status'],
+                                'status' => isset($variantInput['status']) ? (int) $variantInput['status'] : $variant->status,
                             ]);
 
                             if ($clearVarImages) {
@@ -370,10 +370,11 @@ class ProductController extends Controller
             }
 
             DB::commit();
-            return $this->successResponse(
-                $product->load(['variants.size', 'variants.color', 'variants.images', 'images']),
-                'Cập nhật sản phẩm thành công'
-            );
+
+            $product = $product->fresh(['variants.size', 'variants.color', 'variants.images', 'images']);
+
+            return $this->successResponse($product, 'Cập nhật sản phẩm thành công');
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi cập nhật sản phẩm: ' . $e->getMessage());

@@ -23,63 +23,78 @@ use App\Traits\ApiResponseTrait;
 class CartController extends Controller
 {
     use ApiResponseTrait;
-    public function index(Request $request)
-    {
-        $userId = $request->user()->id;
-        $cart = Cart::with(['items.product', 'items.variant.size', 'items.variant.color'])
-            ->where('user_id', $userId)
-            ->first();
+public function index(Request $request)
+{
+    $userId = $request->user()->id;
+    $cart = Cart::with(['items.product', 'items.variant.size', 'items.variant.color'])
+        ->where('user_id', $userId)
+        ->first();
 
-        if (!$cart) {
-            return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
+    if (!$cart) {
+        return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
+    }
+
+    $invalidProducts = []; // lưu danh sách sản phẩm bị ngừng kinh doanh
+
+    $cartItems = $cart->items->map(function ($item) use (&$invalidProducts) {
+        // Nếu product không tồn tại hoặc đã ngừng kinh doanh
+        if (!$item->product || $item->product->status != 1) {
+            $invalidProducts[] = $item->product->name ?? "Sản phẩm ID {$item->product_id}";
+            // Xóa sản phẩm này khỏi giỏ
+            $item->delete();
+            return null; // bỏ qua khi map
         }
 
-        $cartItems = $cart->items->map(function ($item) {
-            $price = $item->product->sale_price ?? $item->product->price;
-            $productVariants = VariantProduct::where('product_id', $item->product_id)
-                ->where('status', 1)
-                ->where('quantity', '>', 0)
-                ->with(['size', 'color', 'images'])
-                ->get()
-                ->map(function ($variant) {
-                    return [
-                        'id' => $variant->id,
-                        'size' => $variant->size->name ?? null,
-                        'color' => $variant->color->name ?? null,
-                        'quantity' => $variant->quantity,
-                        'images' => $variant->images->map(function ($image) {
-                            return [
-                                'id' => $image->id,
-                                'image_url' => $image->image_url,
-                            ];
-                        })->toArray(),
-                    ];
-                });
+        $price = $item->product->sale_price ?? $item->product->price;
+        $productVariants = VariantProduct::where('product_id', $item->product_id)
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->with(['size', 'color', 'images'])
+            ->get()
+            ->map(function ($variant) {
+                return [
+                    'id' => $variant->id,
+                    'size' => $variant->size->name ?? null,
+                    'color' => $variant->color->name ?? null,
+                    'quantity' => $variant->quantity,
+                    'images' => $variant->images->map(function ($image) {
+                        return [
+                            'id' => $image->id,
+                            'image_url' => $image->image_url,
+                        ];
+                    })->toArray(),
+                ];
+            });
 
-            return [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'product' => $item->product,
-                'product_name' => $item->product->name,
-                'variant_id' => $item->variant_id,
-                'size' => $item->variant->size->name ?? null,
-                'color' => $item->variant->color->name ?? null,
-                'price' => $price,
-                'quantity' => $item->quantity,
-                'total' => $price * $item->quantity,
-                'image' => $item->product->image,
-                'available_variants' => $productVariants,
-            ];
-        });
+        return [
+            'id' => $item->id,
+            'product_id' => $item->product_id,
+            'product' => $item->product,
+            'product_name' => $item->product->name,
+            'variant_id' => $item->variant_id,
+            'size' => $item->variant->size->name ?? null,
+            'color' => $item->variant->color->name ?? null,
+            'price' => $price,
+            'quantity' => $item->quantity,
+            'total' => $price * $item->quantity,
+            'image' => $item->product->image,
+            'available_variants' => $productVariants,
+        ];
+    })->filter(); // loại bỏ null
 
-        $total = $cartItems->sum('total');
+    $total = $cartItems->sum('total');
 
-        return $this->success([
-            'items' => $cartItems,
-            'total' => $total,
-        ], 'Lấy giỏ hàng thành công');
+    $message = 'Lấy giỏ hàng thành công';
+    if (!empty($invalidProducts)) {
+        $message .= '. Một số sản phẩm đã ngừng kinh doanh và được xóa khỏi giỏ: ' . implode(', ', $invalidProducts);
     }
-    
+
+    return $this->success([
+        'items' => $cartItems,
+        'total' => $total,
+    ], $message);
+}
+
     public function store(Request $request)
     {
         $userId = $request->user()->id ?? $request->input('user_id');

@@ -75,7 +75,7 @@ export const DetailProduct: React.FC = () => {
         const fetchProduct = async () => {
             setLoading(true);
             try {
-                const res = await axiosInstance.get(`${BASE_URL}/products/${id}`);
+                const res = await axiosInstance.get(`${BASE_URL}/client/products/${id}`);
                 setProduct(res.data.data || res.data);
             } catch (err: any) {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", err);

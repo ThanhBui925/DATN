@@ -14,7 +14,10 @@ class CategoryController extends Controller
     use ApiResponseTrait;
     public function index(Request $request)
     {
-        $categories = Category::query()->orderBy('id', 'desc')->get();
+        $categories = Category::query()
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
         return $this->success($categories);
     }
 
