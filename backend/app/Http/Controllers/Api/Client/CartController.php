@@ -34,65 +34,80 @@ public function index(Request $request)
         return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
     }
 
-    $invalidProducts = []; // lưu danh sách sản phẩm bị ngừng kinh doanh
+    $invalidProducts = [];
+$invalidVariants = [];
 
-    $cartItems = $cart->items->map(function ($item) use (&$invalidProducts) {
-        // Nếu product không tồn tại hoặc đã ngừng kinh doanh
-        if (!$item->product || $item->product->status != 1) {
-            $invalidProducts[] = $item->product->name ?? "Sản phẩm ID {$item->product_id}";
-            // Xóa sản phẩm này khỏi giỏ
-            $item->delete();
-            return null; // bỏ qua khi map
-        }
+$cartItems = $cart->items->map(function ($item) use (&$invalidProducts, &$invalidVariants) {
 
-        $price = $item->product->sale_price ?? $item->product->price;
-        $productVariants = VariantProduct::where('product_id', $item->product_id)
-            ->where('status', 1)
-            ->where('quantity', '>', 0)
-            ->with(['size', 'color', 'images'])
-            ->get()
-            ->map(function ($variant) {
-                return [
-                    'id' => $variant->id,
-                    'size' => $variant->size->name ?? null,
-                    'color' => $variant->color->name ?? null,
-                    'quantity' => $variant->quantity,
-                    'images' => $variant->images->map(function ($image) {
-                        return [
-                            'id' => $image->id,
-                            'image_url' => $image->image_url,
-                        ];
-                    })->toArray(),
-                ];
-            });
-
-        return [
-            'id' => $item->id,
-            'product_id' => $item->product_id,
-            'product' => $item->product,
-            'product_name' => $item->product->name,
-            'variant_id' => $item->variant_id,
-            'size' => $item->variant->size->name ?? null,
-            'color' => $item->variant->color->name ?? null,
-            'price' => $price,
-            'quantity' => $item->quantity,
-            'total' => $price * $item->quantity,
-            'image' => $item->product->image,
-            'available_variants' => $productVariants,
-        ];
-    })->filter(); // loại bỏ null
-
-    $total = $cartItems->sum('total');
-
-    $message = 'Lấy giỏ hàng thành công';
-    if (!empty($invalidProducts)) {
-        $message .= '. Một số sản phẩm đã ngừng kinh doanh và được xóa khỏi giỏ: ' . implode(', ', $invalidProducts);
+    // Nếu product không tồn tại hoặc đã ngừng kinh doanh
+    if (!$item->product || $item->product->status != 1) {
+        $invalidProducts[] = $item->product->name ?? "Sản phẩm ID {$item->product_id}";
+        $item->delete(); // xóa giỏ hàng
+        return null;
     }
 
-    return $this->success([
-        'items' => $cartItems,
-        'total' => $total,
-    ], $message);
+    // Nếu variant không tồn tại, ngừng kinh doanh hoặc hết số lượng
+    if (!$item->variant || $item->variant->status != 1 || $item->variant->quantity <= 0) {
+        $invalidVariants[] = $item->variant->name ?? "Variant ID {$item->variant_id}";
+        $item->delete();
+        return null;
+    }
+
+    $price = $item->product->sale_price ?? $item->product->price;
+
+    $productVariants = VariantProduct::where('product_id', $item->product_id)
+        ->where('status', 'active')
+        ->where('quantity', '>', 0)
+        ->with(['size', 'color', 'images'])
+        ->get()
+        ->map(function ($variant) {
+            return [
+                'id' => $variant->id,
+                'size' => $variant->size->name ?? null,
+                'color' => $variant->color->name ?? null,
+                'quantity' => $variant->quantity,
+                'images' => $variant->images->map(function ($image) {
+                    return [
+                        'id' => $image->id,
+                        'image_url' => $image->image_url,
+                    ];
+                })->toArray(),
+            ];
+        });
+
+    return [
+        'id' => $item->id,
+        'product_id' => $item->product_id,
+        'product' => $item->product,
+        'product_name' => $item->product->name,
+        'variant_id' => $item->variant_id,
+        'size' => $item->variant->size->name ?? null,
+        'color' => $item->variant->color->name ?? null,
+        'price' => $price,
+        'quantity' => $item->quantity,
+        'total' => $price * $item->quantity,
+        'image' => $item->product->image,
+        'available_variants' => $productVariants,
+    ];
+})->filter();
+
+// Tổng tiền
+$total = $cartItems->sum('total');
+
+// Message hiển thị cho user
+$message = 'Lấy giỏ hàng thành công';
+if (!empty($invalidProducts)) {
+    $message .= '. Một số sản phẩm đã ngừng kinh doanh và được xóa khỏi giỏ: ' . implode(', ', $invalidProducts);
+}
+if (!empty($invalidVariants)) {
+    $message .= '. Một số biến thể đã ngừng kinh doanh hoặc hết hàng và được xóa khỏi giỏ: ' . implode(', ', $invalidVariants);
+}
+
+return $this->success([
+    'items' => $cartItems,
+    'total' => $total,
+], $message);
+
 }
 
     public function store(Request $request)
