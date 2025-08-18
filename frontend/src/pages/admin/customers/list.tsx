@@ -59,11 +59,11 @@ export const CustomerList = () => {
                     render={(value: any) => <DateField value={value}/>}
                 />
                 <Table.Column
-                    dataIndex={["deleted_at"]}
+                    dataIndex="user_status"
                     title="Trạng Thái"
-                    render={(value: string) => (
-                        <Tag color={value ? "red" : "green"}>
-                            {value ? "Đã Xóa" : "Hoạt Động"}
+                    render={(value: number) => (
+                        <Tag color={value === 1 ? "green" : "red"}>
+                            {value === 1 ? "Hoạt Động" : "Không Hoạt Động"}
                         </Tag>
                     )}
                 />

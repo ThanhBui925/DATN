@@ -117,10 +117,21 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['category', 'images', 'reviews.user', 'variants','variants.images'])
-            ->findOrFail($id);
-        return $this->success($product); 
+        $product = Product::with([
+            'category',
+            'images',
+            'reviews.user',
+            'variants' => function ($q) {
+                $q->where('status', 1)
+                ->with(['images', 'size', 'color']);
+            },
+        ])->findOrFail($id);
+
+        return $this->success($product);
     }
+
+
+
 
     public function getReviewsByProduct($id)
     {

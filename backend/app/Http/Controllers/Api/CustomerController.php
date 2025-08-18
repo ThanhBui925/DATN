@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 class CustomerController extends Controller
 {
@@ -59,6 +62,8 @@ class CustomerController extends Controller
 
         return $this->success($customers, 'Danh sách khách hàng đã được lấy thành công.');
     }
+    
+
 
     public function show($id)
     {
@@ -75,5 +80,31 @@ class CustomerController extends Controller
         }
 
         return $this->success($customer, 'Chi tiết khách hàng đã được lấy thành công.');
+    }
+
+    public function destroy($id)
+    {
+        $customer = Customer::find($id);
+        if (!$customer) {
+            return $this->error('Tài khoản user không tồn tại.', null, 404);
+        }
+
+        $user = $customer->user;
+
+        // không cho vô hiệu hóa chính mình
+        if (auth()->id() === $user->id) {
+            return $this->error('Không thể vô hiệu hóa tài khoản của chính mình.', null, 403);
+        }
+
+        // không cho vô hiệu hóa super admin
+        if ($user->role === 'super_admin') {
+            return $this->error('Không thể vô hiệu hóa tài khoản super admin.', null, 403);
+        }
+
+        $user->status = $user->status ? 0 : 1;
+        $user->save();
+
+        return $this->success(null, $user->status ? 'Tài khoản đã được kích hoạt.' : 'Tài khoản đã bị vô hiệu hóa.');
+
     }
 }
