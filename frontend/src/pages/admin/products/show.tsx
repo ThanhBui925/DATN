@@ -159,21 +159,20 @@ export const ProductsShow: React.FC = () => {
             render: (value: any) =>
                 value && value.length > 0 ? (
                     <Image.PreviewGroup>
-                        <Row gutter={[4, 8]}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                             {value.map((image: any, index: string) => (
-                                <Col key={index} span={3}>
-                                    <Image
-                                        src={image.image_url}
-                                        style={{
-                                            width: 50,
-                                            height: 50,
-                                            objectFit: "cover",
-                                            borderRadius: 4,
-                                        }}
-                                    />
-                                </Col>
+                                <Image
+                                    key={index}
+                                    src={image.image_url}
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        objectFit: "cover",
+                                        borderRadius: 4,
+                                    }}
+                                />
                             ))}
-                        </Row>
+                        </div>
                     </Image.PreviewGroup>
                 ) : (
                     <TextField value="Chưa có ảnh" />
