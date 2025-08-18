@@ -2,6 +2,7 @@ import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Row, Col, Image, Breadcrumb, Card, Table, Divider } from "antd";
 import { convertDate, convertToInt } from "../../../helpers/common";
+import MDEditor from "@uiw/react-md-editor";
 
 // Define interfaces for type safety
 interface ImageType {
@@ -275,7 +276,8 @@ export const ProductsShow: React.FC = () => {
                     <Card title={<Title level={4} style={{ margin: 0 }}>Mô tả sản phẩm</Title>}>
                         {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                         {/*@ts-ignore*/}
-                        <div dangerouslySetInnerHTML={{ __html: record?.description }} />
+                        {/*<div dangerouslySetInnerHTML={{ __html:  }} />*/}
+                        <MDEditor.Markdown source={record?.description} />
                     </Card>
                 </Col>
             </Row>

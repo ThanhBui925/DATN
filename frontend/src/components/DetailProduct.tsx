@@ -9,7 +9,6 @@ import moment from "moment";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Markdown from "@uiw/react-md-editor/lib/components/TextArea/Markdown";
 import MDEditor from "@uiw/react-md-editor";
 
 interface ImageType {
