@@ -14,9 +14,9 @@ export const OrderInstruct = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Hướng dẫn mua hàng tại Juta</h2>
+                                <h2>Hướng dẫn mua hàng tại SportWolk</h2>
                                 <p>
-                                    Tại Juta, chúng tôi mang đến quy trình mua sắm đơn giản, nhanh chóng và minh bạch để đảm bảo trải nghiệm tuyệt vời nhất cho khách hàng. Hãy tham khảo hướng dẫn dưới đây để bắt đầu mua sắm!
+                                    Tại SportWolk, chúng tôi mang đến quy trình mua sắm đơn giản, nhanh chóng và minh bạch để đảm bảo trải nghiệm tuyệt vời nhất cho khách hàng. Hãy tham khảo hướng dẫn dưới đây để bắt đầu mua sắm!
                                 </p>
                             </div>
                         </div>
@@ -31,13 +31,13 @@ export const OrderInstruct = () => {
                             <div className="about-info-wrapper">
                                 <h3>Cách thức mua hàng</h3>
                                 <p>
-                                    Juta cung cấp hai hình thức mua sắm: trực tuyến qua website và trực tiếp tại các cửa hàng trên toàn quốc.
+                                    SportWolk cung cấp hai hình thức mua sắm: trực tuyến qua website và trực tiếp tại các cửa hàng trên toàn quốc.
                                 </p>
                                 <p>
                                     Các bước mua hàng trực tuyến:
                                 </p>
                                 <ul>
-                                    <li>Truy cập website Juta, chọn sản phẩm và thêm vào giỏ hàng.</li>
+                                    <li>Truy cập website SportWolk, chọn sản phẩm và thêm vào giỏ hàng.</li>
                                     <li>Điền thông tin giao hàng và thanh toán.</li>
                                     <li>Xác nhận đơn hàng và chờ giao hàng trong vòng 2-5 ngày.</li>
                                 </ul>
@@ -108,14 +108,14 @@ export const OrderInstruct = () => {
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
                                 <h2>Các bước mua hàng trực tuyến</h2>
-                                <p>Quy trình mua hàng tại Juta được thiết kế để đơn giản và thuận tiện cho bạn.</p>
+                                <p>Quy trình mua hàng tại SportWolk được thiết kế để đơn giản và thuận tiện cho bạn.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 1: Chọn sản phẩm</h3>
-                                    <p>Truy cập website Juta, tìm và chọn sản phẩm phù hợp.</p>
+                                    <p>Truy cập website SportWolk, tìm và chọn sản phẩm phù hợp.</p>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@ export const OrderInstruct = () => {
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 4: Nhận hàng</h3>
-                                    <p>Nhận sản phẩm tại địa chỉ đã cung cấp hoặc tại cửa hàng Juta.</p>
+                                    <p>Nhận sản phẩm tại địa chỉ đã cung cấp hoặc tại cửa hàng SportWolk.</p>
                                 </div>
                             </div>
                         </div>
@@ -152,17 +152,17 @@ export const OrderInstruct = () => {
                         <div className="col-lg-8">
                             <div className="testimonials-active owl-carousel">
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-1.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Mua sắm tại Juta rất dễ dàng, website thân thiện và giao hàng đúng hẹn!
+                                        Mua sắm tại SportWolk rất dễ dàng, website thân thiện và giao hàng đúng hẹn!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
                                 </div>
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-2.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Tôi rất hài lòng với quy trình mua hàng tại Juta, nhân viên hỗ trợ rất nhiệt tình!
+                                        Tôi rất hài lòng với quy trình mua hàng tại SportWolk, nhân viên hỗ trợ rất nhiệt tình!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>

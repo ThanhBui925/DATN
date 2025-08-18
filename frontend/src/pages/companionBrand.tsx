@@ -14,9 +14,9 @@ export const CompanionBrand = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Thương hiệu đồng hành cùng Juta</h2>
+                                <h2>Thương hiệu đồng hành cùng SportWolk</h2>
                                 <p>
-                                    Juta tự hào hợp tác với các thương hiệu giày dép và thời trang hàng đầu thế giới, mang đến cho khách hàng những sản phẩm chất lượng cao, thiết kế tinh tế và phong cách hiện đại.
+                                    SportWolk tự hào hợp tác với các thương hiệu giày dép và thời trang hàng đầu thế giới, mang đến cho khách hàng những sản phẩm chất lượng cao, thiết kế tinh tế và phong cách hiện đại.
                                 </p>
                             </div>
                         </div>
@@ -31,7 +31,7 @@ export const CompanionBrand = () => {
                             <div className="about-info-wrapper">
                                 <h3>Về các đối tác của chúng tôi</h3>
                                 <p>
-                                    Juta chỉ hợp tác với các thương hiệu uy tín, đảm bảo sản phẩm chính hãng, chất lượng vượt trội và dịch vụ hậu mãi chuyên nghiệp.
+                                    SportWolk chỉ hợp tác với các thương hiệu uy tín, đảm bảo sản phẩm chính hãng, chất lượng vượt trội và dịch vụ hậu mãi chuyên nghiệp.
                                 </p>
                                 <p>
                                     Một số thương hiệu tiêu biểu:
@@ -152,17 +152,17 @@ export const CompanionBrand = () => {
                         <div className="col-lg-8">
                             <div className="testimonials-active owl-carousel">
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-1.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Sản phẩm từ các thương hiệu tại Juta luôn chính hãng và chất lượng, tôi rất hài lòng!
+                                        Sản phẩm từ các thương hiệu tại SportWolk luôn chính hãng và chất lượng, tôi rất hài lòng!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
                                 </div>
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-2.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Juta mang đến nhiều lựa chọn từ các thương hiệu lớn, dịch vụ hỗ trợ rất tuyệt vời!
+                                        SportWolk mang đến nhiều lựa chọn từ các thương hiệu lớn, dịch vụ hỗ trợ rất tuyệt vời!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>
