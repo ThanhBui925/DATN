@@ -77,7 +77,7 @@ export const ContactPage = () => {
                                         <i className="fa fa-fax"> </i> Địa chỉ: FPT Polytechnic Trịnh Văn Bô, Từ Liêm, Hà Nội
                                     </li>
                                     <li>
-                                        <i className="fa fa-phone"> </i> support@juta.com.vn
+                                        <i className="fa fa-phone"> </i> support@SportWolk.com.vn
                                     </li>
                                     <li>
                                         <i className="fa fa-envelope-o"></i> 012 3456 789

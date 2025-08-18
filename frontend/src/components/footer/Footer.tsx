@@ -68,7 +68,7 @@ export const Footer = () => {
                                                 Việt Nam
                                             </p>
                                             <p>Gọi chúng tôi: <span>012 3456 789</span></p>
-                                            <p>Email chúng tôi: <span>support@juta.com.vn</span></p>
+                                            <p>Email chúng tôi: <span>support@SportWolk.com.vn</span></p>
                                         </div>
                                         <div className="time">
                                             <h3 className="time-title">Giờ mở cửa</h3>
@@ -90,7 +90,7 @@ export const Footer = () => {
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-lg-6 col-md-6">
-                            <div className="copyright">Bản quyền © <a href="#">Juta</a>. Tất cả quyền được bảo lưu</div>
+                            <div className="copyright">Bản quyền © <a href="#">SportWolk</a>. Tất cả quyền được bảo lưu</div>
                         </div>
                         <div className="col-lg-6 col-md-6">
                             <div className="payment"><img alt="" src="img/icon/payment.png"/></div>
