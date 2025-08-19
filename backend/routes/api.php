@@ -161,6 +161,7 @@ Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts'
 Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
 Route::get('/dashboard/total-products',  [DashboardController::class, 'getTotalProducts']);
 Route::get('/dashboard/total-variants',  [DashboardController::class, 'getTotalVariants']);
+Route::get('/dashboard/refund-rate',     [DashboardController::class, 'getRefundRate']);
 
 Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
 Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
