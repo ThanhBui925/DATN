@@ -2002,4 +2002,57 @@ class DashboardController extends Controller
 
         return response()->json(['total_variants' => (int) $count]);
     }
+
+    // ======================== REFUND RATE ========================
+    // GET /dashboard/refund-rate
+    public function getRefundRate(Request $request)
+    {
+        $q = DB::table('shop_order');
+
+        // Áp dụng filter thời gian giống format cũ
+        $now = Carbon::now();
+        switch ($request->input('filter')) {
+            case 'today':
+                $q->whereDate('date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+                break;
+            case 'last_week':
+                $q->whereBetween('date_order', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                break;
+            case 'this_month':
+                $q->whereYear('date_order', $now->year)->whereMonth('date_order', $now->month);
+                break;
+            case 'last_month':
+                $lm = $now->copy()->subMonth();
+                $q->whereYear('date_order', $lm->year)->whereMonth('date_order', $lm->month);
+                break;
+            case 'range':
+                $from = $request->input('from');
+                $to = $request->input('to');
+                if (!$from || !$to) return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                try {
+                    $q->whereBetween('date_order', [Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay()]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        $total    = (clone $q)->count();
+        $canceled = (clone $q)->where('order_status', 'canceled')->count();
+        $rate     = $total > 0 ? round($canceled * 100 / $total, 2) : 0.0;
+
+        return response()->json([
+            'refund_rate' => [
+                'total_orders'    => (int) $total,
+                'canceled_orders' => (int) $canceled,
+                'rate_percent'    => $rate
+            ]
+        ]);
+    }
 }
