@@ -18,7 +18,6 @@ use App\Http\Controllers\Api\{
     CustomerController,
     ForgotPasswordController,
     ManagerAdminController
-
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
@@ -26,6 +25,7 @@ use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
+use App\Http\Controllers\Api\Client\ProfileController as ProfileClientController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
@@ -46,7 +46,7 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
     });
 
-     Route::prefix('blogs')->group(function () {
+    Route::prefix('blogs')->group(function () {
         Route::get('/', [ClientBlogController::class, 'index']);
         Route::get('/{id}', [ClientBlogController::class, 'show']);
     });
@@ -83,7 +83,6 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
         Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
-
     });
 
 
@@ -107,6 +106,10 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
     });
 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/profile', [ProfileClientController::class, 'show']);
+        Route::put('/profile', [ProfileClientController::class, 'update']);
+    });
 });
 
 Route::controller(AuthController::class)->group(function () {
