@@ -1990,4 +1990,16 @@ class DashboardController extends Controller
 
         return response()->json(['total_products' => (int) $count]);
     }
+
+    // ======================== TOTAL VARIANTS ========================
+    // GET /dashboard/total-variants
+    public function getTotalVariants(Request $request)
+    {
+        $count = DB::table('variant_products')
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->count();
+
+        return response()->json(['total_variants' => (int) $count]);
+    }
 }
