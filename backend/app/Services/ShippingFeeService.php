@@ -201,7 +201,14 @@ class ShippingFeeService
             $order->save();
         }
 
-        return $this->error("GHN tạo đơn thất bại: ".(is_array($errorBody)?json_encode($errorBody):$errorBody), 500);
+        return $this->error(
+            "GHN tạo đơn thất bại: " . (is_array($errorBody) || is_object($errorBody) 
+                ? json_encode($errorBody, JSON_UNESCAPED_UNICODE) 
+                : (string)$errorBody
+            ), 
+            500
+        );
+
     }
 }
 
