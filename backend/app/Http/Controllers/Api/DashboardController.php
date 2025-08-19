@@ -763,78 +763,78 @@ class DashboardController extends Controller
      * GET /dashboard/products-by-category
      */
     public function getProductCountByCategory(Request $request)
-{
-    $query = DB::table('categories')
-        ->join('products', 'products.category_id', '=', 'categories.id')
-        ->whereNull('categories.deleted_at')
-        ->whereNull('products.deleted_at');
+    {
+        $query = DB::table('categories')
+            ->join('products', 'products.category_id', '=', 'categories.id')
+            ->whereNull('categories.deleted_at')
+            ->whereNull('products.deleted_at');
 
-    $now = Carbon::now();
-    $dateFilter = null;
+        $now = Carbon::now();
+        $dateFilter = null;
 
-    // Lọc theo thời gian
-    switch ($request->input('filter')) {
-        case 'today':
-            $query->whereDate('products.created_at', $now->toDateString());
-            $dateFilter = $now->toDateString();
-            break;
-        case 'yesterday':
-            $query->whereDate('products.created_at', $now->copy()->subDay()->toDateString());
-            $dateFilter = $now->toDateString();
-            break;
-        case 'this_week':
-            $query->whereBetween('products.created_at', [$now->startOfWeek(), $now->endOfWeek()]);
-            $dateFilter = $now->format('o-\WW'); // ví dụ: 2025-W33
-            break;
-        case 'last_week':
-            $start = $now->copy()->subWeek()->startOfWeek();
-            $end   = $now->copy()->subWeek()->endOfWeek();
-            $query->whereBetween('products.created_at', [$start, $end]);
-            $dateFilter = $start->toDateString() . ' ~ ' . $end->toDateString();
-            break;
-        case 'this_month':
-            $query->whereMonth('products.created_at', $now->month)
-                  ->whereYear('products.created_at', $now->year);
-            $dateFilter = $now->format('Y-m');
-            break;
-        case 'last_month':
-            $lastMonth = $now->copy()->subMonth();
-            $query->whereMonth('products.created_at', $lastMonth->month)
-                  ->whereYear('products.created_at', $lastMonth->year);
-            $dateFilter = $lastMonth->format('Y-m');
-            break;
-        case 'custom':
-            $from = $request->input('from');
-            $to   = $request->input('to');
-            if ($from && $to) {
-                $query->whereBetween('products.created_at', [
-                    Carbon::parse($from)->startOfDay(),
-                    Carbon::parse($to)->endOfDay(),
-                ]);
-                $dateFilter = $from . ' ~ ' . $to;
-            }
-            break;
+        // Lọc theo thời gian
+        switch ($request->input('filter')) {
+            case 'today':
+                $query->whereDate('products.created_at', $now->toDateString());
+                $dateFilter = $now->toDateString();
+                break;
+            case 'yesterday':
+                $query->whereDate('products.created_at', $now->copy()->subDay()->toDateString());
+                $dateFilter = $now->toDateString();
+                break;
+            case 'this_week':
+                $query->whereBetween('products.created_at', [$now->startOfWeek(), $now->endOfWeek()]);
+                $dateFilter = $now->format('o-\WW'); // ví dụ: 2025-W33
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $query->whereBetween('products.created_at', [$start, $end]);
+                $dateFilter = $start->toDateString() . ' ~ ' . $end->toDateString();
+                break;
+            case 'this_month':
+                $query->whereMonth('products.created_at', $now->month)
+                    ->whereYear('products.created_at', $now->year);
+                $dateFilter = $now->format('Y-m');
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $query->whereMonth('products.created_at', $lastMonth->month)
+                    ->whereYear('products.created_at', $lastMonth->year);
+                $dateFilter = $lastMonth->format('Y-m');
+                break;
+            case 'custom':
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if ($from && $to) {
+                    $query->whereBetween('products.created_at', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                    $dateFilter = $from . ' ~ ' . $to;
+                }
+                break;
+        }
+
+        $rows = $query->select(
+            'categories.name as category_name',
+            DB::raw('COUNT(products.id) as total_products')
+        )
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_products')
+            ->get();
+
+        // Map theo interface ProductByCategory
+        $result = $rows->map(fn($r) => [
+            'category' => $r->category_name,
+            'count'    => (int) $r->total_products,
+            'date'     => $dateFilter,
+        ]);
+
+        return response()->json([
+            'products_by_category' => $result,
+        ]);
     }
-
-    $rows = $query->select(
-        'categories.name as category_name',
-        DB::raw('COUNT(products.id) as total_products')
-    )
-    ->groupBy('categories.id', 'categories.name')
-    ->orderByDesc('total_products')
-    ->get();
-
-    // Map theo interface ProductByCategory
-    $result = $rows->map(fn($r) => [
-        'category' => $r->category_name,
-        'count'    => (int) $r->total_products,
-        'date'     => $dateFilter,
-    ]);
-
-    return response()->json([
-        'products_by_category' => $result,
-    ]);
-}
 
 
 
@@ -1282,61 +1282,61 @@ class DashboardController extends Controller
         return response()->json(['order_status_timeline' => $rows]);
     }
 
-public function getOrderStatusSummary(Request $request)
-{
-    $filter = $request->input('filter'); // today, yesterday, this_week, last_week, this_month, last_month
-    $now = Carbon::now();
+    public function getOrderStatusSummary(Request $request)
+    {
+        $filter = $request->input('filter'); // today, yesterday, this_week, last_week, this_month, last_month
+        $now = Carbon::now();
 
-    $q = DB::table('shop_order');
+        $q = DB::table('shop_order');
 
-    // Lọc theo filter ngày
-    switch ($filter) {
-        case 'today':
-            $q->whereDate('date_order', $now->toDateString());
-            break;
-        case 'yesterday':
-            $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
-            break;
-        case 'this_week':
-            $q->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-            break;
-        case 'last_week':
-            $start = $now->copy()->subWeek()->startOfWeek();
-            $end = $now->copy()->subWeek()->endOfWeek();
-            $q->whereBetween('date_order', [$start, $end]);
-            break;
-        case 'this_month':
-            $q->whereYear('date_order', $now->year)
-              ->whereMonth('date_order', $now->month);
-            break;
-        case 'last_month':
-            $lastMonth = $now->copy()->subMonth();
-            $q->whereYear('date_order', $lastMonth->year)
-              ->whereMonth('date_order', $lastMonth->month);
-            break;
-        default:
-            // Không filter => lấy tất cả
-            break;
-    }
+        // Lọc theo filter ngày
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('date_order', [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear('date_order', $now->year)
+                    ->whereMonth('date_order', $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('date_order', $lastMonth->year)
+                    ->whereMonth('date_order', $lastMonth->month);
+                break;
+            default:
+                // Không filter => lấy tất cả
+                break;
+        }
 
-    // Query group theo order_status
-    $rows = $q->select([
+        // Query group theo order_status
+        $rows = $q->select([
             'order_status',
             DB::raw('COUNT(*) as count')
         ])
-        ->groupBy('order_status')
-        ->get();
+            ->groupBy('order_status')
+            ->get();
 
-    // Map dữ liệu thành mảng chuẩn
-    $orderStatus = $rows->map(fn($r) => [
-        'status' => ucfirst($r->order_status),
-        'count'  => (int) $r->count,
-    ]);
+        // Map dữ liệu thành mảng chuẩn
+        $orderStatus = $rows->map(fn($r) => [
+            'status' => ucfirst($r->order_status),
+            'count'  => (int) $r->count,
+        ]);
 
-    return response()->json([
-        'order_status' => $orderStatus
-    ]);
-}
+        return response()->json([
+            'order_status' => $orderStatus
+        ]);
+    }
 
 
     //số lượng voucher đã sử dụng
@@ -1400,204 +1400,204 @@ public function getOrderStatusSummary(Request $request)
      * GET /dashboard/product-ratings/{productId}
      */
     public function getProductRatings(Request $request, $productId = null)
-{
-    $productId = $productId ?? $request->input('product_id');
+    {
+        $productId = $productId ?? $request->input('product_id');
 
-    $q = DB::table('reviews')
-        ->join('products', 'products.id', '=', 'reviews.product_id')
-        ->where('reviews.is_visible', 1);
+        $q = DB::table('reviews')
+            ->join('products', 'products.id', '=', 'reviews.product_id')
+            ->where('reviews.is_visible', 1);
 
-    $filter = $request->input('filter');
-    $now = Carbon::now();
-    $dateFilter = null;
+        $filter = $request->input('filter');
+        $now = Carbon::now();
+        $dateFilter = null;
 
-    switch ($filter) {
-        case 'today':
-            $q->whereDate('reviews.created_at', $now->toDateString());
-            $dateFilter = $now->toDateString();
-            break;
-        case 'yesterday':
-            $q->whereDate('reviews.created_at', $now->copy()->subDay()->toDateString());
-            $dateFilter = $now->toDateString();
-            break;
-        case 'this_week':
-            $q->whereBetween('reviews.created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
-            $dateFilter = $now->format('o-\WW');
-            break;
-        case 'last_week':
-            $start = $now->copy()->subWeek()->startOfWeek();
-            $end   = $now->copy()->subWeek()->endOfWeek();
-            $q->whereBetween('reviews.created_at', [$start, $end]);
-            $dateFilter = $start->toDateString() . ' ~ ' . $end->toDateString();
-            break;
-        case 'this_month':
-            $q->whereYear('reviews.created_at', $now->year)
-              ->whereMonth('reviews.created_at', $now->month);
-            $dateFilter = $now->format('Y-m');
-            break;
-        case 'last_month':
-            $lastMonth = $now->copy()->subMonth();
-            $q->whereYear('reviews.created_at', $lastMonth->year)
-              ->whereMonth('reviews.created_at', $lastMonth->month);
-            $dateFilter = $lastMonth->format('Y-m');
-            break;
-        case 'month':
-            $month = $request->input('value');
-            if ($month) {
-                try {
-                    $parsed = Carbon::createFromFormat('Y-m', $month);
-                    $q->whereYear('reviews.created_at', $parsed->year)
-                      ->whereMonth('reviews.created_at', $parsed->month);
-                    $dateFilter = $parsed->format('Y-m');
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('reviews.created_at', $now->toDateString());
+                $dateFilter = $now->toDateString();
+                break;
+            case 'yesterday':
+                $q->whereDate('reviews.created_at', $now->copy()->subDay()->toDateString());
+                $dateFilter = $now->toDateString();
+                break;
+            case 'this_week':
+                $q->whereBetween('reviews.created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                $dateFilter = $now->format('o-\WW');
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('reviews.created_at', [$start, $end]);
+                $dateFilter = $start->toDateString() . ' ~ ' . $end->toDateString();
+                break;
+            case 'this_month':
+                $q->whereYear('reviews.created_at', $now->year)
+                    ->whereMonth('reviews.created_at', $now->month);
+                $dateFilter = $now->format('Y-m');
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('reviews.created_at', $lastMonth->year)
+                    ->whereMonth('reviews.created_at', $lastMonth->month);
+                $dateFilter = $lastMonth->format('Y-m');
+                break;
+            case 'month':
+                $month = $request->input('value');
+                if ($month) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $month);
+                        $q->whereYear('reviews.created_at', $parsed->year)
+                            ->whereMonth('reviews.created_at', $parsed->month);
+                        $dateFilter = $parsed->format('Y-m');
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
                 }
-            }
-            break;
-        case 'range':
-            $from = $request->input('from');
-            $to   = $request->input('to');
-            if (!$from || !$to) {
-                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-            }
-            try {
-                $q->whereBetween('reviews.created_at', [
-                    Carbon::parse($from)->startOfDay(),
-                    Carbon::parse($to)->endOfDay(),
-                ]);
-                $dateFilter = $from . ' ~ ' . $to;
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-            }
-            break;
-    }
-
-    // Nếu truyền productId -> breakdown theo từng số sao
-    if ($productId) {
-        $row = $q->where('reviews.product_id', $productId)
-            ->select([
-                DB::raw("SUM(CASE WHEN reviews.rating = 5 THEN 1 ELSE 0 END) as star_5"),
-                DB::raw("SUM(CASE WHEN reviews.rating = 4 THEN 1 ELSE 0 END) as star_4"),
-                DB::raw("SUM(CASE WHEN reviews.rating = 3 THEN 1 ELSE 0 END) as star_3"),
-                DB::raw("SUM(CASE WHEN reviews.rating = 2 THEN 1 ELSE 0 END) as star_2"),
-                DB::raw("SUM(CASE WHEN reviews.rating = 1 THEN 1 ELSE 0 END) as star_1"),
-            ])
-            ->first();
-
-        if (!$row) {
-            return response()->json(['product_ratings' => []]);
+                break;
+            case 'range':
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('reviews.created_at', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                    $dateFilter = $from . ' ~ ' . $to;
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
         }
 
-        $result = collect([
-            ['rating' => 5, 'count' => (int) $row->star_5],
-            ['rating' => 4, 'count' => (int) $row->star_4],
-            ['rating' => 3, 'count' => (int) $row->star_3],
-            ['rating' => 2, 'count' => (int) $row->star_2],
-            ['rating' => 1, 'count' => (int) $row->star_1],
-        ])->map(function ($r) use ($dateFilter) {
-            return array_merge($r, ['date' => $dateFilter]);
+        // Nếu truyền productId -> breakdown theo từng số sao
+        if ($productId) {
+            $row = $q->where('reviews.product_id', $productId)
+                ->select([
+                    DB::raw("SUM(CASE WHEN reviews.rating = 5 THEN 1 ELSE 0 END) as star_5"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 4 THEN 1 ELSE 0 END) as star_4"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 3 THEN 1 ELSE 0 END) as star_3"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 2 THEN 1 ELSE 0 END) as star_2"),
+                    DB::raw("SUM(CASE WHEN reviews.rating = 1 THEN 1 ELSE 0 END) as star_1"),
+                ])
+                ->first();
+
+            if (!$row) {
+                return response()->json(['product_ratings' => []]);
+            }
+
+            $result = collect([
+                ['rating' => 5, 'count' => (int) $row->star_5],
+                ['rating' => 4, 'count' => (int) $row->star_4],
+                ['rating' => 3, 'count' => (int) $row->star_3],
+                ['rating' => 2, 'count' => (int) $row->star_2],
+                ['rating' => 1, 'count' => (int) $row->star_1],
+            ])->map(function ($r) use ($dateFilter) {
+                return array_merge($r, ['date' => $dateFilter]);
+            });
+
+            return response()->json(['product_ratings' => $result]);
+        }
+
+        // Nếu không truyền productId -> trả về average rating cho nhiều sản phẩm
+        $rows = $q->select([
+            'reviews.product_id',
+            DB::raw('AVG(reviews.rating) as average'),
+            DB::raw('COUNT(*) as total_reviews'),
+        ])
+            ->groupBy('reviews.product_id')
+            ->get();
+
+        $result = $rows->map(function ($r) use ($dateFilter) {
+            return [
+                'rating' => round((float) $r->average, 2),
+                'count'  => (int) $r->total_reviews,
+                'date'   => $dateFilter,
+            ];
         });
 
         return response()->json(['product_ratings' => $result]);
     }
 
-    // Nếu không truyền productId -> trả về average rating cho nhiều sản phẩm
-    $rows = $q->select([
-        'reviews.product_id',
-        DB::raw('AVG(reviews.rating) as average'),
-        DB::raw('COUNT(*) as total_reviews'),
-    ])
-        ->groupBy('reviews.product_id')
-        ->get();
-
-    $result = $rows->map(function ($r) use ($dateFilter) {
-        return [
-            'rating' => round((float) $r->average, 2),
-            'count'  => (int) $r->total_reviews,
-            'date'   => $dateFilter,
-        ];
-    });
-
-    return response()->json(['product_ratings' => $result]);
-}
-
 
     // ======================== THANH TOÁN ========================
     // GET /api/dashboard/payment-methods
     public function getPaymentMethods(Request $request)
-{
-    $q = DB::table('shop_order')
-        ->where('payment_status', 'paid')
-        ->whereIn('order_status', ['delivered', 'completed']);
+    {
+        $q = DB::table('shop_order')
+            ->where('payment_status', 'paid')
+            ->whereIn('order_status', ['delivered', 'completed']);
 
-    $now = Carbon::now();
-    $filter = $request->input('filter');
+        $now = Carbon::now();
+        $filter = $request->input('filter');
 
-    switch ($filter) {
-        case 'today':
-            $q->whereDate('date_order', $now->toDateString());
-            break;
-        case 'yesterday':
-            $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
-            break;
-        case 'this_week':
-            $q->whereBetween('date_order', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
-            break;
-        case 'last_week':
-            $start = $now->copy()->subWeek()->startOfWeek();
-            $end = $now->copy()->subWeek()->endOfWeek();
-            $q->whereBetween('date_order', [$start, $end]);
-            break;
-        case 'this_month':
-            $q->whereYear('date_order', $now->year)->whereMonth('date_order', $now->month);
-            break;
-        case 'last_month':
-            $lastMonth = $now->copy()->subMonth();
-            $q->whereYear('date_order', $lastMonth->year)->whereMonth('date_order', $lastMonth->month);
-            break;
-        case 'month': // ?value=YYYY-MM
-            $month = $request->input('value');
-            if ($month) {
-                try {
-                    $parsed = Carbon::createFromFormat('Y-m', $month);
-                    $q->whereYear('date_order', $parsed->year)->whereMonth('date_order', $parsed->month);
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+        switch ($filter) {
+            case 'today':
+                $q->whereDate('date_order', $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween('date_order', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween('date_order', [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear('date_order', $now->year)->whereMonth('date_order', $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear('date_order', $lastMonth->year)->whereMonth('date_order', $lastMonth->month);
+                break;
+            case 'month': // ?value=YYYY-MM
+                $month = $request->input('value');
+                if ($month) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $month);
+                        $q->whereYear('date_order', $parsed->year)->whereMonth('date_order', $parsed->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
                 }
-            }
-            break;
-        case 'range': // ?from=YYYY-MM-DD&to=YYYY-MM-DD
-            $from = $request->input('from');
-            $to = $request->input('to');
-            if (!$from || !$to) {
-                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-            }
-            try {
-                $q->whereBetween('date_order', [
-                    Carbon::parse($from)->startOfDay(),
-                    Carbon::parse($to)->endOfDay(),
-                ]);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-            }
-            break;
+                break;
+            case 'range': // ?from=YYYY-MM-DD&to=YYYY-MM-DD
+                $from = $request->input('from');
+                $to = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween('date_order', [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+
+        $rows = $q->select([
+            'payment_method as method',
+            DB::raw('COUNT(*) as count'),
+        ])
+            ->groupBy('payment_method')
+            ->orderBy('method')
+            ->get()
+            ->map(fn($r) => [
+                'method' => (string) $r->method,
+                'count'  => (int) $r->count,
+                'date'   => null, // Có thể set theo filter nếu cần
+            ]);
+
+        return response()->json(['payment_methods' => $rows]);
     }
-
-    $rows = $q->select([
-        'payment_method as method',
-        DB::raw('COUNT(*) as count'),
-    ])
-        ->groupBy('payment_method')
-        ->orderBy('method')
-        ->get()
-        ->map(fn($r) => [
-            'method' => (string) $r->method,
-            'count'  => (int) $r->count,
-            'date'   => null, // Có thể set theo filter nếu cần
-        ]);
-
-    return response()->json(['payment_methods' => $rows]);
-}
 
 
     // ======================== BEST SELLING PRODUCTS ========================
@@ -1614,9 +1614,9 @@ public function getOrderStatusSummary(Request $request)
                 $join->on('images.product_id', '=', 'products.id');
             })
             ->leftJoin(
-                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
-                      FROM reviews 
-                      WHERE is_visible = 1 
+                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count
+                      FROM reviews
+                      WHERE is_visible = 1
                       GROUP BY product_id) as product_ratings'),
                 'product_ratings.product_id',
                 '=',
@@ -1689,9 +1689,9 @@ public function getOrderStatusSummary(Request $request)
                 DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
                 'products.price as price',
                 'products.sale_price as original_price',
-                DB::raw('CASE WHEN products.sale_price > 0 
-                       AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) 
-                       THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) 
+                DB::raw('CASE WHEN products.sale_price > 0
+                       AND (products.sale_end IS NULL OR products.sale_end >= CURDATE())
+                       THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1)
                        ELSE 0 END as discount_percent'),
                 'categories.name as category_name',
                 DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
@@ -1707,61 +1707,69 @@ public function getOrderStatusSummary(Request $request)
         return response()->json(['best_selling_products' => $data]);
     }
 
-// ======================== LOW STOCK PRODUCT (Single) ========================
-public function getLowStockProducts(Request $request)
-{
-    $threshold = $request->input('threshold', 10);
+    // ======================== LOW STOCK PRODUCT (Single) ========================
+    public function getLowStockProducts(Request $request)
+    {
+        $threshold = $request->input('threshold', 10);
 
-    $q = DB::table('products')
-        ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
-        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-        ->leftJoin('images', function ($join) {
+        $q = DB::table('products')
+            ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('images', function ($join) {
                 $join->on('images.product_id', '=', 'products.id');
             })
-        ->leftJoin(
-            DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count 
-                      FROM reviews 
-                      WHERE is_visible = 1 
+            ->leftJoin(
+                DB::raw('(SELECT product_id, AVG(rating) as avg_rating, COUNT(*) as review_count
+                      FROM reviews
+                      WHERE is_visible = 1
                       GROUP BY product_id) as product_ratings'),
-            'product_ratings.product_id',
-            '=',
-            'products.id'
-        )
-        ->where('products.status', 1)
-        ->whereNull('products.deleted_at')
-        ->groupBy('products.id', 'products.name', 'products.price', 'products.sale_price', 
-                  'products.sale_end', 'categories.name', 'images.url', 
-                  'product_ratings.avg_rating', 'product_ratings.review_count')
-        ->havingRaw('SUM(variant_products.quantity) > 0 AND SUM(variant_products.quantity) <= ?', [$threshold])
-        ->orderByRaw('SUM(variant_products.quantity) ASC') // ✅ thấp nhất trước
-        ->limit(1);
+                'product_ratings.product_id',
+                '=',
+                'products.id'
+            )
+            ->where('products.status', 1)
+            ->whereNull('products.deleted_at')
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.price',
+                'products.sale_price',
+                'products.sale_end',
+                'categories.name',
+                'images.url',
+                'product_ratings.avg_rating',
+                'product_ratings.review_count'
+            )
+            ->havingRaw('SUM(variant_products.quantity) > 0 AND SUM(variant_products.quantity) <= ?', [$threshold])
+            ->orderByRaw('SUM(variant_products.quantity) ASC') // ✅ thấp nhất trước
+            ->limit(1);
 
-    $data = $q->select([
+        $data = $q->select([
             'products.id as id',
             'products.name as name',
             DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
             DB::raw('SUM(variant_products.quantity) as stock'),
-            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock" 
-                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock" 
+            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock"
+                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock"
                           ELSE "out_of_stock" END as stock_status'),
             'products.price as price',
             'products.sale_price as original_price',
-            DB::raw('CASE WHEN products.sale_price > 0 
-                             AND (products.sale_end IS NULL OR products.sale_end >= CURDATE()) 
-                          THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1) 
+            DB::raw('CASE WHEN products.sale_price > 0
+                             AND (products.sale_end IS NULL OR products.sale_end >= CURDATE())
+                          THEN ROUND((products.sale_price - products.price) / products.sale_price * 100, 1)
                           ELSE 0 END as discount_percent'),
             'categories.name as category_name',
             DB::raw('COALESCE(product_ratings.avg_rating, 0) as rating'),
             DB::raw('COALESCE(product_ratings.review_count, 0) as review_count'),
         ])
-        ->get()
-        ->map(function ($item) {
-            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-            return $item;
-        });
+            ->get()
+            ->map(function ($item) {
+                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+                return $item;
+            });
 
-    return response()->json(['low_stock_products' => $data]);
-}
+        return response()->json(['low_stock_products' => $data]);
+    }
 
     // ======================== ACTIVE PRODUCTS COUNT ========================
     // GET /dashboard/active-products-count
@@ -1778,43 +1786,43 @@ public function getLowStockProducts(Request $request)
     // ======================== OUT OF STOCK PRODUCTS ========================
     // GET /dashboard/out-of-stock-products
     public function getOutOfStockProducts(Request $request)
-{
-    $limit = $request->input('limit', 10);
+    {
+        $limit = $request->input('limit', 10);
 
-    $q = DB::table('products')
-        ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
-        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-        ->leftJoin('images', function ($join) {
+        $q = DB::table('products')
+            ->leftJoin('variant_products', 'variant_products.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('images', function ($join) {
                 $join->on('images.product_id', '=', 'products.id');
             })
-        ->where('products.status', 1)
-        ->whereNull('products.deleted_at')
-        ->groupBy('products.id', 'products.name', 'products.price', 'categories.name', 'images.url')
-        ->havingRaw('SUM(variant_products.quantity) = 0'); 
+            ->where('products.status', 1)
+            ->whereNull('products.deleted_at')
+            ->groupBy('products.id', 'products.name', 'products.price', 'categories.name', 'images.url')
+            ->havingRaw('SUM(variant_products.quantity) = 0');
 
-    $data = $q->select([
+        $data = $q->select([
             'products.id as id',
             'products.name as name',
             'categories.name as category',
             'products.price as price',
             DB::raw('SUM(variant_products.quantity) as stock'),
-            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock" 
-                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock" 
+            DB::raw('CASE WHEN SUM(variant_products.quantity) > 10 THEN "in_stock"
+                          WHEN SUM(variant_products.quantity) > 0 THEN "low_stock"
                           ELSE "out_of_stock" END as status'),
             DB::raw('CONCAT("/storage/", COALESCE(images.url, "default.jpg")) as image_url'),
         ])
-        ->limit($limit)
-        ->get()
-        ->map(function ($item) {
-            $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
-            return $item;
-        });
+            ->limit($limit)
+            ->get()
+            ->map(function ($item) {
+                $item->slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $item->name));
+                return $item;
+            });
 
-    return response()->json([
-        'total_out_of_stock' => count($data),
-        'products' => $data
-    ]);
-}
+        return response()->json([
+            'total_out_of_stock' => count($data),
+            'products' => $data
+        ]);
+    }
 
 
     // ======================== SHIPPING STATUS ========================
@@ -1904,69 +1912,82 @@ public function getLowStockProducts(Request $request)
     }
 
     //top sản phẩm bán chạy
-public function topProducts(Request $request)
-{
-    $filter = $request->input('filter', 'today'); // today, yesterday, this_week...
+    public function topProducts(Request $request)
+    {
+        $filter = $request->input('filter', 'today'); // today, yesterday, this_week...
 
-    $query = DB::table('shop_order_items')
-        ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-        ->join('products', 'products.id', '=', 'shop_order_items.product_id')
-        ->whereIn('shop_order.order_status', $this->orderStatusesForRevenue)
-        ->where('shop_order.payment_status', 'paid');
+        $query = DB::table('shop_order_items')
+            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
+            ->join('products', 'products.id', '=', 'shop_order_items.product_id')
+            ->whereIn('shop_order.order_status', $this->orderStatusesForRevenue)
+            ->where('shop_order.payment_status', 'paid');
 
-    $now = Carbon::now();
+        $now = Carbon::now();
 
-    switch ($filter) {
-        case 'today':
-            $query->whereDate('shop_order.date_order', $now->toDateString());
-            break;
+        switch ($filter) {
+            case 'today':
+                $query->whereDate('shop_order.date_order', $now->toDateString());
+                break;
 
-        case 'yesterday':
-            $query->whereDate('shop_order.date_order', $now->subDay()->toDateString());
-            break;
+            case 'yesterday':
+                $query->whereDate('shop_order.date_order', $now->subDay()->toDateString());
+                break;
 
-        case 'this_week':
-            $query->whereBetween('shop_order.date_order', [
-                $now->startOfWeek(), $now->endOfWeek()
-            ]);
-            break;
+            case 'this_week':
+                $query->whereBetween('shop_order.date_order', [
+                    $now->startOfWeek(),
+                    $now->endOfWeek()
+                ]);
+                break;
 
-        case 'last_week':
-            $query->whereBetween('shop_order.date_order', [
-                $now->subWeek()->startOfWeek(), $now->subWeek()->endOfWeek()
-            ]);
-            break;
+            case 'last_week':
+                $query->whereBetween('shop_order.date_order', [
+                    $now->subWeek()->startOfWeek(),
+                    $now->subWeek()->endOfWeek()
+                ]);
+                break;
 
-        case 'this_month':
-            $query->whereMonth('shop_order.date_order', $now->month)
-                  ->whereYear('shop_order.date_order', $now->year);
-            break;
+            case 'this_month':
+                $query->whereMonth('shop_order.date_order', $now->month)
+                    ->whereYear('shop_order.date_order', $now->year);
+                break;
 
-        case 'last_month':
-            $lastMonth = $now->subMonth();
-            $query->whereMonth('shop_order.date_order', $lastMonth->month)
-                  ->whereYear('shop_order.date_order', $lastMonth->year);
-            break;
+            case 'last_month':
+                $lastMonth = $now->subMonth();
+                $query->whereMonth('shop_order.date_order', $lastMonth->month)
+                    ->whereYear('shop_order.date_order', $lastMonth->year);
+                break;
 
-        case 'range':
-            $start = $request->input('start_date');
-            $end = $request->input('end_date');
-            if ($start && $end) {
-                $query->whereBetween('shop_order.date_order', [$start, $end]);
-            }
-            break;
+            case 'range':
+                $start = $request->input('start_date');
+                $end = $request->input('end_date');
+                if ($start && $end) {
+                    $query->whereBetween('shop_order.date_order', [$start, $end]);
+                }
+                break;
+        }
+
+        $data = $query->select(
+            'products.name as product',
+            DB::raw('SUM(shop_order_items.quantity) as quantity')
+        )
+            ->groupBy('products.name')
+            ->orderByDesc('quantity')
+            ->limit(10)
+            ->get();
+
+        return response()->json($data);
     }
 
-    $data = $query->select(
-        'products.name as product',
-        DB::raw('SUM(shop_order_items.quantity) as quantity')
-    )
-    ->groupBy('products.name')
-    ->orderByDesc('quantity')
-    ->limit(10)
-    ->get();
+    // ======================== TOTAL PRODUCTS ========================
+    // GET /dashboard/total-products
+    public function getTotalProducts(Request $request)
+    {
+        $count = DB::table('products')
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->count();
 
-    return response()->json($data);
-}
-
+        return response()->json(['total_products' => (int) $count]);
+    }
 }
