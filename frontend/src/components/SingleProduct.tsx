@@ -1,8 +1,13 @@
 import React from "react";
-import {convertToInt} from "../helpers/common";
-import {Link} from "react-router-dom";
+import { convertToInt } from "../helpers/common";
+import { Link } from "react-router-dom";
 
-export const SingleProduct= ({product}: { product: any }) => {
+export const SingleProduct = ({ product }: { product: any }) => {
+    const rating = product.rating || 0;
+    const fullStars = Math.floor(rating);
+    const fraction = rating - fullStars;
+    const hasFraction = fraction > 0;
+
     return (
         <div className="product-list-area p-2 p-md-3">
             <div className="product-grid">
@@ -13,7 +18,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 className="primary-image"
                                 src={product.image || "/img/default.jpg"}
                                 alt={product.name}
-                                style={{width: "100%", height: "250px", objectFit: "cover"}}
+                                style={{ width: "100%", height: "250px", objectFit: "cover" }}
                             />
                             <img
                                 className="secondary-image"
@@ -23,7 +28,7 @@ export const SingleProduct= ({product}: { product: any }) => {
                                     "/img/default.jpg"
                                 }
                                 alt={product.name}
-                                style={{width: "100%", height: "250px", objectFit: "cover"}}
+                                style={{ width: "100%", height: "250px", objectFit: "cover" }}
                             />
                         </Link>
                     </div>
@@ -32,21 +37,32 @@ export const SingleProduct= ({product}: { product: any }) => {
                         <div className="product_desc_info">
                             <div className="rating-box">
                                 <ul className="rating">
-                                    <li>
-                                        <i className="fa fa-star"></i>
-                                    </li>
-                                    <li>
-                                        <i className="fa fa-star"></i>
-                                    </li>
-                                    <li>
-                                        <i className="fa fa-star"></i>
-                                    </li>
-                                    <li className="no-star">
-                                        <i className="fa fa-star"></i>
-                                    </li>
-                                    <li className="no-star">
-                                        <i className="fa fa-star"></i>
-                                    </li>
+                                    {[...Array(fullStars)].map((_, i) => (
+                                        <li key={`full-${i}`}>
+                                            <i className="fa fa-star"></i>
+                                        </li>
+                                    ))}
+                                    {hasFraction && (
+                                        <li key="fraction" style={{ position: "relative", display: "inline-block" }}>
+                                            <i className="fa fa-star" style={{ color: "gray" }}></i>
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    overflow: "hidden",
+                                                    width: `${fraction * 100}%`,
+                                                }}
+                                            >
+                                                <i className="fa fa-star"></i>
+                                            </div>
+                                        </li>
+                                    )}
+                                    {[...Array(5 - fullStars - (hasFraction ? 1 : 0))].map((_, i) => (
+                                        <li key={`empty-${i}`} className="no-star">
+                                            <i className="fa fa-star"></i>
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
                             <h4>
@@ -58,11 +74,9 @@ export const SingleProduct= ({product}: { product: any }) => {
                                 </Link>
                             </h4>
 
-
                             <div className="category">
                                 <span>{product.category?.name || "Không rõ danh mục"}</span>
                             </div>
-
 
                             <div className="price-box">
                                 <span className="new-price text-original-base">
