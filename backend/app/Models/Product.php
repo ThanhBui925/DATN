@@ -51,12 +51,6 @@ class Product extends Model
     {
         return $this->belongsToMany(Size::class);
     }
-
-    public function variants()
-    {
-        return $this->hasMany(VariantProduct::class);
-    }
-
     public function colors()
     {
         return $this->belongsToMany(Color::class);
@@ -74,6 +68,11 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'product_id');
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(VariantProduct::class, 'product_id');
     }
     
 
