@@ -87,12 +87,13 @@ export const ProfileContent = () => {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('phone', phone);
+        formData.append("_method", "PUT");
         if (gender) formData.append('gender', gender);
         if (dob) formData.append('dob', dob);
         if (imageFile) formData.append('avatar', imageFile);
 
         try {
-            const res = await axiosInstance.put("/api/profile", formData, {
+            const res = await axiosInstance.post("/api/profile", formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             if (res.data.status) {
