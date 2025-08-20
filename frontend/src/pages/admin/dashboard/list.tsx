@@ -640,7 +640,7 @@ const Dashboard = () => {
                         <Statistic
                             title="Tổng sản phẩm"
                             value={stats.totalProduct}
-                            suffix="sảm phẩm"
+                            suffix="sản phẩm"
                             valueStyle={{ color: "#2f54eb" }}
                         />
                     </Card>

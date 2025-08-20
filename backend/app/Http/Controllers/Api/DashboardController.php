@@ -1988,7 +1988,7 @@ class DashboardController extends Controller
             ->whereNull('deleted_at')
             ->count();
 
-        return response()->json(['total_products' => (int) $count]);
+        return response()->json(['total_product' => (int) $count]);
     }
 
     // ======================== TOTAL VARIANTS ========================
@@ -1996,11 +1996,10 @@ class DashboardController extends Controller
     public function getTotalVariants(Request $request)
     {
         $count = DB::table('variant_products')
-            ->where('status', 1)
             ->whereNull('deleted_at')
             ->count();
 
-        return response()->json(['total_variants' => (int) $count]);
+        return response()->json(['total_variant' => (int) $count]);
     }
 
     // ======================== REFUND RATE ========================
@@ -2048,11 +2047,7 @@ class DashboardController extends Controller
         $rate     = $total > 0 ? round($canceled * 100 / $total, 2) : 0.0;
 
         return response()->json([
-            'refund_rate' => [
-                'total_orders'    => (int) $total,
-                'canceled_orders' => (int) $canceled,
-                'rate_percent'    => $rate
-            ]
+                'refundRate'    => $rate
         ]);
     }
 }
