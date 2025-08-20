@@ -29,6 +29,9 @@ use App\Mail\OrderSuccessMail;
 use Illuminate\Support\Facades\Cache;
 use App\Models\ReturnOrder as ReturnRequest;
 use App\Models\ReturnEviden as ReturnEvidence;
+use Illuminate\Support\Facades\Storage;
+
+
 
 
 
@@ -637,10 +640,10 @@ class OrderController extends Controller
                 $returnOrder->refund_account_number = $validated['refund_account_number'];
                 $returnOrder->save();
 
-                $order->order_status = 'return_accepted';   // đang xử lý hoàn tiền
+                $order->order_status = 'return_accepted';
                 $order->payment_status = 'waiting_for_refund';
             } else {
-                $order->order_status = 'canceled';          // chưa thanh toán thì hủy thẳng
+                $order->order_status = 'canceled';
             }
 
             $order->cancel_reason = $validated['cancel_reason'];
@@ -786,61 +789,91 @@ class OrderController extends Controller
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền yêu cầu hoàn hàng', null, 404);
         }
-        // Kiểm tra nếu đã có yêu cầu hoàn hàng
+
         if ($order->order_status === 'return_requested') {
             return $this->errorResponse('Đơn hàng đã có yêu cầu hoàn hàng trước đó', null, 400);
         }
 
-        if (!in_array($order->order_status, ['delivered', 'completed'])) {
+        if (!in_array($order->order_status, ['completed'])) {
             return $this->errorResponse('Chỉ có thể yêu cầu hoàn hàng khi đơn đã giao hoặc hoàn thành', null, 400);
         }
 
-        
-
-        // Validate form input
-        $validated = $request->validate([
-            'return_reason'          => 'required|string|max:500',
-            'refund_bank'            => 'required|string|max:100',
-            'refund_account_name'    => 'required|string|max:100',
-            'refund_account_number'  => 'required|string|max:50',
-            'return_images'          => 'nullable|array',
-            'return_images.*'        => 'file|mimes:jpg,jpeg,png,mp4|max:20480',
-        ], [
-            'return_reason.required'         => 'Vui lòng nhập lý do trả hàng',
-            'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
-            'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
-            'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
-            'return_images.array'            => 'Hình ảnh phải là một mảng',
-            'return_images.*.file'           => 'Mỗi file phải là tệp hợp lệ',
-            'return_images.*.mimes'          => 'Hình ảnh/video chỉ chấp nhận jpg, jpeg, png, mp4',
-            'return_images.*.max'            => 'Dung lượng mỗi tệp tối đa 20MB',
+        // Lấy tất cả input trước validate để chắc chắn nhận được return_reason
+        $input = $request->all();
+        Log::info('Request return input', [
+            'user_id' => $user->id,
+            'order_id' => $order->id,
+            'input' => $input
         ]);
 
+        // Build rules và messages
+        $rules = [
+            'return_reason' => 'required|string|max:500',
+            'return_images' => 'nullable|array',
+            'return_images.*' => 'file|mimes:jpg,jpeg,png,mp4|max:20480',
+        ];
+
+        $messages = [
+            'return_reason.required' => 'Vui lòng nhập lý do trả hàng',
+            'return_images.array'    => 'Hình ảnh phải là một mảng',
+            'return_images.*.file'   => 'Mỗi file phải là tệp hợp lệ',
+            'return_images.*.mimes'  => 'Hình ảnh/video chỉ chấp nhận jpg, jpeg, png, mp4',
+            'return_images.*.max'    => 'Dung lượng mỗi tệp tối đa 20MB',
+        ];
+
+        // Nếu đơn đã thanh toán VNPAY thì bắt buộc thông tin ngân hàng
+        if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
+            $rules = array_merge($rules, [
+                'refund_bank'            => 'required|string|max:100',
+                'refund_account_name'    => 'required|string|max:100',
+                'refund_account_number'  => 'required|string|max:50',
+            ]);
+            $messages = array_merge($messages, [
+                'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
+                'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
+                'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
+            ]);
+        }
+
+        // Validate
+        $validated = validator($input, $rules, $messages)->validate();
 
         // Tạo record return
         $return = ReturnRequest::create([
             'order_id'              => $order->id,
             'user_id'               => $user->id,
             'reason'                => $validated['return_reason'],
-            'refund_bank'           => $validated['refund_bank'],
-            'refund_account_name'   => $validated['refund_account_name'],
-            'refund_account_number' => $validated['refund_account_number'],
+            'refund_bank'           => $validated['refund_bank'] ?? null,
+            'refund_account_name'   => $validated['refund_account_name'] ?? null,
+            'refund_account_number' => $validated['refund_account_number'] ?? null,
         ]);
 
         // Lưu hình ảnh/video
         if ($request->hasFile('return_images')) {
-            foreach ($request->file('return_images') as $file) {
-                $path = $file->store('returns', 'public'); // lưu storage/app/public/returns
+            $images = [];
+            $files = collect($request->file('return_images'))->flatten();
 
-                ReturnEvidence::create([
-                    'return_id' => $return->id,
-                    'file_path' => $path,
-                    'file_type' => $file->getClientMimeType(),
-                ]);
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('returns', 'public');
+                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+
+                    $images[] = [
+                        'return_id' => $return->id,
+                        'file_path' => $fullUrl,
+                        'file_type' => $file->getClientMimeType(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($images)) {
+                ReturnEvidence::insert($images);
             }
         }
 
-        // Cập nhật trạng thái đơn hàng
+
         $order->order_status = 'return_requested';
         $order->save();
 
@@ -849,6 +882,8 @@ class OrderController extends Controller
             'return' => $return->load('evidences'),
         ], 'Yêu cầu hoàn hàng thành công');
     }
+
+
 
 
 }
