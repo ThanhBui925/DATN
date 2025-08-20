@@ -105,11 +105,11 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
         Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
     });
+});
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/profile', [ProfileClientController::class, 'show']);
-        Route::put('/profile', [ProfileClientController::class, 'update']);
-    });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileClientController::class, 'show']);
+    Route::put('/profile', [ProfileClientController::class, 'update']);
 });
 
 Route::controller(AuthController::class)->group(function () {
