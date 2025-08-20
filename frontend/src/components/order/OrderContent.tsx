@@ -159,32 +159,42 @@ export const OrderContent: React.FC = () => {
     }, []);
 
     const handleReturnOrder = async (orderId: number, reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
-        try {
-            const formData = new FormData();
-            formData.append('return_reason', reason);
-            if (orders.find(o => o.id === orderId)?.payment_method === 'vnpay' && orders.find(o => o.id === orderId)?.payment_status === 'paid') {
-                formData.append('refund_bank', refundBank || '');
-                formData.append('refund_account_name', refundAccountName || '');
-                formData.append('refund_account_number', refundAccountNumber || '');
-            }
-            returnFiles.forEach((file, index) => {
-                formData.append(`return_images[${index}]`, file.originFileObj);
-            });
-            const res = await axiosInstance.put(`/api/client/orders/${orderId}/return`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            if (res.data.status) {
-                notification.success({ message: "Yêu cầu trả hàng thành công!" });
-                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
-                fetchOrders(currentPage);
-            } else {
-                notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
-            }
-        } catch (e) {
-            console.error(e);
-            notification.error({ message: 'Lỗi khi yêu cầu trả hàng' });
+    try {
+        const formData = new FormData();
+        formData.append('return_reason', reason);
+
+        const order = orders.find(o => o.id === orderId);
+        if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid') {
+            formData.append('refund_bank', refundBank || '');
+            formData.append('refund_account_name', refundAccountName || '');
+            formData.append('refund_account_number', refundAccountNumber || '');
         }
-    };
+
+        returnFiles.forEach((file, index) => {
+            formData.append(`return_images[${index}]`, file.originFileObj);
+        });
+
+        // Method spoofing
+        formData.append("_method", "PUT");
+
+        // Gửi POST thay vì PUT
+        const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (res.data.status) {
+            notification.success({ message: "Yêu cầu trả hàng thành công!" });
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
+            fetchOrders(currentPage);
+        } else {
+            notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
+        }
+    } catch (e) {
+        console.error(e);
+        notification.error({ message: 'Lỗi khi yêu cầu trả hàng' });
+    }
+};
+
 
     const handleModalOk = useCallback(() => {
         const selectedOrder = orders.find(o => o.id === selectedOrderId);
