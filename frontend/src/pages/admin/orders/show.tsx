@@ -1,7 +1,7 @@
 import {DateField, Show, TextField, EditButton} from "@refinedev/antd";
 import {useShow, useUpdate} from "@refinedev/core";
-import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message} from "antd";
-import {useState} from "react";
+import {Typography, Row, Col, Breadcrumb, Tag, Table, Modal, Form, Select, Card, message, Input, Image} from "antd";
+import React, {useState} from "react";
 import {convertToInt} from "../../../helpers/common";
 import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
 import {statusMap, validTransitions} from "../../../types/OrderStatusInterface";
@@ -31,14 +31,23 @@ export const OrdersShow = () => {
                     return;
                 }
 
+                let updateValues: any = {};
+                if (values.order_status === 'canceled') {
+                    const cancel_reason = `Đơn hàng được huỷ bởi admin, lý do: ${values.cancel_reason}`;
+                    updateValues = { order_status: 'canceled', cancel_reason };
+                } else {
+                    updateValues = { order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status };
+                }
+
                 return mutate({
                     resource: "orders",
                     id: record?.id,
-                    values: {order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status},
+                    values: updateValues,
                 }, {
                     onSuccess: () => {
                         setIsModalVisible(false);
                         form.resetFields();
+                        queryResult.refetch();
                     },
                 });
             })
@@ -47,11 +56,13 @@ export const OrdersShow = () => {
             });
     };
 
-
     const handleModalCancel = () => {
         setIsModalVisible(false);
         form.resetFields();
     };
+
+    const isOnlinePayment = record?.payment_method && ['online', 'card', 'bank_transfer'].includes(record.payment_method);
+    const isPaid = record?.payment_status === 'paid';
 
     return (
         <>
@@ -71,6 +82,58 @@ export const OrdersShow = () => {
                 )}
             >
                 <Row gutter={[24, 24]} style={{marginBottom: 24}}>
+                    {record?.status === 'return_requested' && record?.return_images?.length > 0 && (
+                        <Col xs={24}>
+                            <Card
+                                title={<Title level={4} style={{margin: 0}}>Hình ảnh trả hàng</Title>}
+                                style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
+                            >
+                                <Row gutter={[16, 16]}>
+                                    {record.return_images.map((image: any, index: any) => (
+                                        <Col xs={12} sm={6} key={index}>
+                                            <Image
+                                                src={image.image_url}
+                                                alt={`Hình ảnh trả hàng ${index + 1}`}
+                                                style={{width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 4}}
+                                            />
+                                        </Col>
+                                    ))}
+                                </Row>
+                            </Card>
+                        </Col>
+                    )}
+                    {(record?.status === 'return_requested' || record?.status === 'canceled') && isOnlinePayment && isPaid && (
+                        <Col xs={24}>
+                            <Card
+                                title={<Title level={4} style={{margin: 0}}>Thông tin tài khoản hoàn tiền</Title>}
+                                style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
+                            >
+                                <Row gutter={[16, 16]}>
+                                    <Col xs={24} sm={12}>
+                                        <Text strong style={{color: "#595959", fontSize: 14}}>Số tài khoản</Text>
+                                        <TextField
+                                            value={record?.refund_account_number || "-"}
+                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                        />
+                                    </Col>
+                                    <Col xs={24} sm={12}>
+                                        <Text strong style={{color: "#595959", fontSize: 14}}>Ngân hàng</Text>
+                                        <TextField
+                                            value={record?.refund_bank || "-"}
+                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                        />
+                                    </Col>
+                                    <Col xs={24} sm={12}>
+                                        <Text strong style={{color: "#595959", fontSize: 14}}>Tên chủ tài khoản</Text>
+                                        <TextField
+                                            value={record?.refund_account_name || "-"}
+                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                        />
+                                    </Col>
+                                </Row>
+                            </Card>
+                        </Col>
+                    )}
                     <Col xs={24}>
                         <Row gutter={[24, 24]}>
                             <Col xs={24} md={12}>
@@ -149,17 +212,6 @@ export const OrdersShow = () => {
                                         style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                     />
                                 </Col>
-                                {/*<Col xs={24} sm={12}>*/}
-                                {/*    <Text strong style={{color: "#595959", fontSize: 14}}>Tổng tiền</Text>*/}
-                                {/*    <TextField*/}
-                                {/*        value={*/}
-                                {/*            record?.total_price*/}
-                                {/*                ? `${convertToInt(record.total_price)} VNĐ`*/}
-                                {/*                : "0.00 VNĐ"*/}
-                                {/*        }*/}
-                                {/*        style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}*/}
-                                {/*    />*/}
-                                {/*</Col>*/}
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái đơn hàng</Text>
                                     <div style={{marginTop: 8}}>
@@ -207,26 +259,6 @@ export const OrdersShow = () => {
                                         )}
                                     </div>
                                 </Col>
-                                
-                                {/*<Col xs={24} sm={12}>*/}
-                                {/*    <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái giao hàng</Text>*/}
-                                {/*    <div style={{marginTop: 8}}>*/}
-                                {/*        {record?.order_status ? (*/}
-                                {/*            <Tag*/}
-                                {/*                color={statusMap[record.order_status]?.color}*/}
-                                {/*                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}*/}
-                                {/*            >*/}
-                                {/*                {statusMap[record.order_status]?.label || record.order_status}*/}
-                                {/*            </Tag>*/}
-                                {/*        ) : (*/}
-                                {/*            <TextField*/}
-                                {/*                value="Không có trạng thái"*/}
-                                {/*                style={{display: "block", fontSize: 16, color: "#262626"}}*/}
-                                {/*            />*/}
-                                {/*        )}*/}
-                                {/*    </div>*/}
-                                {/*</Col>*/}
-
                                 <Col xs={24} sm={12}>
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái thanh toán</Text>
                                     <div style={{marginTop: 8}}>
@@ -245,9 +277,6 @@ export const OrdersShow = () => {
                                         )}
                                     </div>
                                 </Col>
-                                
-
-                                
                             </Row>
                         </Card>
                     </Col>
@@ -415,7 +444,6 @@ export const OrdersShow = () => {
                                     style={{ fontSize: 16, color: "#262626" }}
                                 />
                             </div>
-
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <h3 style={{ fontSize: 20, color: "#ff0000ff", whiteSpace: "nowrap", margin: 0 }}>
                                     Thành tiền:
@@ -429,8 +457,6 @@ export const OrdersShow = () => {
                                     style={{ fontSize: 20, color: "#ff0000ff" }}
                                 />
                             </div>
-
-
                         </Card>
                     </Col>
                 </Row>
@@ -469,7 +495,20 @@ export const OrdersShow = () => {
                             ))}
                         </Select>
                     </Form.Item>
-
+                    <Form.Item noStyle shouldUpdate={(prevValues, curValues) => prevValues.order_status !== curValues.order_status}>
+                        {({ getFieldValue }) => (
+                            getFieldValue('order_status') === 'canceled' && (
+                                <Form.Item
+                                    name="cancel_reason"
+                                    label="Lý do hủy"
+                                    initialValue={ record?.cancel_reason }
+                                    rules={[{ required: true, message: "Vui lòng nhập lý do hủy" }]}
+                                >
+                                    <Input.TextArea placeholder="Nhập lý do hủy đơn" />
+                                </Form.Item>
+                            )
+                        )}
+                    </Form.Item>
                 </Form>
             </Modal>
         </>

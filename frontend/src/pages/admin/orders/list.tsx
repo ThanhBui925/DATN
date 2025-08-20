@@ -1,7 +1,8 @@
 import {
     EditButton,
     List,
-    ShowButton, TextField,
+    ShowButton,
+    TextField,
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
@@ -19,16 +20,16 @@ import {
     Input,
     DatePicker,
     message,
-    notification
+    notification,
 } from "antd";
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
 import { convertToInt } from "../../../helpers/common";
-import {statusMap, validTransitions} from "../../../types/OrderStatusInterface";
-import {paymentStatusMap} from "../../../types/PaymentStatusInterface";
-import {paymentMethodMap} from "../../../types/PaymentMethodMap";
-import {axiosInstance} from "../../../utils/axios";
+import { statusMap, validTransitions } from "../../../types/OrderStatusInterface";
+import { paymentStatusMap } from "../../../types/PaymentStatusInterface";
+import { paymentMethodMap } from "../../../types/PaymentMethodMap";
+import { axiosInstance } from "../../../utils/axios";
 
 export const OrdersList = () => {
     const { tableProps, setFilters, tableQueryResult } = useTable({
@@ -50,7 +51,10 @@ export const OrdersList = () => {
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
         setIsModalVisible(true);
-        form.setFieldsValue({ order_status: order.status });
+        form.setFieldsValue({
+            order_status: order.status,
+            cancel_reason: order.cancel_reason || undefined,
+        });
     };
 
     const handleModalOk = () => {
@@ -67,21 +71,36 @@ export const OrdersList = () => {
                     return;
                 }
 
+                let body: any = {};
+                if (values.order_status === "canceled") {
+                    const cancel_reason = `Đơn hàng được huỷ bởi admin, lý do: ${values.cancel_reason}`;
+                    body = { order_status: "canceled", cancel_reason };
+                } else {
+                    body = {
+                        order_status:
+                            values.order_status === "ready_to_pick" ? "shipping" : values.order_status,
+                    };
+                }
+
                 try {
-                    const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, {
-                        order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status,
-                    });
-                    if (response?.data?.status == "false") {
-                        return notification.error({ message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại"});
+                    const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, body);
+                    if (response?.data?.status === "false") {
+                        return notification.error({
+                            message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại",
+                        });
                     }
                     tableQueryResult.refetch();
                     setIsModalVisible(false);
-                    form.resetFields();
+                    form.resetFields(); // Reset form after successful update
                     setSelectedOrder(null);
-                    notification.success({ message: response?.data?.message || "Cập nhật đơn hàng thành công !"});
+                    notification.success({
+                        message: response?.data?.message || "Cập nhật đơn hàng thành công !",
+                    });
                 } catch (error) {
                     console.error("Cập nhật thất bại:", error);
-                    notification.error({ message: "GHN đang quá tải khu vực này, vui lòng thử lại sau !" });
+                    notification.error({
+                        message: "GHN đang quá tải khu vực này, vui lòng thử lại sau !",
+                    });
                 }
             })
             .catch(() => {
@@ -157,7 +176,7 @@ export const OrdersList = () => {
                                 <Select
                                     placeholder="Chọn trạng thái"
                                     allowClear={true}
-                                    mode={'multiple'}
+                                    mode={"multiple"}
                                 >
                                     {Object.entries(statusMap).map(([key, { label }]) => (
                                         <Select.Option key={key} value={key}>
@@ -179,14 +198,18 @@ export const OrdersList = () => {
                         </Col>
                     </Row>
                 </Form>
-                <Table {...tableProps} rowKey="id" rowClassName={(record) => {
-                    if (record.order_status === "completed" && record.payment_status === "paid") {
-                        return "bg-green-100";
-                    } else if (record.order_status === "canceled") {
-                        return "bg-red-100";
-                    }
-                    return "";
-                }}>
+                <Table
+                    {...tableProps}
+                    rowKey="id"
+                    rowClassName={(record) => {
+                        if (record.order_status === "completed" && record.payment_status === "paid") {
+                            return "bg-green-100";
+                        } else if (record.order_status === "canceled") {
+                            return "bg-red-100";
+                        }
+                        return "";
+                    }}
+                >
                     <Table.Column
                         title="STT"
                         key="index"
@@ -210,7 +233,6 @@ export const OrdersList = () => {
                             return `${convertToInt(finalPrice)} VNĐ`;
                         }}
                     />
-
                     <Table.Column
                         title="Trạng thái đơn hàng"
                         dataIndex="status"
@@ -223,30 +245,12 @@ export const OrdersList = () => {
                             );
                         }}
                     />
-                    {/*<Table.Column*/}
-                    {/*    title="Trạng thái giao hàng"*/}
-                    {/*    dataIndex="shipping_status"*/}
-                    {/*    render={(value: string) => {*/}
-                    {/*        const status = statusMap[value];*/}
-                    {/*        return status ? (*/}
-                    {/*            <Tag color={status.color}>{status.label}</Tag>*/}
-                    {/*        ) : (*/}
-                    {/*            <Tag>{value}</Tag>*/}
-                    {/*        );*/}
-                    {/*    }}*/}
-                    {/*/>*/}
                     <Table.Column
                         title="Phương thức thanh toán"
                         dataIndex="payment_method"
-                        render={(value: string) =>
-                            (
-                                <Tag
-                                    color={paymentMethodMap[value]?.color}
-                                >
-                                    {paymentMethodMap[value]?.label || value}
-                                </Tag>
-                            )
-                        }
+                        render={(value: string) => (
+                            <Tag color={paymentMethodMap[value]?.color}>{paymentMethodMap[value]?.label || value}</Tag>
+                        )}
                     />
                     <Table.Column
                         title="Trạng thái thanh toán"
@@ -275,7 +279,7 @@ export const OrdersList = () => {
                         dataIndex="actions"
                         render={(_, record: BaseRecord) => (
                             <Space>
-                                <EditButton hideText size="large" onClick={() => handleUpdateStatus(record)} />
+                                {/*<EditButton hideText size="large" onClick={() => handleUpdateStatus(record)} />*/}
                                 <ShowButton hideText size="large" recordItemId={record.id} />
                             </Space>
                         )}
@@ -307,6 +311,22 @@ export const OrdersList = () => {
                                 </Select.Option>
                             ))}
                         </Select>
+                    </Form.Item>
+                    <Form.Item
+                        noStyle
+                        shouldUpdate={(prevValues, curValues) => prevValues.order_status !== curValues.order_status}
+                    >
+                        {({ getFieldValue }) =>
+                            getFieldValue("order_status") === "canceled" && (
+                                <Form.Item
+                                    name="cancel_reason"
+                                    label="Lý do hủy"
+                                    rules={[{ required: true, message: "Vui lòng nhập lý do hủy" }]}
+                                >
+                                    <Input.TextArea placeholder="Nhập lý do hủy đơn" />
+                                </Form.Item>
+                            )
+                        }
                     </Form.Item>
                 </Form>
             </Modal>
