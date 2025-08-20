@@ -92,7 +92,7 @@ export const ProfileContent = () => {
         if (imageFile) formData.append('avatar', imageFile);
 
         try {
-            const res = await axiosInstance.post("/api/profile", formData, {
+            const res = await axiosInstance.put("/api/profile", formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             if (res.data.status) {
