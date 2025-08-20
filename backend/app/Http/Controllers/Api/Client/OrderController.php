@@ -27,6 +27,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderSuccessMail;
 use Illuminate\Support\Facades\Cache;
+use App\Models\ReturnOrder as ReturnRequest;
+use App\Models\ReturnEviden as ReturnEvidence;
 
 
 
@@ -574,23 +576,43 @@ class OrderController extends Controller
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
+
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
+
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền hủy', null, 404);
         }
+
         if (in_array($order->order_status, ['delivered', 'canceled'])) {
             return $this->errorResponse('Không thể hủy đơn hàng đã giao hoặc đã bị hủy', null, 400);
         }
-        $request->validate([
-            'cancel_reason' => 'required|string|max:500',
-        ], [
-            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
-            'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
-        ]);
-        try {
 
+        $rules = [
+            'cancel_reason' => 'required|string|max:500',
+        ];
+        $messages = [
+            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
+            'cancel_reason.max'      => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự',
+        ];
+
+        if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
+            $rules = array_merge($rules, [
+                'refund_bank'            => 'required|string|max:100',
+                'refund_account_name'    => 'required|string|max:100',
+                'refund_account_number'  => 'required|string|max:50',
+            ]);
+            $messages = array_merge($messages, [
+                'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
+                'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
+                'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
+            ]);
+        }
+
+        $validated = $request->validate($rules, $messages);
+
+        try {
             if (!empty($order->order_code)) {
                 $ghnResponse = Http::withHeaders([
                     'Token' => env('GHN_TOKEN'),
@@ -599,19 +621,31 @@ class OrderController extends Controller
                 ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/switch-status/cancel', [
                     'order_codes' => [$order->order_code],
                 ]);
-        
+
                 if (!$ghnResponse->successful() || $ghnResponse->json('code') != 200) {
                     return $this->errorResponse('Không thể hủy đơn GHN: ' . $ghnResponse->json('message'), null, 400);
                 }
             }
 
             if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
-                $order->order_status = 'returned';
+                $returnOrder = new ReturnRequest();
+                $returnOrder->order_id = $order->id;
+                $returnOrder->user_id = $user->id;
+                $returnOrder->reason = $validated['cancel_reason'] ?? null;
+                $returnOrder->refund_bank = $validated['refund_bank'];
+                $returnOrder->refund_account_name = $validated['refund_account_name'];
+                $returnOrder->refund_account_number = $validated['refund_account_number'];
+                $returnOrder->save();
+
+                $order->order_status = 'return_accepted';   // đang xử lý hoàn tiền
+                $order->payment_status = 'waiting_for_refund';
             } else {
-                $order->order_status = 'canceled';
+                $order->order_status = 'canceled';          // chưa thanh toán thì hủy thẳng
             }
-            $order->cancel_reason = $request->input('cancel_reason');
+
+            $order->cancel_reason = $validated['cancel_reason'];
             $order->save();
+
 
             foreach ($order->orderItems as $item) {
                 $variant = \App\Models\VariantProduct::find($item->variant_id);
@@ -619,12 +653,6 @@ class OrderController extends Controller
                     $variant->increment('quantity', $item->quantity);
                 }
             }
-
-            Log::info('Order canceled by user', [
-                'order_id' => $order->id,
-                'user_id' => $user->id,
-                'reason' => $order->cancel_reason
-            ]);
 
             return $this->successResponse($order, 'Hủy đơn hàng thành công');
         } catch (\Exception $e) {
@@ -635,8 +663,8 @@ class OrderController extends Controller
             ]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
-
     }
+
 
     /**
      * Cập nhật địa chỉ đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
@@ -742,5 +770,85 @@ class OrderController extends Controller
             'message' => 'Đã xác nhận hoàn tất đơn hàng.'
         ]);
     }
+
+    //Yêu cầu hoàn hàng
+    public function requestReturn(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền yêu cầu hoàn hàng', null, 404);
+        }
+        // Kiểm tra nếu đã có yêu cầu hoàn hàng
+        if ($order->order_status === 'return_requested') {
+            return $this->errorResponse('Đơn hàng đã có yêu cầu hoàn hàng trước đó', null, 400);
+        }
+
+        if (!in_array($order->order_status, ['delivered', 'completed'])) {
+            return $this->errorResponse('Chỉ có thể yêu cầu hoàn hàng khi đơn đã giao hoặc hoàn thành', null, 400);
+        }
+
+        
+
+        // Validate form input
+        $validated = $request->validate([
+            'return_reason'          => 'required|string|max:500',
+            'refund_bank'            => 'required|string|max:100',
+            'refund_account_name'    => 'required|string|max:100',
+            'refund_account_number'  => 'required|string|max:50',
+            'return_images'          => 'nullable|array',
+            'return_images.*'        => 'file|mimes:jpg,jpeg,png,mp4|max:20480',
+        ], [
+            'return_reason.required'         => 'Vui lòng nhập lý do trả hàng',
+            'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
+            'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
+            'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
+            'return_images.array'            => 'Hình ảnh phải là một mảng',
+            'return_images.*.file'           => 'Mỗi file phải là tệp hợp lệ',
+            'return_images.*.mimes'          => 'Hình ảnh/video chỉ chấp nhận jpg, jpeg, png, mp4',
+            'return_images.*.max'            => 'Dung lượng mỗi tệp tối đa 20MB',
+        ]);
+
+
+        // Tạo record return
+        $return = ReturnRequest::create([
+            'order_id'              => $order->id,
+            'user_id'               => $user->id,
+            'reason'                => $validated['return_reason'],
+            'refund_bank'           => $validated['refund_bank'],
+            'refund_account_name'   => $validated['refund_account_name'],
+            'refund_account_number' => $validated['refund_account_number'],
+        ]);
+
+        // Lưu hình ảnh/video
+        if ($request->hasFile('return_images')) {
+            foreach ($request->file('return_images') as $file) {
+                $path = $file->store('returns', 'public'); // lưu storage/app/public/returns
+
+                ReturnEvidence::create([
+                    'return_id' => $return->id,
+                    'file_path' => $path,
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
+
+        // Cập nhật trạng thái đơn hàng
+        $order->order_status = 'return_requested';
+        $order->save();
+
+        return $this->successResponse([
+            'order'  => $order,
+            'return' => $return->load('evidences'),
+        ], 'Yêu cầu hoàn hàng thành công');
+    }
+
 
 }
