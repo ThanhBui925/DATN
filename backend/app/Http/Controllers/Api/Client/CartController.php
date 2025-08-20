@@ -74,6 +74,7 @@ class CartController extends Controller
                     'size'     => $variant->size->name ?? null,
                     'color'    => $variant->color->name ?? null,
                     'quantity' => $variant->quantity,
+                    'status'   => $variant->status,
                     'images'   => $variant->images->map(fn($image) => [
                         'id'        => $image->id,
                         'image_url' => $image->image_url,

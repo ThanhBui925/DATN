@@ -29,7 +29,7 @@ interface Product {
     price: number;
     sale_price?: number;
     description: string;
-    average_rating: number;
+    rating: number;
     review_count: number;
     total_ordered_quantity: number;
     image?: string;
@@ -379,7 +379,7 @@ export const DetailProduct: React.FC = () => {
                         <h2 className="fw-bold">{product.name}</h2>
                         <div className="d-flex align-items-center mb-2">
                             <div className="d-flex gap-1">
-                                <span className="text-decoration-underline"> { product.average_rating }</span>
+                                <span className="text-decoration-underline"> { product.rating }</span>
                                 <span className="text-warning">
                   {[...Array(5)].map((_, i: number) => (
                       <i key={i} className="fa fa-star"></i>
