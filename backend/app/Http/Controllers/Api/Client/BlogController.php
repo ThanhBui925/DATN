@@ -25,15 +25,34 @@ class BlogController extends Controller
         return $this->successResponse($blogs, 'Lấy danh sách blog thành công');
     }
 
-    /**
-     * Xem chi tiết blog
-     */
+
     public function show($id)
     {
-        $blog = Blog::where('status', 1)->find($id);
+        $blog = Blog::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->find($id);
+
         if (!$blog) {
-            return $this->errorResponse('Bài viết không tồn tại hoặc đã bị ẩn', null, 404);
+            return response()->json([
+                'message' => 'Bài viết không tồn tại hoặc đã bị ẩn'
+            ], 404);
         }
-        return $this->successResponse($blog, 'Lấy chi tiết blog thành công');
+
+        $imageUrl = $blog->image
+            ? asset('storage/' . ltrim($blog->image, '/'))
+            : null;
+
+        return response()->json([
+            'id'          => $blog->id,
+            'title'       => $blog->title,
+            'description' => $blog->description,
+            'content'     => $blog->content,
+            'image'       => $blog->image,
+            'image_url'   => $imageUrl,
+            'status'      => $blog->status,
+            'created_at'  => optional($blog->created_at)->toDateTimeString(),
+            'updated_at'  => optional($blog->updated_at)->toDateTimeString(),
+        ]);
     }
-} 
+}
