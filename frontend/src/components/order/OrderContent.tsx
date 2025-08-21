@@ -159,41 +159,41 @@ export const OrderContent: React.FC = () => {
     }, []);
 
     const handleReturnOrder = async (orderId: number, reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
-    try {
-        const formData = new FormData();
-        formData.append('return_reason', reason);
+        try {
+            const formData = new FormData();
+            formData.append('return_reason', reason);
 
-        const order = orders.find(o => o.id === orderId);
-        if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid') {
-            formData.append('refund_bank', refundBank || '');
-            formData.append('refund_account_name', refundAccountName || '');
-            formData.append('refund_account_number', refundAccountNumber || '');
+            const order = orders.find(o => o.id === orderId);
+            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash') {
+                formData.append('refund_bank', refundBank || '');
+                formData.append('refund_account_name', refundAccountName || '');
+                formData.append('refund_account_number', refundAccountNumber || '');
+            }
+
+            returnFiles.forEach((file, index) => {
+                formData.append(`return_images[${index}]`, file.originFileObj);
+            });
+
+            // Method spoofing
+            formData.append("_method", "PUT");
+
+            // Gửi POST thay vì PUT
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            if (res.data.status) {
+                notification.success({ message: "Yêu cầu trả hàng thành công!" });
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
+                fetchOrders(currentPage);
+            } else {
+                notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
+            }
+        } catch (e) {
+            console.error(e);
+            notification.error({ message: 'Lỗi khi yêu cầu trả hàng' });
         }
-
-        returnFiles.forEach((file, index) => {
-            formData.append(`return_images[${index}]`, file.originFileObj);
-        });
-
-        // Method spoofing
-        formData.append("_method", "PUT");
-
-        // Gửi POST thay vì PUT
-        const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        if (res.data.status) {
-            notification.success({ message: "Yêu cầu trả hàng thành công!" });
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
-            fetchOrders(currentPage);
-        } else {
-            notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
-        }
-    } catch (e) {
-        console.error(e);
-        notification.error({ message: 'Lỗi khi yêu cầu trả hàng' });
-    }
-};
+    };
 
 
     const handleModalOk = useCallback(() => {
@@ -231,8 +231,8 @@ export const OrderContent: React.FC = () => {
     }, [selectedOrderId, cancelReason, refundBank, refundAccountName, refundAccountNumber, handleCancelOrder, orders]);
 
     const handleReturnModalOk = useCallback(() => {
-        // const selectedOrder = orders.find(o => o.id === selectedOrderId);
-        const isRefundRequired = true; // selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid';
+        const selectedOrder = orders.find(o => o.id === selectedOrderId);
+        const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash';
         let newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
@@ -677,9 +677,8 @@ export const OrderContent: React.FC = () => {
                 </Upload>
                 {returnErrors.return_files && <div className="text-danger">{returnErrors.return_files}</div>}
                 {(() => {
-                    // const selectedOrder = orders.find(o => o.id === selectedOrderId);
-                    // return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' && (
-                    return (
+                    const selectedOrder = orders.find(o => o.id === selectedOrderId);
+                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash' && (
                         <>
                             <Input
                                 required

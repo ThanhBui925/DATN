@@ -91,6 +91,8 @@ interface Order {
     }
     pickup_time: string | null;
     picked_date: string | null;
+    return_reason: string | null;
+    return: any;
 }
 
 export const OrderDetailContent = () => {
@@ -259,7 +261,7 @@ export const OrderDetailContent = () => {
         try {
             const formData = new FormData();
             formData.append('return_reason', reason);
-            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid') {
+            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash') {
                 formData.append('refund_bank', refundBank || '');
                 formData.append('refund_account_name', refundAccountName || '');
                 formData.append('refund_account_number', refundAccountNumber || '');
@@ -284,7 +286,7 @@ export const OrderDetailContent = () => {
     };
 
     const handleReturnModalOk = () => {
-        const isRefundRequired = true; //order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
+        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
         let newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
@@ -370,7 +372,7 @@ export const OrderDetailContent = () => {
     if (error) return <div className="container my-5 text-center text-danger">Lỗi: {error}</div>;
     if (!order) return <div className="container my-5 text-center">Không tìm thấy đơn hàng</div>;
 
-    const isRefundRequired =  true; //order.payment_method === 'vnpay' && order.payment_status === 'paid';
+    const isRefundRequired =  order.payment_method === 'vnpay' && order.payment_status === 'paid' || order.payment_method === 'cash';
 
     return (
         <div className="col-12 col-lg-10">
@@ -571,6 +573,26 @@ export const OrderDetailContent = () => {
                                 <h2>Lý do hủy đơn</h2>
                             </div>
                             <p>{order.cancel_reason}</p>
+                        </div>
+                    )}
+                    {order.return?.reason && (
+                        <div className="mt-5">
+                            <div className="section-title-3">
+                                <h2>Lý do hoàn đơn</h2>
+                            </div>
+                            <p>{order.return?.reason}</p>
+                            <i className="text-danger">
+                                Hình ảnh dẫn chứng:
+                            </i>
+                            <div className="d-flex gap-3">
+                                {
+                                    order.return.evidences && order.return.evidences.length > 0 && (
+                                        order.return.evidences.map((evd: any) => (
+                                            <img src={evd.file_path} style={{ width: 200, height: 200 }} alt=""/>
+                                        ))
+                                    )
+                                }
+                            </div>
                         </div>
                     )}
                 </div>
