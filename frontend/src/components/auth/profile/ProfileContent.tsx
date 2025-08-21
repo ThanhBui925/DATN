@@ -135,11 +135,11 @@ export const ProfileContent = () => {
                                 <label className="form-label">Giới tính</label>
                                 <div className="d-flex gap-3">
                                     <div className="form-check">
-                                        <input type="radio" className="form-check-input" name="gender" value="Nam" checked={gender === 'Nam'} onChange={() => setGender('Nam')} />
+                                        <input type="radio" className="form-check-input" name="gender" value="male" checked={gender === 'male'} onChange={() => setGender('male')} />
                                         <label className="form-check-label">Nam</label>
                                     </div>
                                     <div className="form-check">
-                                        <input type="radio" className="form-check-input" name="gender" value="Nữ" checked={gender === 'Nữ'} onChange={() => setGender('Nữ')} />
+                                        <input type="radio" className="form-check-input" name="gender" value="female" checked={gender === 'female'} onChange={() => setGender('female')} />
                                         <label className="form-check-label">Nữ</label>
                                     </div>
                                 </div>
