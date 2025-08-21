@@ -267,7 +267,8 @@ export const OrderDetailContent = () => {
             returnFiles.forEach((file, index) => {
                 formData.append(`return_images[${index}]`, file.originFileObj);
             });
-            const res = await axiosInstance.put(`/api/client/orders/${orderId}/return`, formData, {
+            formData.append("_method", "PUT");
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             if (res.data.status) {
@@ -283,7 +284,7 @@ export const OrderDetailContent = () => {
     };
 
     const handleReturnModalOk = () => {
-        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
+        const isRefundRequired = true; //order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
         let newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
@@ -369,7 +370,7 @@ export const OrderDetailContent = () => {
     if (error) return <div className="container my-5 text-center text-danger">Lỗi: {error}</div>;
     if (!order) return <div className="container my-5 text-center">Không tìm thấy đơn hàng</div>;
 
-    const isRefundRequired = order.payment_method === 'vnpay' && order.payment_status === 'paid';
+    const isRefundRequired =  true; //order.payment_method === 'vnpay' && order.payment_status === 'paid';
 
     return (
         <div className="col-12 col-lg-10">
