@@ -24,7 +24,24 @@ class CustomerController extends Controller
                 'users.email as user_email',
                 'users.role as user_role',
                 'users.status as user_status'
-            ) ->whereRaw('LOWER(TRIM(users.role)) = ?', ['client']);
+            )->whereRaw('LOWER(TRIM(users.role)) = ?', ['client']);
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function ($qq) use ($q) {
+                $qq->where('users.name', 'like', "%{$q}%")
+                    ->orWhere('users.email', 'like', "%{$q}%")
+                    ->orWhere('customers.phone', 'like', "%{$q}%")
+                    ->orWhere('customers.address', 'like', "%{$q}%");
+
+                // Nếu q là số thì tìm theo id
+                if (ctype_digit($q)) {
+                    $qq->orWhere('customers.id', (int) $q)
+                        ->orWhere('users.id', (int) $q);
+                }
+            });
+        }
+
 
         if ($request->filled('phone')) {
             $query->where('customers.phone', 'like', '%' . trim($request->phone) . '%');
@@ -62,7 +79,7 @@ class CustomerController extends Controller
 
         return $this->success($customers, 'Danh sách khách hàng đã được lấy thành công.');
     }
-    
+
 
 
     public function show($id)
@@ -105,6 +122,5 @@ class CustomerController extends Controller
         $user->save();
 
         return $this->success(null, $user->status ? 'Tài khoản đã được kích hoạt.' : 'Tài khoản đã bị vô hiệu hóa.');
-
     }
 }
