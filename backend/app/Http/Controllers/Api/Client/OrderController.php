@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\ReturnOrder as ReturnRequest;
 use App\Models\ReturnEviden as ReturnEvidence;
 use Illuminate\Support\Facades\Storage;
-
+use App\Http\Requests\RetryVNPayRequest;
 
 
 
@@ -460,6 +460,15 @@ class OrderController extends Controller
 
                 if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
+
+                    // Lấy delivered_date từ GHN
+                    if (!empty($ghnShippingInfo['leadtime_order']['delivered_date'])) {
+                        $order->delivered_at = Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date']);
+                    } else {
+                        // fallback nếu GHN chưa có delivered_date
+                        $order->delivered_at = now();
+                    }
+
                     $order->use_shipping_status = 0;
                 }
 
@@ -790,6 +799,7 @@ class OrderController extends Controller
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền yêu cầu hoàn hàng', null, 404);
         }
 
+    
         if ($order->order_status === 'return_requested') {
             return $this->errorResponse('Đơn hàng đã có yêu cầu hoàn hàng trước đó', null, 400);
         }
@@ -798,7 +808,17 @@ class OrderController extends Controller
             return $this->errorResponse('Chỉ có thể yêu cầu hoàn hàng khi đơn đã giao hoặc hoàn thành', null, 400);
         }
 
-        // Lấy tất cả input trước validate để chắc chắn nhận được return_reason
+        if ($order->delivered_at) {
+            $deliveredAt = Carbon::parse($order->delivered_at);
+            $now = Carbon::now();
+            if ($now->diffInDays($deliveredAt) > 7) {
+                return $this->errorResponse('Đơn hàng đã quá 7 ngày kể từ khi giao, không thể yêu cầu hoàn hàng', null, 400);
+            }
+        } else {
+            // Nếu chưa có delivered_at
+            return $this->errorResponse('Đơn hàng chưa được giao, không thể yêu cầu hoàn hàng', null, 400);
+        }
+        
         $input = $request->all();
         Log::info('Request return input', [
             'user_id' => $user->id,
