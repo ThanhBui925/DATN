@@ -42,6 +42,20 @@ class ManagerAdminController extends Controller
             )
             ->where('users.role', 'admin');
 
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function ($qq) use ($q) {
+                $qq->where('users.name', 'like', "%{$q}%")
+                    ->orWhere('users.email', 'like', "%{$q}%")
+                    ->orWhere('customers.phone', 'like', "%{$q}%")
+                    ->orWhere('customers.address', 'like', "%{$q}%");
+
+                if (ctype_digit($q)) {
+                    $qq->orWhere('users.id', (int) $q);
+                }
+            });
+        }
+
         if ($request->filled('phone')) {
             $query->where('customers.phone', 'like', '%' . trim($request->phone) . '%');
         }

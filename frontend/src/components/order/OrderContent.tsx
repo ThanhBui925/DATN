@@ -231,8 +231,8 @@ export const OrderContent: React.FC = () => {
     }, [selectedOrderId, cancelReason, refundBank, refundAccountName, refundAccountNumber, handleCancelOrder, orders]);
 
     const handleReturnModalOk = useCallback(() => {
-        const selectedOrder = orders.find(o => o.id === selectedOrderId);
-        const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid';
+        // const selectedOrder = orders.find(o => o.id === selectedOrderId);
+        const isRefundRequired = true; // selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid';
         let newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
@@ -376,7 +376,7 @@ export const OrderContent: React.FC = () => {
                         />
                     </div>
                     {filteredOrders.map((order: any) => {
-                        const isRefundRequired = order.payment_method === 'vnpay' && order.payment_status === 'paid';
+                        const isRefundRequired = true; //order.payment_method === 'vnpay' && order.payment_status === 'paid';
                         return (
                             <div key={order.id} className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden">
                                 <div className="card-header bg-white py-2 px-4 d-flex justify-content-between align-items-center border-bottom">
@@ -677,8 +677,9 @@ export const OrderContent: React.FC = () => {
                 </Upload>
                 {returnErrors.return_files && <div className="text-danger">{returnErrors.return_files}</div>}
                 {(() => {
-                    const selectedOrder = orders.find(o => o.id === selectedOrderId);
-                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' && (
+                    // const selectedOrder = orders.find(o => o.id === selectedOrderId);
+                    // return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' && (
+                    return (
                         <>
                             <Input
                                 required
