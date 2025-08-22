@@ -328,7 +328,7 @@ public function show($id)
         //     //lưu lý do từ chối
         //     $returnOrder = $order->return;
         //     if ($returnOrder) {
-        //         $returnOrder->reason_for_refusal = $request->input('cancel_reason', 'Trả hàng bị từ chối');
+        //         $returnOrder->reason_for_refusal = $request->input('reason_for_refusal', 'Trả hàng bị từ chối');
         //         $returnOrder->save();
         //     }
         // }
@@ -348,6 +348,7 @@ public function show($id)
         //         $returnOrder->transaction_code = $validated['transaction_code'];
         //         $returnOrder->save();
         //     }
+
         // }
 
 

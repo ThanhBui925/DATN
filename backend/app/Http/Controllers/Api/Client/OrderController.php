@@ -64,16 +64,19 @@ class OrderController extends Controller
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
         if ($request->has('status')) {
-            $query->where(function ($q) use ($request) {
-                $q->where(function ($sub) use ($request) {
-                    $sub->where('use_shipping_status', 1)
-                        ->where('shipping_status', $request->input('status'));
-                })->orWhere(function ($sub) use ($request) {
+            $status = $request->input('status');
+
+            $query->where(function ($q) use ($status) {
+                $q->where('use_shipping_status', 1)
+                ->where('shipping_status', $status);
+
+                $q->orWhere(function ($sub) use ($status) {
                     $sub->where('use_shipping_status', 0)
-                        ->where('order_status', $request->input('status'));
+                        ->where('order_status', $status);
                 });
             });
         }
+
 
         // Lọc theo ngày nếu có
         if ($request->has('date')) {
