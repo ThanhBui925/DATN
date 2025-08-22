@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use App\Models\Order;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class UpdateShippingStatus extends Command
 {
@@ -51,6 +52,7 @@ class UpdateShippingStatus extends Command
 
                         if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
                             $order->order_status = 'delivered';
+                            $order->delivered_at = Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date']);
                             $order->use_shipping_status = 0;
                         }
 

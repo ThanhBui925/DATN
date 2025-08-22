@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\ReturnOrder as ReturnRequest;
 use App\Models\ReturnEviden as ReturnEvidence;
 use Illuminate\Support\Facades\Storage;
-
+use App\Http\Requests\RetryVNPayRequest;
 
 
 
@@ -410,7 +410,7 @@ class OrderController extends Controller
         return 'unknown';
     }
 
-    public function show(Request $request, $id)
+public function show(Request $request, $id)
     {
         $user = $request->user();
         if (!$user) {
@@ -428,6 +428,8 @@ class OrderController extends Controller
                 'orderItems.variant.size',
                 'orderItems.variant.color',
                 'orderItems.variant.images',
+                'return',
+                'return.evidences'
             ])->first();
 
         if (!$order) {
@@ -458,7 +460,7 @@ class OrderController extends Controller
             if ($shippingStatus) {
                 $order->shipping_status = $shippingStatus;
 
-                if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
+                if ($shippingStatus === 'delivered' && $order->use_shipping_status == 1 && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
                     $order->use_shipping_status = 0;
                 }
@@ -564,6 +566,7 @@ class OrderController extends Controller
             'leadtime_order' => $leadtimeData,
             'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
             'date_order' => $order->date_order,
+            'return' => $order->return,
         ];
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
@@ -790,6 +793,7 @@ class OrderController extends Controller
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền yêu cầu hoàn hàng', null, 404);
         }
 
+    
         if ($order->order_status === 'return_requested') {
             return $this->errorResponse('Đơn hàng đã có yêu cầu hoàn hàng trước đó', null, 400);
         }
@@ -798,13 +802,23 @@ class OrderController extends Controller
             return $this->errorResponse('Chỉ có thể yêu cầu hoàn hàng khi đơn đã giao hoặc hoàn thành', null, 400);
         }
 
-        // Lấy tất cả input trước validate để chắc chắn nhận được return_reason
+        if ($order->delivered_at) {
+            $deliveredAt = Carbon::parse($order->delivered_at);
+            $now = Carbon::now();
+            if ($now->diffInDays($deliveredAt) > 7) {
+                return $this->errorResponse('Đơn hàng đã quá 7 ngày kể từ khi giao, không thể yêu cầu hoàn hàng', null, 400);
+            }
+        } else {
+            // Nếu chưa có delivered_at
+            return $this->errorResponse('Đơn hàng chưa được giao, không thể yêu cầu hoàn hàng', null, 400);
+        }
+        
         $input = $request->all();
-        Log::info('Request return input', [
-            'user_id' => $user->id,
-            'order_id' => $order->id,
-            'input' => $input
-        ]);
+        // Log::info('Request return input', [
+        //     'user_id' => $user->id,
+        //     'order_id' => $order->id,
+        //     'input' => $input
+        // ]);
 
         // Build rules và messages
         $rules = [
@@ -821,8 +835,8 @@ class OrderController extends Controller
             'return_images.*.max'    => 'Dung lượng mỗi tệp tối đa 20MB',
         ];
 
-        // Nếu đơn đã thanh toán VNPAY thì bắt buộc thông tin ngân hàng
-        if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
+        // Nếu đơn đã thanh toán thì bắt buộc thông tin ngân hàng
+        if ($order->payment_status === 'paid') {
             $rules = array_merge($rules, [
                 'refund_bank'            => 'required|string|max:100',
                 'refund_account_name'    => 'required|string|max:100',
