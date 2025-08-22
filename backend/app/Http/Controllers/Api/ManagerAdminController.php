@@ -56,9 +56,10 @@ class ManagerAdminController extends Controller
             });
         }
 
-        if ($request->filled('phone')) {
-            $query->where('customers.phone', 'like', '%' . trim($request->phone) . '%');
+        if ($phone = $request->input('phone_like')) {
+            $query->where('customers.phone', 'like', "%{$phone}%");
         }
+
 
         if ($request->filled('address')) {
             $query->where('customers.address', 'like', '%' . trim($request->address) . '%');
@@ -68,13 +69,16 @@ class ManagerAdminController extends Controller
             $query->where('customers.gender', trim($request->gender));
         }
 
-        if ($request->filled('name')) {
-            $query->where('users.name', 'like', '%' . trim($request->name) . '%');
+        if ($request->has('name_like')) {
+            $name = $request->input('name_like');
+            $query->whereRaw("name COLLATE utf8mb4_unicode_ci LIKE ?", ["%$name%"]);
         }
 
-        if ($request->filled('email')) {
-            $query->where('users.email', 'like', '%' . trim($request->email) . '%');
+
+        if ($email = $request->input('email_like')) {
+            $query->where('users.email', 'like', "%{$email}%");
         }
+
 
         if ($request->filled('status')) {
             $query->where('users.status', trim($request->status));

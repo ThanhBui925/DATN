@@ -10,7 +10,7 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     // Trạng thái được ghi nhận doanh thu (paid + status hợp lệ)
-    private array $orderStatusesForRevenue = ['confirmed', 'preparing', 'shipping', 'delivered'];
+    private array $orderStatusesForRevenue = ['confirmed', 'preparing', 'shipping', 'delivered', 'completed'];
 
     // Gom nhóm trạng thái cho thống kê đơn
     private array $statusBuckets = [
