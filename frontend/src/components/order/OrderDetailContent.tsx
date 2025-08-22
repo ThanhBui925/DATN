@@ -5,6 +5,7 @@ import {convertDate, convertToInt} from "../../helpers/common";
 import {Input, Modal, notification, Upload, Button} from "antd";
 import {statusMap} from "../../types/OrderStatusInterface";
 import {paymentMethodMap} from "../../types/PaymentMethodMap";
+import {paymentStatusMap} from "../../types/PaymentStatusInterface";
 
 interface Product {
     id: number;
@@ -531,8 +532,8 @@ export const OrderDetailContent = () => {
                                 className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
                             </h6>
                             <p className="text-muted small mb-0">
-                                Thanh toán: {paymentMethodMap[order.payment_method]?.label || "Không xác định"} (
-                                {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"})
+                                Thanh toán: <span className={`text-${paymentMethodMap[order.payment_method]?.class}`}>{paymentMethodMap[order.payment_method]?.label || "Không xác định"}</span> (
+                                <span className={`text-${paymentStatusMap[order.payment_status]?.class}`}>{paymentStatusMap[order.payment_status]?.label || order.payment_status}</span>)
                             </p>
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
@@ -570,15 +571,23 @@ export const OrderDetailContent = () => {
                     {order.cancel_reason && (
                         <div className="mt-5">
                             <div className="section-title-3">
-                                <h2>Lý do hủy đơn</h2>
+                                <h2>Lý do yêu cầu hủy đơn</h2>
                             </div>
                             <p>{order.cancel_reason}</p>
+                        </div>
+                    )}
+                    {order.return?.reason_for_refusal && (
+                        <div className="mt-5">
+                            <div className="section-title-3">
+                                <h2>Lý do từ chối hủy đơn</h2>
+                            </div>
+                            <p>{order.return?.reason_for_refusal}</p>
                         </div>
                     )}
                     {order.return?.reason && (
                         <div className="mt-5">
                             <div className="section-title-3">
-                                <h2>Lý do hoàn đơn</h2>
+                                <h2>Lý do yêu cầu hoàn đơn</h2>
                             </div>
                             <p>{order.return?.reason}</p>
                             <i className="text-danger">
