@@ -144,7 +144,7 @@ public function show($id)
                 $shippingStatus = $ghnShippingInfo['status'] ?? null;
             }
 
-            if ($shippingStatus === 'delivered' && $order->order_status !== 'delivered') {
+            if ($shippingStatus === 'delivered' && $order->use_shipping_status == 1 && $order->order_status !== 'delivered') {
                 $order->shipping_status = $shippingStatus;
 
                 if ($shippingStatus === 'delivered') {
