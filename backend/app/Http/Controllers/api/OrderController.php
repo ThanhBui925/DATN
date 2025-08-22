@@ -324,32 +324,44 @@ public function show($id)
         }
 
         //Nếu trạng thái là return_rejected, xóa toàn bộ thông tin trả hàng và lưu lý do từ chối
-        // if ($newStatus === 'return_rejected') {
-        //     //lưu lý do từ chối
-        //     $returnOrder = $order->return;
-        //     if ($returnOrder) {
-        //         $returnOrder->reason_for_refusal = $request->input('reason_for_refusal', 'Trả hàng bị từ chối');
-        //         $returnOrder->save();
-        //     }
-        // }
+        if ($newStatus === 'return_rejected') {
+            $reason = $request->input('reason_for_refusal');
 
-        //Nếu trạng thái là refunded , lưu mã giao dịch
+            if (!$reason) {
+                // rollback lại trạng thái cũ
+                $order->order_status = $order->getOriginal('order_status');
+                $order->save();
+
+                return $this->errorResponse('Vui lòng nhập lý do từ chối trả hàng', null, 422);
+            }
+
+            // Nếu có lý do thì lưu lại vào return_order
+            $returnOrder = $order->return;
+            if ($returnOrder) {
+                $returnOrder->reason_for_refusal = $reason;
+                $returnOrder->save();
+            }
+        }
+
         // if ($newStatus === 'refunded') {
-        //     $validated = $request->validate([
-        //         'transaction_code' => 'required|string|max:100',
-        //     ], [
-        //         'transaction_code.required' => 'Mã giao dịch không được để trống',
-        //         'transaction_code.string'   => 'Mã giao dịch không hợp lệ',
-        //         'transaction_code.max'      => 'Mã giao dịch tối đa 100 ký tự',
-        //     ]);
+        //     $transactionCode = $request->input('transaction_code');
 
-        //     $returnOrder = $order->return;
-        //     if ($returnOrder) {
-        //         $returnOrder->transaction_code = $validated['transaction_code'];
-        //         $returnOrder->save();
+        //     if (!$transactionCode) {
+        //         // rollback lại trạng thái cũ
+        //         $order->order_status = $order->getOriginal('order_status');
+        //         $order->save();
+
+        //         return $this->errorResponse('Vui lòng nhập mã giao dịch hoàn tiền', null, 422);
         //     }
 
+        //     // Nếu có transaction_code thì lưu
+        //     $returnOrder = $order->return;
+        //     if ($returnOrder) {
+        //         $returnOrder->transaction_code = $transactionCode;
+        //         $returnOrder->save();
+        //     }
         // }
+
 
 
         return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
