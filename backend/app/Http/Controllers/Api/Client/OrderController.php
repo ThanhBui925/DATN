@@ -410,7 +410,7 @@ class OrderController extends Controller
         return 'unknown';
     }
 
-    public function show(Request $request, $id)
+public function show(Request $request, $id)
     {
         $user = $request->user();
         if (!$user) {
@@ -428,6 +428,8 @@ class OrderController extends Controller
                 'orderItems.variant.size',
                 'orderItems.variant.color',
                 'orderItems.variant.images',
+                'return',
+                'return.evidences'
             ])->first();
 
         if (!$order) {
@@ -460,15 +462,6 @@ class OrderController extends Controller
 
                 if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
-
-                    // Lấy delivered_date từ GHN
-                    if (!empty($ghnShippingInfo['leadtime_order']['delivered_date'])) {
-                        $order->delivered_at = Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date']);
-                    } else {
-                        // fallback nếu GHN chưa có delivered_date
-                        $order->delivered_at = now();
-                    }
-
                     $order->use_shipping_status = 0;
                 }
 
@@ -573,6 +566,7 @@ class OrderController extends Controller
             'leadtime_order' => $leadtimeData,
             'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
             'date_order' => $order->date_order,
+            'return' => $order->return,
         ];
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
@@ -820,11 +814,11 @@ class OrderController extends Controller
         }
         
         $input = $request->all();
-        Log::info('Request return input', [
-            'user_id' => $user->id,
-            'order_id' => $order->id,
-            'input' => $input
-        ]);
+        // Log::info('Request return input', [
+        //     'user_id' => $user->id,
+        //     'order_id' => $order->id,
+        //     'input' => $input
+        // ]);
 
         // Build rules và messages
         $rules = [
@@ -841,8 +835,8 @@ class OrderController extends Controller
             'return_images.*.max'    => 'Dung lượng mỗi tệp tối đa 20MB',
         ];
 
-        // Nếu đơn đã thanh toán VNPAY thì bắt buộc thông tin ngân hàng
-        if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
+        // Nếu đơn đã thanh toán thì bắt buộc thông tin ngân hàng
+        if ($order->payment_status === 'paid') {
             $rules = array_merge($rules, [
                 'refund_bank'            => 'required|string|max:100',
                 'refund_account_name'    => 'required|string|max:100',

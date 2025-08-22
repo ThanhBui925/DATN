@@ -72,4 +72,9 @@ class Order extends Model
     {
         return $this->belongsTo(Address::class, 'address_id');
     }
+    
+    public function return()
+    {
+        return $this->hasOne(ReturnOrder::class);
+    }
 }

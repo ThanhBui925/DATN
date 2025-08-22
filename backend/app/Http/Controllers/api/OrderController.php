@@ -96,7 +96,7 @@ class OrderController extends Controller
     /**
      * Xem chi tiết đơn hàng (Admin)
      */
-    public function show($id)
+public function show($id)
     {
         $order = Order::with([
             'customer',
@@ -106,6 +106,8 @@ class OrderController extends Controller
             'orderItems.product',
             'orderItems.variant.size',
             'orderItems.variant.color',
+            'return',
+            'return.evidences'
         ])->find($id);
 
         if (!$order) {
@@ -217,8 +219,9 @@ class OrderController extends Controller
             'leadtime_order' => $ghnShippingInfo['leadtime_order'] ?? null,
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
+            'return' => $order->return,
         ];
-        
+
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
