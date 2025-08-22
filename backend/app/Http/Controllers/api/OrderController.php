@@ -30,57 +30,70 @@ class OrderController extends Controller
      * Lấy danh sách tất cả đơn hàng (Admin)
      */
     public function index(Request $request)
-    {
-        $query = Order::query()->with(['customer', 'shipping', 'user']);
-        // Lọc theo ngày cụ thể
-        if ($request->has('date')) {
-            $date = Carbon::parse($request->input('date'))->format('Y-m-d');
-            $query->whereDate('date_order', $date);
-        }
+{
+    $query = Order::query()->with(['customer', 'shipping', 'user']);
 
-        // Lọc theo tháng và năm
-        if ($request->has('month') && $request->has('year')) {
-            $query->whereMonth('date_order', $request->input('month'))
-                ->whereYear('date_order', $request->input('year'));
-        }
-
-        // Lọc theo khoảng thời gian
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('date_order', [
-                Carbon::parse($request->input('start_date'))->startOfDay(),
-                Carbon::parse($request->input('end_date'))->endOfDay()
-            ]);
-        }
-
-        // Lọc theo trạng thái
-        if ($request->has('status')) {
-            $query->where(function ($q) use ($request) {
-                $q->where(function ($sub) use ($request) {
-                    $sub->where('use_shipping_status', 1)
-                        ->where('shipping_status', $request->input('status'));
-                })->orWhere(function ($sub) use ($request) {
-                    $sub->where('use_shipping_status', 0)
-                        ->where('order_status', $request->input('status'));
-                });
-            });
-        }
-
-        // Lọc theo user
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
-        }
-
-        $orders = $query->orderBy('created_at', 'desc')->get();
-
-        $orders->transform(function ($order) {
-            $order->status = $order->use_shipping_status
-                ? $order->shipping_status
-                : $order->order_status;
-            return $order;
-        });
-
-        return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+    // Lọc theo mã đơn (order_code)
+    if ($request->filled('order_code')) {
+        $query->where('id', 'like', '%' . trim($request->input('order_code')) . '%');
     }
+
+    // Lọc theo ngày cụ thể (order_date)
+    if ($request->filled('order_date')) {
+        $date = Carbon::parse($request->input('order_date'))->format('Y-m-d');
+        $query->whereDate('date_order', $date);
+    }
+
+    // Lọc theo tháng và năm
+    if ($request->filled('month') && $request->filled('year')) {
+        $query->whereMonth('date_order', $request->input('month'))
+              ->whereYear('date_order', $request->input('year'));
+    }
+
+    // Lọc theo khoảng thời gian
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereBetween('date_order', [
+            Carbon::parse($request->input('start_date'))->startOfDay(),
+            Carbon::parse($request->input('end_date'))->endOfDay()
+        ]);
+    }
+
+    // Lọc theo trạng thái
+    if ($request->filled('status')) {
+        $status = $request->input('status');
+        $query->where(function ($q) use ($status) {
+            $q->where(function ($sub) use ($status) {
+                $sub->where('use_shipping_status', 1)
+                    ->where('shipping_status', $status);
+            })->orWhere(function ($sub) use ($status) {
+                $sub->where('use_shipping_status', 0)
+                    ->where('order_status', $status);
+            });
+        });
+    }
+
+    // Lọc theo user_id
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->input('user_id'));
+    }
+
+    // Lọc theo phone (từ customer)
+    if ($request->filled('phone')) {
+        $query->where('shop_order.recipient_phone', 'like', '%' . trim($request->input('phone')) . '%');
+    }
+    $orders = $query->orderBy('created_at', 'desc')->get();
+
+    // Gán status chung để frontend dễ đọc
+    $orders->transform(function ($order) {
+        $order->status = $order->use_shipping_status
+            ? $order->shipping_status
+            : $order->order_status;
+        return $order;
+    });
+
+    return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+}
+
 
 
     /**
@@ -210,11 +223,66 @@ public function show($id)
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
             'return' => $order->return,
+            'reject_reason' => $order->return->reason_for_refusal,
+            'transaction_code' => $order->return->transaction_code,
         ];
 
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
     }
+
+    //Hoàn tiền đơn hàng
+    public function refundOrder(Request $request, $id)
+    {
+        $order = Order::find($id); 
+        Log::info('Refunding order', [
+            'order_id' => $id,
+            'request' => $request->all(),
+        ]);
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
+        }
+
+        // Kiểm tra điều kiện hoàn tiền
+        if (!in_array($order->order_status, ['return_accepted', 'cancelled'])) {
+            return $this->errorResponse('Đơn hàng không đủ điều kiện hoàn tiền', null, 400);
+        }
+
+        $transactionCode = $request->input('transaction_code');
+        if (!$transactionCode) {
+            return $this->errorResponse('Vui lòng nhập mã giao dịch hoàn tiền', null, 422);
+        }
+
+        \Log::info('Refunding order', [
+            'order_id' => $order->id,
+            'transaction_code' => $transactionCode,
+        ]);
+
+        if ($order->order_status === 'cancelled') {
+            // Nếu đã hủy thì chỉ cập nhật payment_status
+            $order->payment_status = 'refunded';
+        } else {
+            // Nếu return_accepted thì cập nhật cả order_status và payment_status
+            $order->order_status = 'refunded';
+            $order->payment_status = 'refunded';
+        }
+        $order->save();
+
+        // Cập nhật trạng thái trả hàng (nếu có)
+        $returnOrder = $order->return;
+        \Log::info('returnOrder', [$returnOrder]);
+        if ($returnOrder) {
+            $returnOrder->transaction_code = $transactionCode;
+            $returnOrder->save();
+        }
+
+        return $this->successResponse(
+            $order->load(['customer', 'shipping', 'user']),
+            'Hoàn tiền đơn hàng thành công'
+        );
+    }
+
 
     /**
      * Cập nhật trạng thái đơn hàng (Admin)
@@ -325,7 +393,7 @@ public function show($id)
 
         //Nếu trạng thái là return_rejected, xóa toàn bộ thông tin trả hàng và lưu lý do từ chối
         if ($newStatus === 'return_rejected') {
-            $reason = $request->input('reason_for_refusal');
+            $reason = $request->input('reject_reason');
 
             if (!$reason) {
                 // rollback lại trạng thái cũ

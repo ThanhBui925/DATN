@@ -28,15 +28,16 @@ class ProductController extends Controller
                 $query->where('name', 'like', '%' . $request->input('search') . '%');
             });
 
-        if ($request->filled('colors')) {
-            $colorIds = explode(',', $request->query('colors'));
+        if ($request->filled('color_id')) {
+            $colorIds = (array) $request->query('color_id');
             $query->whereHas('variants', fn($q) => $q->whereIn('color_id', $colorIds));
         }
 
-        if ($request->filled('sizes')) {
-            $sizeIds = explode(',', $request->query('sizes'));
+        if ($request->filled('size_id')) {
+            $sizeIds = (array) $request->query('size_id');
             $query->whereHas('variants', fn($q) => $q->whereIn('size_id', $sizeIds));
         }
+
 
         if ($request->filled('prices')) {
             $priceRange = explode(',', $request->query('prices'));
@@ -85,16 +86,19 @@ class ProductController extends Controller
         // Best sellers
     public function bestSellerProduct()
     {
-        $products = Product::withCount('orderItems')
+        $products = Product::with(['category']) // load thêm danh mục
+            ->withCount('orderItems')
             ->withAvg('reviews as rating', 'rating')
             ->orderBy('order_items_count', 'desc')
             ->take(8)
             ->get();
 
+        // Làm tròn rating
         $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
 
         return $this->success($products);
     }
+
 
 
         // Featured products

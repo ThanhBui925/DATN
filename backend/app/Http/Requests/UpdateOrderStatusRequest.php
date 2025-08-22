@@ -17,7 +17,7 @@ class UpdateOrderStatusRequest extends FormRequest
     {
         return [
             'order_status'   => 'required|in:pending,confirming,confirmed,preparing,shipping,delivered,completed,canceled,failed,returned,return_requested,return_accepted,return_rejected,refunded',
-            'payment_status' => 'nullable|in:unpaid,paid',
+            'payment_status' => 'nullable|in:unpaid,paid,refunded,failed,waiting_for_refund',
             'cancel_reason'  => 'required_if:order_status,canceled|string|max:255',
         ];
     }

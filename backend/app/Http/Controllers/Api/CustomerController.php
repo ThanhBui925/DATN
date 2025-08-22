@@ -15,70 +15,66 @@ class CustomerController extends Controller
 {
     use ApiResponseTrait;
     public function index(Request $request)
-    {
-        $query = DB::table('customers')
-            ->join('users', 'customers.user_id', '=', 'users.id')
-            ->select(
-                'customers.*',
-                'users.name as user_name',
-                'users.email as user_email',
-                'users.role as user_role',
-                'users.status as user_status'
-            )->whereRaw('LOWER(TRIM(users.role)) = ?', ['client']);
+{
+    $query = DB::table('customers')
+        ->join('users', 'customers.user_id', '=', 'users.id')
+        ->select(
+            'customers.*',
+            'users.name as user_name',
+            'users.email as user_email',
+            'users.role as user_role',
+            'users.status as user_status'
+        )
+        ->whereRaw('LOWER(TRIM(users.role)) = ?', ['client']);
 
-        if ($request->filled('q')) {
-            $q = trim($request->q);
-            $query->where(function ($qq) use ($q) {
-                $qq->where('users.name', 'like', "%{$q}%")
-                    ->orWhere('users.email', 'like', "%{$q}%")
-                    ->orWhere('customers.phone', 'like', "%{$q}%")
-                    ->orWhere('customers.address', 'like', "%{$q}%");
+    if ($request->filled('q')) {
+        $q = trim($request->q);
+        $query->where(function ($qq) use ($q) {
+            $qq->where('users.name', 'like', "%{$q}%")
+                ->orWhere('users.email', 'like', "%{$q}%")
+                ->orWhere('customers.phone', 'like', "%{$q}%")
+                ->orWhere('customers.address', 'like', "%{$q}%");
 
-                // Nếu q là số thì tìm theo id
-                if (ctype_digit($q)) {
-                    $qq->orWhere('customers.id', (int) $q)
-                        ->orWhere('users.id', (int) $q);
-                }
-            });
-        }
-
-
-        if ($request->filled('phone')) {
-            $query->where('customers.phone', 'like', '%' . trim($request->phone) . '%');
-        }
-
-        if ($request->filled('address')) {
-            $query->where('customers.address', 'like', '%' . trim($request->address) . '%');
-        }
-
-        if ($request->filled('gender')) {
-            $query->where('customers.gender', trim($request->gender));
-        }
-
-        if ($request->filled('name')) {
-            $query->where('users.name', 'like', '%' . trim($request->name) . '%');
-        }
-
-        if ($request->filled('email')) {
-            $query->where('users.email', 'like', '%' . trim($request->email) . '%');
-        }
-
-        if ($request->filled('role')) {
-            $query->whereRaw('LOWER(TRIM(users.role)) = ?', [strtolower(trim($request->role))]);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('users.status', (int) $request->status);
-        }
-
-        $customers = $query->orderBy('customers.id', 'desc')->get();
-
-        if ($customers->isEmpty()) {
-            return $this->error('Không tìm thấy khách hàng phù hợp.', null, 404);
-        }
-
-        return $this->success($customers, 'Danh sách khách hàng đã được lấy thành công.');
+            if (ctype_digit($q)) {
+                $qq->orWhere('customers.id', (int) $q)
+                   ->orWhere('users.id', (int) $q);
+            }
+        });
     }
+
+    if ($request->filled('phone_like')) {
+        $query->where('customers.phone', 'like', '%' . trim($request->input('phone_like')) . '%');
+    }
+
+    if ($request->filled('address_like')) {
+        $query->where('customers.address', 'like', '%' . trim($request->input('address_like')) . '%');
+    }
+
+    if ($request->filled('gender')) {
+        $query->where('customers.gender', trim($request->gender));
+    }
+
+    if ($request->filled('user_name_like')) {
+        $query->where('users.name', 'like', '%' . trim($request->input('user_name_like')) . '%');
+    }
+
+    if ($request->filled('user_email_like')) {
+        $query->where('users.email', 'like', '%' . trim($request->input('user_email_like')) . '%');
+    }
+
+    if ($request->filled('user_status')) {
+        $query->where('users.status', (int) $request->input('user_status'));
+    }
+
+    $customers = $query->orderBy('customers.id', 'desc')->get();
+
+    if ($customers->isEmpty()) {
+        return $this->error('Không tìm thấy khách hàng phù hợp.', null, 404);
+    }
+
+    return $this->success($customers, 'Danh sách khách hàng đã được lấy thành công.');
+}
+
 
 
 
