@@ -25,16 +25,6 @@ use Illuminate\Support\Facades\Http;
 class OrderController extends Controller
 {
     use ApiResponseTrait;
-    
-    private $validTransitions = [
-        'pending' => ['confirmed', 'canceled'],
-        'confirmed' => ['preparing', 'canceled'],
-        'preparing' => ['shipping', 'canceled'],
-        'shipping' => ['delivered', 'canceled'],
-        'delivered' => ['completed'],
-        'completed' => [],
-        'canceled' => [],
-    ];
 
     /**
      * Lấy danh sách tất cả đơn hàng (Admin)
@@ -231,14 +221,15 @@ public function show($id)
      */
     public function updateStatus(UpdateOrderStatusRequest $request, $id)
     {
-        $order = Order::findOrFail($id);
-        $oldStatus = $order->order_status; // lưu trạng thái cũ
-        $newStatus = $request->input('order_status');
+        $order      = Order::findOrFail($id);
+        $oldStatus  = trim(strtolower((string)$order->order_status));
+        $newStatus  = trim(strtolower((string)$request->input('order_status')));
 
-        // Kiểm tra chuyển trạng thái hợp lệ
-        if (!in_array($newStatus, $this->validTransitions[$oldStatus] ?? [])) {
+        $validTransitions = \App\Http\Requests\UpdateOrderStatusRequest::$validTransitions;
+
+        if (!in_array($newStatus, $validTransitions[$oldStatus] ?? [])) {
             return $this->errorResponse(
-                'Chuyển trạng thái không hợp lệ từ ' . $oldStatus . ' sang ' . $newStatus,
+                'Chuyển trạng thái không hợp lệ ' . $oldStatus . ' sang ' . $newStatus,
                 null,
                 400
             );
@@ -254,7 +245,8 @@ public function show($id)
         }
 
         $order->cancel_reason = $newStatus === 'canceled' ? $request->input('cancel_reason') : null;
-        if ($newStatus === 'shipping' && !$order->shipped_at) $order->shipped_at = Carbon::now();
+
+        if ($newStatus === 'shipping' && !$order->shipped_at)   $order->shipped_at   = Carbon::now();
         if ($newStatus === 'delivered' && !$order->delivered_at) $order->delivered_at = Carbon::now();
 
         $order->save();
@@ -263,25 +255,25 @@ public function show($id)
         if ($newStatus === 'shipping' && !$order->order_code) {
             try {
                 if ($order->address_id && $order->address) {
-                    $address = $order->address;
-                    $recipientName = $address->recipient_name;
-                    $recipientPhone = $address->recipient_phone;
-                    $detailed_address = $address->address;
-                    $wardName = $address->ward_name;
-                    $districtName = $address->district_name;
-                    $provinceName = $address->province_name;
+                    $address         = $order->address;
+                    $recipientName   = $address->recipient_name;
+                    $recipientPhone  = $address->recipient_phone;
+                    $detailed_address= $address->address;
+                    $wardName        = $address->ward_name;
+                    $districtName    = $address->district_name;
+                    $provinceName    = $address->province_name;
                 } else {
-                    $recipientName = $order->recipient_name;
-                    $recipientPhone = $order->recipient_phone;
-                    $detailed_address = $order->detailed_address;
-                    $wardName = $order->ward_name;
-                    $districtName = $order->district_name;
-                    $provinceName = $order->province_name;
+                    $recipientName   = $order->recipient_name;
+                    $recipientPhone  = $order->recipient_phone;
+                    $detailed_address= $order->detailed_address;
+                    $wardName        = $order->ward_name;
+                    $districtName    = $order->district_name;
+                    $provinceName    = $order->province_name;
                 }
 
                 $toProvinceId = ShippingFeeService::matchProvinceByName($provinceName);
-                $toDistrictId = ShippingFeeService::matchDistrictByName($toProvinceId['ProvinceID'], $districtName);
-                $toWardCode = ShippingFeeService::matchWardByName($toDistrictId['DistrictID'], $wardName);
+                $toDistrictId = ShippingFeeService::matchDistrictByName($toProvinceId['ProvinceID'] ?? null, $districtName);
+                $toWardCode   = ShippingFeeService::matchWardByName($toDistrictId['DistrictID'] ?? null, $wardName);
 
                 if (!$toProvinceId || !$toDistrictId || !$toWardCode) {
                     $order->order_status = $oldStatus;
@@ -292,28 +284,36 @@ public function show($id)
                 $shippingData = [
                     'province_id' => $toProvinceId['ProvinceID'],
                     'district_id' => $toDistrictId['DistrictID'],
-                    'ward_code' => $toWardCode['WardCode'],
+                    'ward_code'   => $toWardCode['WardCode'],
                 ];
 
                 $shippingAddress = implode(', ', array_filter([$detailed_address, $wardName, $districtName, $provinceName]));
                 $items = $order->orderItems->map(fn($item) => [
-                    'name' => $item->product->name ?? 'Sản phẩm',
+                    'name'     => $item->product->name ?? 'Sản phẩm',
                     'quantity' => (int)$item->quantity,
-                    'price' => (int)$item->price,
+                    'price'    => (int)$item->price,
                 ])->toArray();
 
-                $ghnResponse = ShippingFeeService::createOrder($order, $recipientName, $recipientPhone, $shippingAddress, $shippingData, $items, $oldStatus);
+                $ghnResponse = ShippingFeeService::createOrder(
+                    $order,
+                    $recipientName,
+                    $recipientPhone,
+                    $shippingAddress,
+                    $shippingData,
+                    $items,
+                    $oldStatus
+                );
 
-                if (!isset($ghnResponse['code']) || $ghnResponse['code'] != 200) {
+                if (!isset($ghnResponse['code']) || (int)$ghnResponse['code'] !== 200) {
                     $order->order_status = $oldStatus;
                     $order->save();
                     return $this->errorResponse('Tạo đơn GHN thất bại: ' . ($ghnResponse['message'] ?? json_encode($ghnResponse)), null, 500);
                 }
 
                 // Cập nhật thông tin GHN
-                $order->order_code = $ghnResponse['data']['order_code'] ?? null;
-                $order->use_shipping_status = 1;
-                $order->shipping_status = 'ready_to_pick';
+                $order->order_code         = $ghnResponse['data']['order_code'] ?? null;
+                $order->use_shipping_status= 1;
+                $order->shipping_status    = 'ready_to_pick';
                 $order->save();
 
             } catch (\Exception $e) {
@@ -323,8 +323,37 @@ public function show($id)
             }
         }
 
+        //Nếu trạng thái là return_rejected, xóa toàn bộ thông tin trả hàng và lưu lý do từ chối
+        // if ($newStatus === 'return_rejected') {
+        //     //lưu lý do từ chối
+        //     $returnOrder = $order->return;
+        //     if ($returnOrder) {
+        //         $returnOrder->reason_for_refusal = $request->input('cancel_reason', 'Trả hàng bị từ chối');
+        //         $returnOrder->save();
+        //     }
+        // }
+
+        //Nếu trạng thái là refunded , lưu mã giao dịch
+        // if ($newStatus === 'refunded') {
+        //     $validated = $request->validate([
+        //         'transaction_code' => 'required|string|max:100',
+        //     ], [
+        //         'transaction_code.required' => 'Mã giao dịch không được để trống',
+        //         'transaction_code.string'   => 'Mã giao dịch không hợp lệ',
+        //         'transaction_code.max'      => 'Mã giao dịch tối đa 100 ký tự',
+        //     ]);
+
+        //     $returnOrder = $order->return;
+        //     if ($returnOrder) {
+        //         $returnOrder->transaction_code = $validated['transaction_code'];
+        //         $returnOrder->save();
+        //     }
+        // }
+
+
         return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Cập nhật trạng thái đơn hàng thành công');
     }
+
 
 
     /**

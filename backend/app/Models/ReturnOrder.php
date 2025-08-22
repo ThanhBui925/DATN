@@ -11,6 +11,8 @@ class ReturnOrder extends Model
         'order_id',
         'user_id',
         'reason',
+        'reason_for_refusal',
+        'transaction_code',
         'refund_bank',
         'refund_account_name',
         'refund_account_number',

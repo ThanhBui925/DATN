@@ -75,6 +75,7 @@ class Order extends Model
     
     public function return()
     {
-        return $this->hasOne(ReturnOrder::class);
+        return $this->hasOne(ReturnOrder::class)->latestOfMany('created_at');
     }
+
 }
