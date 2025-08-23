@@ -59,7 +59,8 @@ class OrderController extends Controller
                 'orderItems.product',
                 'orderItems.variant.size',
                 'orderItems.variant.color',
-                'orderItems.variant.images'
+                'orderItems.variant.images',
+                'return',
             ]);
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
@@ -465,6 +466,9 @@ public function show(Request $request, $id)
 
                 if ($shippingStatus === 'delivered' && $order->use_shipping_status == 1 && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
+                    $order->delivered_at = isset($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        ? Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        : Carbon::now();
                     $order->use_shipping_status = 0;
                 }
 
@@ -646,7 +650,7 @@ public function show(Request $request, $id)
                 $returnOrder->refund_account_number = $validated['refund_account_number'];
                 $returnOrder->save();
 
-                $order->order_status = 'return_accepted';
+                $order->order_status = 'canceled';
                 $order->payment_status = 'waiting_for_refund';
             } else {
                 $order->order_status = 'canceled';

@@ -5,9 +5,12 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Traits\ApiResponseTrait;
+
 
 class UpdateOrderStatusRequest extends FormRequest
 {
+    use ApiResponseTrait;
     public function authorize(): bool
     {
         return true;
@@ -65,7 +68,6 @@ class UpdateOrderStatusRequest extends FormRequest
             $currentStatus = trim(strtolower((string)$order->order_status));
             $newStatus     = trim(strtolower((string)$this->input('order_status')));
 
-            // ⚠️ LOG DÙNG STATIC, KHÔNG DÙNG $this->validTransitions
             \Log::info('DEBUG Order Status', [
                 'current' => $currentStatus,
                 'new'     => $newStatus,
@@ -83,6 +85,7 @@ class UpdateOrderStatusRequest extends FormRequest
             // Nếu đơn đã paid mà set canceled -> báo lỗi
             if ($newStatus === 'canceled' && $order->payment_status === 'paid') {
                 $validator->errors()->add('payment_status', 'Không thể hủy đơn hàng đã thanh toán.');
+                return $this->error('Không thể hủy đơn hàng đã thanh toán.', null, 400);
             }
         });
     }
