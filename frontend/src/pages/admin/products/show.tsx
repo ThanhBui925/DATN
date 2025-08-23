@@ -150,7 +150,7 @@ export const ProductsShow: React.FC = () => {
             title: <Text strong style={{ color: "#444" }}>Trạng thái</Text>,
             dataIndex: "status",
             key: "status",
-            render: (value: any) => <TextField value={value === "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
+            render: (value: any) => <TextField value={value == "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
         },
         {
             title: <Text strong style={{ color: "#444" }}>Ảnh biến thể</Text>,

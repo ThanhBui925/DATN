@@ -67,28 +67,23 @@ export const OrdersShow = () => {
         form.resetFields();
     };
 
-    const handleRefundOk = () => {
-        refundForm.validateFields()
-            .then((values) => {
-                mutate({
-                    resource: "orders",
-                    id: record?.id,
-                    values: { payment_status: 'refunded', transaction_code: values.transaction_code },
-                }, {
-                    onSuccess: () => {
-                        message.success("Đã cập nhật trạng thái hoàn tiền!");
-                        setIsRefundModalVisible(false);
-                        refundForm.resetFields();
-                        queryResult.refetch();
-                    },
-                    onError: () => {
-                        message.error("Có lỗi xảy ra khi cập nhật!");
-                    },
-                });
-            })
-            .catch(() => {
-                message.error("Vui lòng nhập mã giao dịch!");
+    const handleRefundOk = async () => {
+        try {
+            const values = await refundForm.validateFields();
+
+            await axiosInstance.post(`/api/orders/${record?.id}/refunded`, {
+                payment_status: "refunded",
+                transaction_code: values.transaction_code,
             });
+
+            message.success("Đã cập nhật trạng thái hoàn tiền!");
+            setIsRefundModalVisible(false);
+            refundForm.resetFields();
+            queryResult.refetch();
+        } catch (error) {
+            console.error(error);
+            message.error("Có lỗi xảy ra khi cập nhật!");
+        }
     };
 
     return (
@@ -106,7 +101,13 @@ export const OrdersShow = () => {
                 }
                 headerButtons={() => (
                     <>
-                        <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
+                        {
+                            (record?.status !== 'canceled' && record?.payment_status !== 'cash') ||
+                            (record?.status === 'refunded' && record?.payment_status === 'refunded')
+                            && (
+                                <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
+                            )
+                        }
                         <Button
                             onClick={() => {
                                 window.open(`${import.meta.env.VITE_APP_API_URL}/api/orders/${record?.id}/pdf`, "_blank");
@@ -120,7 +121,7 @@ export const OrdersShow = () => {
                 )}
             >
                 <Row gutter={[24, 24]} style={{marginBottom: 24}}>
-                    {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded'].includes(record?.status)
+                    {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded', 'completed'].includes(record?.status)
                         && record?.return?.evidences?.length > 0 && (
                             <Col xs={24}>
                                 <Card
@@ -137,38 +138,44 @@ export const OrdersShow = () => {
                                                 />
                                             </Col>
                                         ))}
-                                        {(record?.status === 'return_requested' || record?.status === 'canceled') && record?.return && (
-                                            <Col xs={24}>
-                                                <Card
-                                                    title={<Title level={4} style={{margin: 0}}>Thông tin tài khoản hoàn tiền</Title>}
-                                                    style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
-                                                >
-                                                    <Row gutter={[16, 16]}>
-                                                        <Col xs={24} sm={12}>
-                                                            <Text strong style={{color: "#595959", fontSize: 14}}>Số tài khoản</Text>
-                                                            <TextField
-                                                                value={record?.return?.refund_account_number || "-"}
-                                                                style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                            />
-                                                        </Col>
-                                                        <Col xs={24} sm={12}>
-                                                            <Text strong style={{color: "#595959", fontSize: 14}}>Ngân hàng</Text>
-                                                            <TextField
-                                                                value={record?.return?.refund_bank || "-"}
-                                                                style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                            />
-                                                        </Col>
-                                                        <Col xs={24} sm={12}>
-                                                            <Text strong style={{color: "#595959", fontSize: 14}}>Tên chủ tài khoản</Text>
-                                                            <TextField
-                                                                value={record?.return?.refund_account_name || "-"}
-                                                                style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                            />
-                                                        </Col>
-                                                    </Row>
-                                                </Card>
-                                            </Col>
-                                        )}
+                                        <Col>
+                                            <h3>Lý do trả hàng: { record?.return?.reason }</h3>
+                                            {
+                                                record?.return?.reason_for_refusal && (
+                                                    <h3>Lý do từ chối trả hàng: { record?.return?.reason_for_refusal }</h3>
+                                                )
+                                            }
+                                        </Col>
+                                        <Col xs={24}>
+                                            <Card
+                                                title={<Title level={4} style={{margin: 0}}>Thông tin tài khoản hoàn tiền</Title>}
+                                                style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
+                                            >
+                                                <Row gutter={[16, 16]}>
+                                                    <Col xs={24} sm={12}>
+                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Số tài khoản</Text>
+                                                        <TextField
+                                                            value={record?.return?.refund_account_number || "-"}
+                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                                        />
+                                                    </Col>
+                                                    <Col xs={24} sm={12}>
+                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Ngân hàng</Text>
+                                                        <TextField
+                                                            value={record?.return?.refund_bank || "-"}
+                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                                        />
+                                                    </Col>
+                                                    <Col xs={24} sm={12}>
+                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Tên chủ tài khoản</Text>
+                                                        <TextField
+                                                            value={record?.return?.refund_account_name || "-"}
+                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                                        />
+                                                    </Col>
+                                                </Row>
+                                            </Card>
+                                        </Col>
                                     </Row>
                                 </Card>
                             </Col>
@@ -255,12 +262,21 @@ export const OrdersShow = () => {
                                     <Text strong style={{color: "#595959", fontSize: 14}}>Trạng thái đơn hàng</Text>
                                     <div style={{marginTop: 8}}>
                                         {record?.status ? (
-                                            <Tag
-                                                color={statusMap[record.status]?.cssColor}
-                                                style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
-                                            >
-                                                {statusMap[record.status]?.label || record.status}
-                                            </Tag>
+                                            record?.status == 'refunded' && record?.payment_status == 'refunded' ? (
+                                                <Tag
+                                                    color={statusMap[record.status]?.cssColor}
+                                                    style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                                >
+                                                    Đơn hàng đã được hoàn thành công
+                                                </Tag>
+                                            ) : (
+                                                <Tag
+                                                    color={statusMap[record.status]?.cssColor}
+                                                    style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                                >
+                                                    {statusMap[record.status]?.label || record.status}
+                                                </Tag>
+                                            )
                                         ) : (
                                             <TextField
                                                 value="Không có trạng thái"
@@ -339,7 +355,7 @@ export const OrdersShow = () => {
                                     <Col xs={24} sm={12}>
                                         <Text strong style={{color: "#595959", fontSize: 14}}>Mã giao dịch hoàn tiền</Text>
                                         <TextField
-                                            value={record?.transaction_code || "-"}
+                                            value={record?.return?.transaction_code || "-"}
                                             style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                         />
                                     </Col>

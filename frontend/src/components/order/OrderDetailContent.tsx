@@ -555,7 +555,7 @@ export const OrderDetailContent = () => {
                                     Đã nhận được hàng
                                 </button>
                             )}
-                            {order.status === "completed" && !hasRequestedReturn && (
+                            {order.status === "completed" && !order?.return && !hasRequestedReturn && (
                                 <button
                                     className="btn btn-outline-warning btn-sm px-4 fw-medium"
                                     onClick={showReturnModal}
