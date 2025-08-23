@@ -351,7 +351,10 @@ export const OrdersShow = () => {
                                                 style={{display: "block", fontSize: 16, color: "#262626"}}
                                             />
                                         )}
-                                        {record?.status === 'return_accepted' && record?.payment_status !== 'refunded' && (
+                                        {(
+                                            (record?.status === "return_accepted" && record?.payment_status !== "refunded") ||
+                                            (record?.status === "canceled" && record?.payment_status === "paid")
+                                        ) && (
                                             <Button
                                                 type="dashed"
                                                 onClick={() => setIsRefundModalVisible(true)}
@@ -359,6 +362,7 @@ export const OrdersShow = () => {
                                                 Bấm xác nhận đã hoàn tiền
                                             </Button>
                                         )}
+
                                     </div>
                                 </Col>
                                 {record?.payment_status === 'refunded' && (
