@@ -11,13 +11,9 @@ class BlogController extends Controller
 {
     use ApiResponseTrait;
 
-    /**
-     * Lấy danh sách blog (có phân trang)
-     */
     public function index(Request $request)
     {
         $query = Blog::query()->where('status', 1);
-        // Tìm kiếm theo tiêu đề nếu có
         if ($request->has('search')) {
             $query->where('title', 'like', '%' . $request->input('search') . '%');
         }
@@ -25,15 +21,13 @@ class BlogController extends Controller
         return $this->successResponse($blogs, 'Lấy danh sách blog thành công');
     }
 
-    /**
-     * Xem chi tiết blog
-     */
     public function show($id)
     {
-        $blog = Blog::where('status', 1)->find($id);
+        $blog = Blog::where('id', $id)->where('status', 1)->first();
         if (!$blog) {
             return $this->errorResponse('Bài viết không tồn tại hoặc đã bị ẩn', null, 404);
         }
         return $this->successResponse($blog, 'Lấy chi tiết blog thành công');
     }
-} 
+
+}
