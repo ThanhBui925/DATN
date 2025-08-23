@@ -147,11 +147,14 @@ public function show($id)
                 $shippingStatus = $ghnShippingInfo['status'] ?? null;
             }
 
-            if ($shippingStatus === 'delivered' && $order->use_shipping_status == 1 && $order->order_status !== 'delivered') {
+            if ($shippingStatus == 'delivered' && $order->use_shipping_status == 1 && $order->order_status !== 'delivered') {
                 $order->shipping_status = $shippingStatus;
 
-                if ($shippingStatus === 'delivered') {
+                if ($shippingStatus == 'delivered') {
                     $order->order_status = 'delivered';
+                    $order->delivered_at = isset($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        ? Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        : Carbon::now();
                     $order->use_shipping_status = 0;
                 }
 
@@ -223,8 +226,6 @@ public function show($id)
             'pickup_time' => $ghnShippingInfo['pickup_time'] ?? null,
             'finish_date' => $ghnShippingInfo['finish_date'] ?? null,
             'return' => $order->return,
-            'reject_reason' => $order->return->reason_for_refusal,
-            'transaction_code' => $order->return->transaction_code,
         ];
 
 
