@@ -67,7 +67,7 @@ export const DetailBlog = () => {
                     <div className="blog-inner-img">
                         <div className="row align-items-center">
                             <div className="pt-30">
-                                <img alt="blog-img" src={`http://127.0.0.1:8000/storage/${blog.image}`} className="full-img" />
+                                <img alt="blog-img" src={`http://127.0.0.1:8000/storage/${blog.image}`} style={{ width: 'inherit'}} className="full-img" />
                             </div>
                         </div>
                     </div>

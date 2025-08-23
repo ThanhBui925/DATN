@@ -216,7 +216,7 @@ export const OrderDetailContent = () => {
     };
 
     const handleModalOk = () => {
-        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
+        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
         let newErrors: { [key: string]: string } = {};
         if (!cancelReason.trim()) {
             newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";

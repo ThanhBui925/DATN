@@ -32,25 +32,27 @@ const ClientLayout = () => {
     return (
         <>
             <Helmet>
-                <meta charSet="utf-8" />
-                <meta http-equiv="x-ua-compatible" content="ie=edge" />
-                <title>Home || SportWolk - Ecommerce Bootstrap 5 Template</title>
-                <meta name="description" content="" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico" />
-                <link rel="stylesheet" href="/css/bootstrap.min.css" />
-                <link rel="stylesheet" href="/css/font-awesome.min.css" />
-                <link rel="stylesheet" href="/css/ionicons.min.css" />
-                <link rel="stylesheet" href="/css/animate.css" />
-                <link rel="stylesheet" href="/css/nice-select.css" />
-                <link rel="stylesheet" href="/css/owl.carousel.min.css" />
-                <link rel="stylesheet" href="/css/mainmenu.css" />
-                <link rel="stylesheet" href="/style.css" />
-                <link rel="stylesheet" href="/css/responsive.css" />
+                <meta charSet="utf-8"/>
+                <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+                <title>SportWolk - Shop thể thao</title>
+                <meta name="description" content=""/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="shortcut icon" type="image/x-icon" href="/img/logo/favicon.ico"/>
+                <link rel="icon" href="/img/logo/favicon-2.ico"/>
+                <link rel="icon" type="image/png" sizes="192x192" href="/img/logo/logo.png"/>
+                <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+                <link rel="stylesheet" href="/css/font-awesome.min.css"/>
+                <link rel="stylesheet" href="/css/ionicons.min.css"/>
+                <link rel="stylesheet" href="/css/animate.css"/>
+                <link rel="stylesheet" href="/css/nice-select.css"/>
+                <link rel="stylesheet" href="/css/owl.carousel.min.css"/>
+                <link rel="stylesheet" href="/css/mainmenu.css"/>
+                <link rel="stylesheet" href="/style.css"/>
+                <link rel="stylesheet" href="/css/responsive.css"/>
             </Helmet>
 
             <div className="wrapper">
-                <Header />
+                <Header/>
                 <main>
                     <Outlet />
                 </main>
