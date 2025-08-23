@@ -124,12 +124,12 @@ export const OrdersShow = () => {
                 )}
             >
                 <Row gutter={[24, 24]} style={{marginBottom: 24}}>
-                    {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded', 'completed'].includes(record?.status)
-                        && record?.return?.evidences?.length > 0 && (
+                    {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded', 'completed'].includes(record?.status) &&
+                        record?.return?.evidences?.length > 0 && (
                             <Col xs={24}>
                                 <Card
-                                    title={<Title level={4} style={{margin: 0}}>Hình ảnh trả hàng</Title>}
-                                    style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(255, 0, 0, 0.5)"}}
+                                    title={<Title level={4} style={{ margin: 0 }}>Hình ảnh trả hàng</Title>}
+                                    style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(255, 0, 0, 0.5)" }}
                                 >
                                     <Row gutter={[16, 16]}>
                                         {record?.return?.evidences.map((evd: any, index: any) => (
@@ -137,52 +137,59 @@ export const OrdersShow = () => {
                                                 <Image
                                                     src={evd.file_path}
                                                     alt={`Hình ảnh trả hàng ${index + 1}`}
-                                                    style={{width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 4}}
+                                                    style={{ width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 4 }}
                                                 />
                                             </Col>
                                         ))}
                                         <Col>
-                                            <h3>Lý do trả hàng: { record?.return?.reason }</h3>
-                                            {
-                                                record?.return?.reason_for_refusal && (
-                                                    <h3>Lý do từ chối trả hàng: { record?.return?.reason_for_refusal }</h3>
-                                                )
-                                            }
-                                        </Col>
-                                        <Col xs={24}>
-                                            <Card
-                                                title={<Title level={4} style={{margin: 0}}>Thông tin tài khoản hoàn tiền</Title>}
-                                                style={{borderRadius: 8, boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"}}
-                                            >
-                                                <Row gutter={[16, 16]}>
-                                                    <Col xs={24} sm={12}>
-                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Số tài khoản</Text>
-                                                        <TextField
-                                                            value={record?.return?.refund_account_number || "-"}
-                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                        />
-                                                    </Col>
-                                                    <Col xs={24} sm={12}>
-                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Ngân hàng</Text>
-                                                        <TextField
-                                                            value={record?.return?.refund_bank || "-"}
-                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                        />
-                                                    </Col>
-                                                    <Col xs={24} sm={12}>
-                                                        <Text strong style={{color: "#595959", fontSize: 14}}>Tên chủ tài khoản</Text>
-                                                        <TextField
-                                                            value={record?.return?.refund_account_name || "-"}
-                                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
-                                                        />
-                                                    </Col>
-                                                </Row>
-                                            </Card>
+                                            <div>
+                                                <h3>Lý do trả hàng: {record?.return?.reason}</h3>
+                                                {record?.return?.reason_for_refusal && (
+                                                    <h3>Lý do từ chối trả hàng: {record?.return?.reason_for_refusal}</h3>
+                                                )}
+                                            </div>
                                         </Col>
                                     </Row>
                                 </Card>
                             </Col>
-                        )}
+                        )
+                    }
+
+                    {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded', 'completed'].includes(record?.status) &&
+                        record?.payment_status === "paid" && (
+                            <Col xs={24}>
+                                <Card
+                                    title={<Title level={4} style={{ margin: 0 }}>Thông tin tài khoản hoàn tiền</Title>}
+                                    style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(255, 0, 0, 0.5)" }}
+                                >
+                                    <Row gutter={[16, 16]}>
+                                        <Col xs={24} sm={12}>
+                                            <Text strong style={{ color: "#595959", fontSize: 14 }}>Số tài khoản</Text>
+                                            <TextField
+                                                value={record?.return?.refund_account_number || "-"}
+                                                style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                            />
+                                        </Col>
+                                        <Col xs={24} sm={12}>
+                                            <Text strong style={{ color: "#595959", fontSize: 14 }}>Ngân hàng</Text>
+                                            <TextField
+                                                value={record?.return?.refund_bank || "-"}
+                                                style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                            />
+                                        </Col>
+                                        <Col xs={24} sm={12}>
+                                            <Text strong style={{ color: "#595959", fontSize: 14 }}>Tên chủ tài khoản</Text>
+                                            <TextField
+                                                value={record?.return?.refund_account_name || "-"}
+                                                style={{ display: "block", fontSize: 16, color: "#262626", marginTop: 8 }}
+                                            />
+                                        </Col>
+                                    </Row>
+                                </Card>
+                            </Col>
+                        )
+                    }
+
                     <Col xs={24}>
                         <Row gutter={[24, 24]}>
                             <Col xs={24} md={12}>
