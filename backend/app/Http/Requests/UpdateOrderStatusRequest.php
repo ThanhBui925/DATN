@@ -83,10 +83,21 @@ class UpdateOrderStatusRequest extends FormRequest
             }
 
             // Nếu đơn đã paid mà set canceled -> báo lỗi
+            // Nếu đơn đã paid mà set canceled -> báo lỗi
             if ($newStatus === 'canceled' && $order->payment_status === 'paid') {
+                // Thêm lỗi vào validator
                 $validator->errors()->add('payment_status', 'Không thể hủy đơn hàng đã thanh toán.');
-                return $this->error('Không thể hủy đơn hàng đã thanh toán.', null, 400);
+
+                // Ném exception trả về JSON 422
+                throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                    response()->json([
+                        'status' => false,
+                        'message' => 'Không thể hủy đơn hàng đã thanh toán.',
+                        'errors' => $validator->errors(),
+                    ], 422)
+                );
             }
+
         });
     }
 
