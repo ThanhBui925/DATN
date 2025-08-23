@@ -650,7 +650,7 @@ public function show(Request $request, $id)
                 $returnOrder->refund_account_number = $validated['refund_account_number'];
                 $returnOrder->save();
 
-                $order->order_status = 'return_accepted';
+                $order->order_status = 'canceled';
                 $order->payment_status = 'waiting_for_refund';
             } else {
                 $order->order_status = 'canceled';
