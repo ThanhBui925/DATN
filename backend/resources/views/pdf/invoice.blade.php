@@ -43,19 +43,25 @@
 </head>
 <body>
     <div class="invoice-box">
-        <div class="title">Invoice #{{ $order->id }}</div>
+        <div class="title">{{ $title }}</div>
         <div class="info">
             <table>
                 <tr>
                     <td>
                         <strong>Customer:</strong> {{ $order->recipient_name }}<br>
                         <strong>Phone:</strong> {{ $order->recipient_phone }}<br>
-                        <strong>Address:</strong> {{ $order->shipping_address }}
+                        <strong>Address:</strong>
+                        {{ implode(', ', array_filter([
+                            $order->detailed_address ?? '',
+                            $order->ward_name ?? '',
+                            $order->district_name ?? '',
+                            $order->province_name ?? '',
+                        ])) }}
                     </td>
                     <td>
                         <strong>Date:</strong> {{ $date }}<br>
                         <strong>Status:</strong> {{ $order->order_status }}<br>
-                        <strong>Shipping:</strong> {{ $order->shipping->name }}
+                        <strong>Shipping:</strong> {{ $order->shipping->name ?? '' }}
                     </td>
                 </tr>
             </table>
@@ -73,16 +79,27 @@
             <tbody>
                 @foreach($order->orderItems as $item)
                 <tr>
-                    <td>{{ $item->product->name }}</td>
-                    <td>{{ $item->variant ? $item->variant->name : 'N/A' }}</td>
-                    <td>{{ number_format($item->price, 2) }} USD</td>
+                    <td>{{ $item->product->name ?? '' }}</td>
+                    <td>
+                        @if($item->variant)
+                            @php
+                                $variantArr = [];
+                                if($item->variant->size) $variantArr[] = 'Size: ' . $item->variant->size->name;
+                                if($item->variant->color) $variantArr[] = 'Color: ' . $item->variant->color->name;
+                                echo implode(', ', $variantArr);
+                            @endphp
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>{{ number_format($item->price, 0, ',', '.') }} đ</td>
                     <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->price * $item->quantity, 2) }} USD</td>
+                    <td>{{ number_format($item->price * $item->quantity, 0, ',', '.') }} đ</td>
                 </tr>
                 @endforeach
                 <tr>
                     <td colspan="4" class="total">Total</td>
-                    <td class="total">{{ number_format($order->total_price, 2) }} USD</td>
+                    <td class="total">{{ number_format($order->total_price, 0, ',', '.') }} đ</td>
                 </tr>
             </tbody>
         </table>
