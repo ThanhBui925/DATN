@@ -304,7 +304,7 @@ export const OrdersShow = () => {
                                         <Col xs={24} sm={12}>
                                             <Text strong style={{color: "#595959", fontSize: 14}}>Lý do từ chối hoàn hàng</Text>
                                             <TextField
-                                                value={record?.reject_reason || "Không có"}
+                                                value={record?.return?.reason_for_refusal || "Không có"}
                                                 style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                             />
                                         </Col>
