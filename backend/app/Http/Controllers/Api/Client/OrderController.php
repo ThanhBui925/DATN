@@ -59,7 +59,8 @@ class OrderController extends Controller
                 'orderItems.product',
                 'orderItems.variant.size',
                 'orderItems.variant.color',
-                'orderItems.variant.images'
+                'orderItems.variant.images',
+                'return',
             ]);
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
