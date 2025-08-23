@@ -647,7 +647,7 @@ export const OrderContent: React.FC = () => {
             <Modal
                 title={(() => {
                     const selectedOrder = orders.find(o => o.id === selectedOrderId);
-                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid'
+                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash'
                         ? "Lý do trả hàng hoàn tiền"
                         : "Lý do trả hàng";
                 })()}
@@ -678,7 +678,10 @@ export const OrderContent: React.FC = () => {
                 {returnErrors.return_files && <div className="text-danger">{returnErrors.return_files}</div>}
                 {(() => {
                     const selectedOrder = orders.find(o => o.id === selectedOrderId);
-                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash' && (
+                    const isRefundRequired =
+                        (selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid')
+                        || (selectedOrder?.payment_method === 'cash' ? true : false);
+                    return isRefundRequired && (
                         <>
                             <Input
                                 required
