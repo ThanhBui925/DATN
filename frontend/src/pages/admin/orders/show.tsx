@@ -102,12 +102,15 @@ export const OrdersShow = () => {
                 headerButtons={() => (
                     <>
                         {
-                            (record?.status !== 'canceled' && record?.payment_status !== 'cash') ||
-                            (record?.status === 'refunded' && record?.payment_status === 'refunded')
-                            && (
+                            !(
+                                (record?.status === "canceled" && record?.payment_status === "cash") ||
+                                (record?.status === "refunded" && record?.payment_status === "refunded")
+                            ) && (
                                 <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                             )
                         }
+
+
                         <Button
                             onClick={() => {
                                 window.open(`${import.meta.env.VITE_APP_API_URL}/api/orders/${record?.id}/pdf`, "_blank");
