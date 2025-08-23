@@ -14,9 +14,9 @@ export const ReturnOrderInstruct = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Hướng dẫn hoàn hàng tại Juta</h2>
+                                <h2>Hướng dẫn hoàn hàng tại SportWolk</h2>
                                 <p>
-                                    Tại Juta, chúng tôi cam kết mang đến trải nghiệm mua sắm tốt nhất cho khách hàng. Nếu bạn cần hoàn hàng, hãy tham khảo quy trình dưới đây để đảm bảo quá trình diễn ra nhanh chóng và thuận tiện.
+                                    Tại SportWolk, chúng tôi cam kết mang đến trải nghiệm mua sắm tốt nhất cho khách hàng. Nếu bạn cần hoàn hàng, hãy tham khảo quy trình dưới đây để đảm bảo quá trình diễn ra nhanh chóng và thuận tiện.
                                 </p>
                             </div>
                         </div>
@@ -31,7 +31,7 @@ export const ReturnOrderInstruct = () => {
                             <div className="about-info-wrapper">
                                 <h3>Chính sách hoàn hàng</h3>
                                 <p>
-                                    Juta chấp nhận hoàn hàng trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng, còn nguyên tem mác, hộp giày và hóa đơn mua hàng.
+                                    SportWolk chấp nhận hoàn hàng trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng, còn nguyên tem mác, hộp giày và hóa đơn mua hàng.
                                 </p>
                                 <p>
                                     Các trường hợp được hoàn hàng:
@@ -42,7 +42,7 @@ export const ReturnOrderInstruct = () => {
                                     <li>Khách hàng đổi ý (chỉ áp dụng với sản phẩm còn mới 100%).</li>
                                 </ul>
                                 <p>
-                                    Lưu ý: Chi phí vận chuyển hoàn hàng sẽ do khách hàng chi trả, trừ trường hợp lỗi từ phía Juta.
+                                    Lưu ý: Chi phí vận chuyển hoàn hàng sẽ do khách hàng chi trả, trừ trường hợp lỗi từ phía SportWolk.
                                 </p>
                                 <div className="read-more-btn">
                                     <a href="#">Liên hệ hỗ trợ</a>
@@ -108,14 +108,14 @@ export const ReturnOrderInstruct = () => {
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
                                 <h2>Các bước hoàn hàng</h2>
-                                <p>Quy trình hoàn hàng tại Juta được thiết kế để đơn giản và thuận tiện cho bạn.</p>
+                                <p>Quy trình hoàn hàng tại SportWolk được thiết kế để đơn giản và thuận tiện cho bạn.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 1: Liên hệ Juta</h3>
-                                    <p>Gửi yêu cầu hoàn hàng qua hotline, email hoặc tại cửa hàng Juta gần nhất.</p>
+                                    <h3>Bước 1: Liên hệ SportWolk</h3>
+                                    <p>Gửi yêu cầu hoàn hàng qua hotline, email hoặc tại cửa hàng SportWolk gần nhất.</p>
                                 </div>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export const ReturnOrderInstruct = () => {
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 3: Gửi sản phẩm</h3>
-                                    <p>Gửi sản phẩm về địa chỉ Juta cung cấp hoặc mang trực tiếp đến cửa hàng.</p>
+                                    <p>Gửi sản phẩm về địa chỉ SportWolk cung cấp hoặc mang trực tiếp đến cửa hàng.</p>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@ export const ReturnOrderInstruct = () => {
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 4: Nhận hoàn tiền</h3>
-                                    <p>Sau khi kiểm tra, Juta sẽ hoàn tiền hoặc đổi sản phẩm trong vòng 3-5 ngày.</p>
+                                    <p>Sau khi kiểm tra, SportWolk sẽ hoàn tiền hoặc đổi sản phẩm trong vòng 3-5 ngày.</p>
                                 </div>
                             </div>
                         </div>
@@ -152,17 +152,17 @@ export const ReturnOrderInstruct = () => {
                         <div className="col-lg-8">
                             <div className="testimonials-active owl-carousel">
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-1.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Quy trình hoàn hàng của Juta rất nhanh chóng và minh bạch. Tôi đã đổi một đôi giày sai kích cỡ và nhận được sản phẩm mới chỉ sau 3 ngày!
+                                        Quy trình hoàn hàng của SportWolk rất nhanh chóng và minh bạch. Tôi đã đổi một đôi giày sai kích cỡ và nhận được sản phẩm mới chỉ sau 3 ngày!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
                                 </div>
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-2.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Nhân viên Juta hỗ trợ tôi rất nhiệt tình khi tôi cần hoàn hàng. Tôi rất hài lòng với dịch vụ của cửa hàng!
+                                        Nhân viên SportWolk hỗ trợ tôi rất nhiệt tình khi tôi cần hoàn hàng. Tôi rất hài lòng với dịch vụ của cửa hàng!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>

@@ -14,9 +14,9 @@ export const SalesPolicy = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Chính sách bán hàng tại Juta</h2>
+                                <h2>Chính sách bán hàng tại SportWolk</h2>
                                 <p>
-                                    Tại Juta, chúng tôi cam kết cung cấp sản phẩm chất lượng và dịch vụ bán hàng chuyên nghiệp, minh bạch để mang lại trải nghiệm mua sắm tuyệt vời nhất cho khách hàng.
+                                    Tại SportWolk, chúng tôi cam kết cung cấp sản phẩm chất lượng và dịch vụ bán hàng chuyên nghiệp, minh bạch để mang lại trải nghiệm mua sắm tuyệt vời nhất cho khách hàng.
                                 </p>
                             </div>
                         </div>
@@ -31,7 +31,7 @@ export const SalesPolicy = () => {
                             <div className="about-info-wrapper">
                                 <h3>Cam kết bán hàng</h3>
                                 <p>
-                                    Tất cả sản phẩm tại Juta đều là hàng chính hãng, có nguồn gốc rõ ràng và được bảo hành theo chính sách của nhà sản xuất.
+                                    Tất cả sản phẩm tại SportWolk đều là hàng chính hãng, có nguồn gốc rõ ràng và được bảo hành theo chính sách của nhà sản xuất.
                                 </p>
                                 <p>
                                     Điều kiện áp dụng chính sách bán hàng:
@@ -108,14 +108,14 @@ export const SalesPolicy = () => {
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
                                 <h2>Quy trình mua sắm</h2>
-                                <p>Quy trình mua sắm tại Juta được thiết kế đơn giản, thuận tiện và minh bạch.</p>
+                                <p>Quy trình mua sắm tại SportWolk được thiết kế đơn giản, thuận tiện và minh bạch.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 1: Chọn sản phẩm</h3>
-                                    <p>Truy cập website hoặc cửa hàng Juta để lựa chọn sản phẩm phù hợp.</p>
+                                    <p>Truy cập website hoặc cửa hàng SportWolk để lựa chọn sản phẩm phù hợp.</p>
                                 </div>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export const SalesPolicy = () => {
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 3: Xác nhận đơn hàng</h3>
-                                    <p>Juta sẽ xác nhận đơn hàng qua email hoặc tin nhắn trong vòng 24 giờ.</p>
+                                    <p>SportWolk sẽ xác nhận đơn hàng qua email hoặc tin nhắn trong vòng 24 giờ.</p>
                                 </div>
                             </div>
                         </div>
@@ -152,17 +152,17 @@ export const SalesPolicy = () => {
                         <div className="col-lg-8">
                             <div className="testimonials-active owl-carousel">
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-1.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Mua sắm tại Juta rất tiện lợi, sản phẩm chất lượng và giao hàng nhanh chóng!
+                                        Mua sắm tại SportWolk rất tiện lợi, sản phẩm chất lượng và giao hàng nhanh chóng!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
                                 </div>
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-2.png" />
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Tôi rất hài lòng với dịch vụ của Juta, nhân viên tư vấn nhiệt tình và sản phẩm đúng như mô tả!
+                                        Tôi rất hài lòng với dịch vụ của SportWolk, nhân viên tư vấn nhiệt tình và sản phẩm đúng như mô tả!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>

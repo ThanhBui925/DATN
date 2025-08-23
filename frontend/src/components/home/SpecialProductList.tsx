@@ -41,7 +41,7 @@ export const SpecialProductList: React.FC = () => {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="section-title-2">
-                            <h2>Sản phẩm đặc biệt</h2>
+                            <h2>Sản phẩm mới nhất</h2>
                         </div>
                     </div>
                 </div>

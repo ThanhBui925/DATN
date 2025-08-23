@@ -27,6 +27,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderSuccessMail;
 use Illuminate\Support\Facades\Cache;
+use App\Models\ReturnOrder as ReturnRequest;
+use App\Models\ReturnEviden as ReturnEvidence;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\RetryVNPayRequest;
+
 
 
 
@@ -54,21 +59,25 @@ class OrderController extends Controller
                 'orderItems.product',
                 'orderItems.variant.size',
                 'orderItems.variant.color',
-                'orderItems.variant.images'
+                'orderItems.variant.images',
+                'return',
             ]);
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
         if ($request->has('status')) {
-            $query->where(function ($q) use ($request) {
-                $q->where(function ($sub) use ($request) {
-                    $sub->where('use_shipping_status', 1)
-                        ->where('shipping_status', $request->input('status'));
-                })->orWhere(function ($sub) use ($request) {
+            $status = $request->input('status');
+
+            $query->where(function ($q) use ($status) {
+                $q->where('use_shipping_status', 1)
+                ->where('shipping_status', $status);
+
+                $q->orWhere(function ($sub) use ($status) {
                     $sub->where('use_shipping_status', 0)
-                        ->where('order_status', $request->input('status'));
+                        ->where('order_status', $status);
                 });
             });
         }
+
 
         // Lọc theo ngày nếu có
         if ($request->has('date')) {
@@ -300,6 +309,10 @@ class OrderController extends Controller
             if ($order->recipient_email && $order->recipient_email !== $order->user->email) {
                 Mail::to($order->recipient_email)->queue(new OrderSuccessMail($order)); // người nhận nếu khác
             }
+            // //Gửi mail thông báo cho admin
+            // $emails = $admins->pluck('email')->toArray();
+            // Mail::to($emails)->queue(new OrderSuccessMail($order, true));
+
 
             return $this->successResponse($order->load('orderItems'), 'Tạo đơn hàng thành công từ giỏ hàng', 201);
         } catch (\Exception $e) {
@@ -401,7 +414,7 @@ class OrderController extends Controller
         return 'unknown';
     }
 
-    public function show(Request $request, $id)
+public function show(Request $request, $id)
     {
         $user = $request->user();
         if (!$user) {
@@ -419,6 +432,8 @@ class OrderController extends Controller
                 'orderItems.variant.size',
                 'orderItems.variant.color',
                 'orderItems.variant.images',
+                'return',
+                'return.evidences'
             ])->first();
 
         if (!$order) {
@@ -449,8 +464,11 @@ class OrderController extends Controller
             if ($shippingStatus) {
                 $order->shipping_status = $shippingStatus;
 
-                if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
+                if ($shippingStatus === 'delivered' && $order->use_shipping_status == 1 && !in_array($order->order_status, ['delivered', 'completed'])) {
                     $order->order_status = 'delivered';
+                    $order->delivered_at = isset($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        ? Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date'])
+                        : Carbon::now();
                     $order->use_shipping_status = 0;
                 }
 
@@ -544,6 +562,7 @@ class OrderController extends Controller
                     ] : null,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
+                    'is_review' => $item->is_review,
                 ];
             }),
             'subtotal' => $order->orderItems->reduce(function ($carry, $item) {
@@ -554,6 +573,7 @@ class OrderController extends Controller
             'leadtime_order' => $leadtimeData,
             'picked_date' => $ghnShippingInfo['leadtime_order']['picked_date'] ?? null,
             'date_order' => $order->date_order,
+            'return' => $order->return,
         ];
 
         return $this->successResponse($result, 'Lấy thông tin đơn hàng thành công');
@@ -569,23 +589,43 @@ class OrderController extends Controller
         if (!$user) {
             return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
         }
+
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
+
         if (!$order) {
             return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền hủy', null, 404);
         }
+
         if (in_array($order->order_status, ['delivered', 'canceled'])) {
             return $this->errorResponse('Không thể hủy đơn hàng đã giao hoặc đã bị hủy', null, 400);
         }
-        $request->validate([
-            'cancel_reason' => 'required|string|max:500',
-        ], [
-            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
-            'cancel_reason.max' => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự'
-        ]);
-        try {
 
+        $rules = [
+            'cancel_reason' => 'required|string|max:500',
+        ];
+        $messages = [
+            'cancel_reason.required' => 'Lý do hủy đơn hàng là bắt buộc',
+            'cancel_reason.max'      => 'Lý do hủy đơn hàng không được vượt quá 500 ký tự',
+        ];
+
+        if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
+            $rules = array_merge($rules, [
+                'refund_bank'            => 'required|string|max:100',
+                'refund_account_name'    => 'required|string|max:100',
+                'refund_account_number'  => 'required|string|max:50',
+            ]);
+            $messages = array_merge($messages, [
+                'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
+                'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
+                'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
+            ]);
+        }
+
+        $validated = $request->validate($rules, $messages);
+
+        try {
             if (!empty($order->order_code)) {
                 $ghnResponse = Http::withHeaders([
                     'Token' => env('GHN_TOKEN'),
@@ -594,19 +634,31 @@ class OrderController extends Controller
                 ])->post('https://dev-online-gateway.ghn.vn/shiip/public-api/v2/switch-status/cancel', [
                     'order_codes' => [$order->order_code],
                 ]);
-        
+
                 if (!$ghnResponse->successful() || $ghnResponse->json('code') != 200) {
                     return $this->errorResponse('Không thể hủy đơn GHN: ' . $ghnResponse->json('message'), null, 400);
                 }
             }
 
             if ($order->payment_status === 'paid' && $order->payment_method === 'vnpay') {
-                $order->order_status = 'returned';
+                $returnOrder = new ReturnRequest();
+                $returnOrder->order_id = $order->id;
+                $returnOrder->user_id = $user->id;
+                $returnOrder->reason = $validated['cancel_reason'] ?? null;
+                $returnOrder->refund_bank = $validated['refund_bank'];
+                $returnOrder->refund_account_name = $validated['refund_account_name'];
+                $returnOrder->refund_account_number = $validated['refund_account_number'];
+                $returnOrder->save();
+
+                $order->order_status = 'canceled';
+                $order->payment_status = 'waiting_for_refund';
             } else {
                 $order->order_status = 'canceled';
             }
-            $order->cancel_reason = $request->input('cancel_reason');
+
+            $order->cancel_reason = $validated['cancel_reason'];
             $order->save();
+
 
             foreach ($order->orderItems as $item) {
                 $variant = \App\Models\VariantProduct::find($item->variant_id);
@@ -614,12 +666,6 @@ class OrderController extends Controller
                     $variant->increment('quantity', $item->quantity);
                 }
             }
-
-            Log::info('Order canceled by user', [
-                'order_id' => $order->id,
-                'user_id' => $user->id,
-                'reason' => $order->cancel_reason
-            ]);
 
             return $this->successResponse($order, 'Hủy đơn hàng thành công');
         } catch (\Exception $e) {
@@ -630,8 +676,8 @@ class OrderController extends Controller
             ]);
             return $this->errorResponse('Hủy đơn hàng thất bại: ' . $e->getMessage(), null, 500);
         }
-
     }
+
 
     /**
      * Cập nhật địa chỉ đơn hàng (chỉ cho phép ở trạng thái pending/confirming)
@@ -737,5 +783,128 @@ class OrderController extends Controller
             'message' => 'Đã xác nhận hoàn tất đơn hàng.'
         ]);
     }
+
+    //Yêu cầu hoàn hàng
+    public function requestReturn(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền yêu cầu hoàn hàng', null, 404);
+        }
+
+    
+        if ($order->order_status === 'return_requested') {
+            return $this->errorResponse('Đơn hàng đã có yêu cầu hoàn hàng trước đó', null, 400);
+        }
+
+        if (!in_array($order->order_status, ['completed'])) {
+            return $this->errorResponse('Chỉ có thể yêu cầu hoàn hàng khi đơn đã giao hoặc hoàn thành', null, 400);
+        }
+
+        if ($order->delivered_at) {
+            $deliveredAt = Carbon::parse($order->delivered_at);
+            $now = Carbon::now();
+            if ($now->diffInDays($deliveredAt) > 7) {
+                return $this->errorResponse('Đơn hàng đã quá 7 ngày kể từ khi giao, không thể yêu cầu hoàn hàng', null, 400);
+            }
+        } else {
+            // Nếu chưa có delivered_at
+            return $this->errorResponse('Đơn hàng chưa được giao, không thể yêu cầu hoàn hàng', null, 400);
+        }
+        
+        $input = $request->all();
+        // Log::info('Request return input', [
+        //     'user_id' => $user->id,
+        //     'order_id' => $order->id,
+        //     'input' => $input
+        // ]);
+
+        // Build rules và messages
+        $rules = [
+            'return_reason' => 'required|string|max:500',
+            'return_images' => 'nullable|array',
+            'return_images.*' => 'file|mimes:jpg,jpeg,png,mp4|max:20480',
+        ];
+
+        $messages = [
+            'return_reason.required' => 'Vui lòng nhập lý do trả hàng',
+            'return_images.array'    => 'Hình ảnh phải là một mảng',
+            'return_images.*.file'   => 'Mỗi file phải là tệp hợp lệ',
+            'return_images.*.mimes'  => 'Hình ảnh/video chỉ chấp nhận jpg, jpeg, png, mp4',
+            'return_images.*.max'    => 'Dung lượng mỗi tệp tối đa 20MB',
+        ];
+
+        // Nếu đơn đã thanh toán thì bắt buộc thông tin ngân hàng
+        if ($order->payment_status === 'paid') {
+            $rules = array_merge($rules, [
+                'refund_bank'            => 'required|string|max:100',
+                'refund_account_name'    => 'required|string|max:100',
+                'refund_account_number'  => 'required|string|max:50',
+            ]);
+            $messages = array_merge($messages, [
+                'refund_bank.required'           => 'Vui lòng nhập tên ngân hàng',
+                'refund_account_name.required'   => 'Vui lòng nhập tên chủ tài khoản',
+                'refund_account_number.required' => 'Vui lòng nhập số tài khoản',
+            ]);
+        }
+
+        // Validate
+        $validated = validator($input, $rules, $messages)->validate();
+
+        // Tạo record return
+        $return = ReturnRequest::create([
+            'order_id'              => $order->id,
+            'user_id'               => $user->id,
+            'reason'                => $validated['return_reason'],
+            'refund_bank'           => $validated['refund_bank'] ?? null,
+            'refund_account_name'   => $validated['refund_account_name'] ?? null,
+            'refund_account_number' => $validated['refund_account_number'] ?? null,
+        ]);
+
+        // Lưu hình ảnh/video
+        if ($request->hasFile('return_images')) {
+            $images = [];
+            $files = collect($request->file('return_images'))->flatten();
+
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('returns', 'public');
+                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+
+                    $images[] = [
+                        'return_id' => $return->id,
+                        'file_path' => $fullUrl,
+                        'file_type' => $file->getClientMimeType(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($images)) {
+                ReturnEvidence::insert($images);
+            }
+        }
+
+
+        $order->order_status = 'return_requested';
+        $order->save();
+
+        return $this->successResponse([
+            'order'  => $order,
+            'return' => $return->load('evidences'),
+        ], 'Yêu cầu hoàn hàng thành công');
+    }
+
+
+
 
 }

@@ -5,13 +5,12 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Traits\ApiResponseTrait;
 
 
 class UpdateOrderStatusRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use ApiResponseTrait;
     public function authorize(): bool
     {
         return true;
@@ -20,68 +19,83 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_status' => 'required|in:confirming,confirmed,preparing,shipping,delivered,completed,canceled,pending',
-            'payment_status' => 'nullable|in:unpaid,paid',
-            'cancel_reason' => 'required_if:order_status,canceled|string|max:255',
+            'order_status'   => 'required|in:pending,confirming,confirmed,preparing,shipping,delivered,completed,canceled,failed,returned,return_requested,return_accepted,return_rejected,refunded',
+            'payment_status' => 'nullable|in:unpaid,paid,refunded,failed,waiting_for_refund',
+            'cancel_reason'  => 'required_if:order_status,canceled|string|max:255',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'order_status.required' => 'Trạng thái đơn hàng là bắt buộc.',
-            'order_status.in' => 'Trạng thái đơn hàng không hợp lệ.',
-            'payment_status.in' => 'Trạng thái thanh toán không hợp lệ.',
+            'order_status.required'   => 'Trạng thái đơn hàng là bắt buộc.',
+            'order_status.in'         => 'Trạng thái đơn hàng không hợp lệ.',
+            'payment_status.in'       => 'Trạng thái thanh toán không hợp lệ.',
             'cancel_reason.required_if' => 'Lý do hủy bắt buộc khi trạng thái là đã hủy.',
-            'cancel_reason.string' => 'Lý do hủy phải là chuỗi.',
+            'cancel_reason.string'    => 'Lý do hủy phải là chuỗi.',
         ];
     }
 
-    protected $validTransitions = [
-        'pending'    => ['confirmed', 'canceled'],
-        'confirmed'  => ['preparing', 'canceled'],
-        'preparing'  => ['shipping', 'canceled'],
-        'shipping'   => ['delivered', 'failed', 'canceled'],
-        'delivered'  => ['completed'],
-        'failed'     => ['returned', 'canceled'],
-        'returned'   => ['canceled', 'refunded'],
-        'refunded'   => [],
-        'completed'  => [],
-        'canceled'   => [],
+    /** DÙNG STATIC NHẤT QUÁN */
+    public static $validTransitions = [
+        'pending'          => ['confirmed', 'canceled'],
+        'confirmed'        => ['preparing', 'canceled'],
+        'preparing'        => ['shipping', 'canceled'],
+        'shipping'         => ['delivered', 'failed', 'canceled'],
+        'delivered'        => ['completed'],
+        'failed'           => ['returned', 'canceled'],
+        'returned'         => ['canceled', 'refunded'],
+        'return_requested' => ['return_accepted', 'return_rejected'],
+        'return_accepted'  => ['refunded', 'canceled', 'return_rejected'],
+        'return_rejected'  => ['canceled', 'completed'],
+        'refunded'         => [],
+        'completed'        => [],
+        'canceled'         => [],
     ];
-
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $order = $this->route('id') 
-                ? \App\Models\Order::find($this->route('id')) 
-                : null;
+            $orderId = $this->route('id');
+            $order   = $orderId ? \App\Models\Order::find($orderId) : null;
 
             if (!$order) {
                 $validator->errors()->add('order', 'Không tìm thấy đơn hàng.');
                 return;
             }
 
-            $currentStatus = $order->order_status;
-            $newStatus = $this->input('order_status');
+            // Chuẩn hóa để tránh lệch khoảng trắng/hoa-thường
+            $currentStatus = trim(strtolower((string)$order->order_status));
+            $newStatus     = trim(strtolower((string)$this->input('order_status')));
 
-            if (!in_array($newStatus, $this->validTransitions[$currentStatus] ?? [])) {
-                $validator->errors()->add('order_status', "Không thể chuyển trạng thái từ \"$currentStatus\" sang \"$newStatus\".");
+            \Log::info('DEBUG Order Status', [
+                'current' => $currentStatus,
+                'new'     => $newStatus,
+                'allowed' => self::$validTransitions[$currentStatus] ?? []
+            ]);
+
+            // Kiểm tra transition hợp lệ (STATIC)
+            if (!in_array($newStatus, self::$validTransitions[$currentStatus] ?? [])) {
+                $validator->errors()->add(
+                    'order_status',
+                    "Không thể chuyển trạng thái từ \"{$currentStatus}\" sang \"{$newStatus}\"."
+                );
             }
 
-            if ($newStatus === 'canceled' && $this->input('payment_status') === 'paid') {
+            // Nếu đơn đã paid mà set canceled -> báo lỗi
+            if ($newStatus === 'canceled' && $order->payment_status === 'paid') {
                 $validator->errors()->add('payment_status', 'Không thể hủy đơn hàng đã thanh toán.');
+                return $this->error('Không thể hủy đơn hàng đã thanh toán.', null, 400);
             }
         });
     }
-    
+
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'message' => 'Validation failed',
-            'status' => 'false',
-            'errors' => $validator->errors(),
+            'status'  => 'false',
+            'errors'  => $validator->errors(),
         ], 422));
     }
 }

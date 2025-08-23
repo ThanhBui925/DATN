@@ -4,22 +4,9 @@ import axios from "axios";
 import {Skeleton} from "antd";
 
 export const FeatureProductList = () => {
-    const [newArrivalProducts, setNewArrivalProducts] = useState([]);
     const [bestSellerProduct, setBestSellerProduct] = useState([]);
     const [featureProducts, setFeatureProducts] = useState([]);
     const [loading, setLoading] = useState(false);
-
-    const fetchNewArrivalProducts = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/new-arrival-product');
-            setNewArrivalProducts(res.data.data || []);
-        } catch (err) {
-            console.error("Lỗi khi tải sản phẩm:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchBestSeller = async () => {
         setLoading(true);
@@ -46,7 +33,7 @@ export const FeatureProductList = () => {
     };
 
     useEffect(() => {
-        fetchNewArrivalProducts();
+        fetchBestSeller();
     }, []);
     return (
         <div className="product-area pt-95">
@@ -57,19 +44,12 @@ export const FeatureProductList = () => {
                             <div className="product-tabs-list">
                                 <ul role="tablist" className="nav">
                                     <li className="active" role="presentation">
-                                        <a data-bs-toggle="tab" onClick={fetchNewArrivalProducts} role="tab"
-                                            aria-controls="new-arrivals"
-                                            href="#new-arrivals"
-                                            className="active show"
-                                            aria-selected="true">
-                                            Sản phẩm mới
-                                        </a>
-                                    </li>
-                                    <li role="presentation">
                                         <a data-bs-toggle="tab"
                                             onClick={fetchBestSeller}
                                             role="tab"
+                                            className={`active show`}
                                             aria-controls="best-sellers"
+                                            aria-selected="true"
                                             href="#best-sellers">
                                             Bán chạy nhất
                                         </a>
@@ -95,26 +75,7 @@ export const FeatureProductList = () => {
                     </div>
                 </div>
                 <div className="tab-content">
-                    <div id="new-arrivals" className="tab-pane active show" role="tabpanel">
-                        <div className="row">
-                            {
-                                loading ? (
-                                    <div className="col-12">
-                                        <Skeleton/>
-                                    </div>
-                                ) : (
-                                    newArrivalProducts && newArrivalProducts.length > 0 && (
-                                        newArrivalProducts.slice(0,4).map((product: any) => (
-                                            <div className="col-6 col-sm-6 col-md-4 col-lg-3 mb-4" key={product.id}>
-                                                <SingleProduct product={product}/>
-                                            </div>
-                                        ))
-                                    )
-                                )
-                            }
-                        </div>
-                    </div>
-                    <div id="best-sellers" className="tab-pane" role="tabpanel">
+                    <div id="best-sellers" className="tab-pane active show" role="tabpanel">
                         <div className="row">
                             {
                                 loading ? (

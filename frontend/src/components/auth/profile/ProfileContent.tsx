@@ -87,6 +87,7 @@ export const ProfileContent = () => {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('phone', phone);
+        formData.append("_method", "PUT");
         if (gender) formData.append('gender', gender);
         if (dob) formData.append('dob', dob);
         if (imageFile) formData.append('avatar', imageFile);
@@ -134,11 +135,11 @@ export const ProfileContent = () => {
                                 <label className="form-label">Giới tính</label>
                                 <div className="d-flex gap-3">
                                     <div className="form-check">
-                                        <input type="radio" className="form-check-input" name="gender" value="Nam" checked={gender === 'Nam'} onChange={() => setGender('Nam')} />
+                                        <input type="radio" className="form-check-input" name="gender" value="male" checked={gender === 'male'} onChange={() => setGender('male')} />
                                         <label className="form-check-label">Nam</label>
                                     </div>
                                     <div className="form-check">
-                                        <input type="radio" className="form-check-input" name="gender" value="Nữ" checked={gender === 'Nữ'} onChange={() => setGender('Nữ')} />
+                                        <input type="radio" className="form-check-input" name="gender" value="female" checked={gender === 'female'} onChange={() => setGender('female')} />
                                         <label className="form-check-label">Nữ</label>
                                     </div>
                                 </div>

@@ -3,7 +3,7 @@ import {Breadcrumb} from "../components/Breadcrumb";
 export const AboutUsPage = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",
-        breadcrumb2: "Về Juta",
+        breadcrumb2: "Về SportWolk",
     };
 
     return (
@@ -19,19 +19,19 @@ export const AboutUsPage = () => {
                         </div>
                         <div className="col-lg-6">
                             <div className="about-info-wrapper">
-                                <h2>Về Juta</h2>
+                                <h2>Về SportWolk</h2>
                                 <p>
-                                    Juta là thương hiệu giày thời trang hàng đầu, mang đến những sản phẩm chất lượng
+                                    SportWolk là thương hiệu giày thời trang hàng đầu, mang đến những sản phẩm chất lượng
                                     cao, thiết kế hiện đại và phong cách độc đáo. Chúng tôi tự hào cung cấp những đôi
                                     giày phù hợp với mọi cá tính, từ năng động đến thanh lịch.
                                 </p>
                                 <p>
-                                    Thành lập từ năm 2015, Juta không ngừng cải tiến để đáp ứng nhu cầu của khách hàng.
+                                    Thành lập từ năm 2015, SportWolk không ngừng cải tiến để đáp ứng nhu cầu của khách hàng.
                                     Mỗi sản phẩm đều được chế tác tỉ mỉ, đảm bảo sự thoải mái và bền bỉ, giúp bạn tự tin
                                     trong từng bước đi.
                                 </p>
                                 <p>
-                                    Với sứ mệnh mang lại giá trị tốt nhất, Juta cam kết đồng hành cùng bạn trên hành
+                                    Với sứ mệnh mang lại giá trị tốt nhất, SportWolk cam kết đồng hành cùng bạn trên hành
                                     trình định hình phong cách riêng.
                                 </p>
                                 <div className="btn bg-original-base">
@@ -97,7 +97,7 @@ export const AboutUsPage = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="section-titel-three">
-                                <h2>Đội ngũ Juta</h2>
+                                <h2>Đội ngũ SportWolk</h2>
                                 <p>Đội ngũ tận tâm của chúng tôi luôn nỗ lực mang đến những sản phẩm và dịch vụ tốt nhất
                                     cho khách hàng.</p>
                             </div>
@@ -358,9 +358,9 @@ export const AboutUsPage = () => {
                         <div className="col-lg-8">
                             <div className="testimonials-active owl-carousel">
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-1.png"/>
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png"/>
                                     <p>
-                                        Sản phẩm của Juta thực sự tuyệt vời! Tôi đã mua một đôi giày thể thao và rất hài
+                                        Sản phẩm của SportWolk thực sự tuyệt vời! Tôi đã mua một đôi giày thể thao và rất hài
                                         lòng với chất lượng cũng như sự thoải mái. Dịch vụ khách hàng cũng rất chuyên
                                         nghiệp.
                                     </p>
@@ -368,9 +368,9 @@ export const AboutUsPage = () => {
                                     <span>Khách hàng thân thiết</span>
                                 </div>
                                 <div className="single-testimonial text-center">
-                                    <img alt="Khách hàng Juta" src="/img/team/customer-2.png"/>
+                                    <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png"/>
                                     <p>
-                                        Juta mang đến những thiết kế độc đáo, giúp tôi tự tin hơn khi diện chúng. Tôi sẽ
+                                        SportWolk mang đến những thiết kế độc đáo, giúp tôi tự tin hơn khi diện chúng. Tôi sẽ
                                         tiếp tục ủng hộ thương hiệu này trong tương lai!
                                     </p>
                                     <h4>Trần Quốc Anh</h4>

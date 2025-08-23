@@ -163,6 +163,24 @@ export const statusMap: Record<
         twColor: "bg-emerald-600 text-white",
         label: "Hoàn thành",
     },
+    return_requested: {
+        cssColor: "#f59e0b",
+        bsColor: "warning",
+        twColor: "bg-amber-500 text-white",
+        label: "Khách hàng yêu cầu hoàn hàng",
+    },
+    return_accepted: {
+        cssColor: "#16a34a",
+        bsColor: "success",
+        twColor: "bg-green-600 text-white",
+        label: "Chấp nhận yêu cầu hoàn hàng",
+    },
+    return_rejected: {
+        cssColor: "#dc2626",
+        bsColor: "danger",
+        twColor: "bg-red-600 text-white",
+        label: "Từ chối yêu cầu hoàn hàng",
+    },
     refunded: {
         cssColor: "#06b6d4",
         bsColor: "info",
@@ -182,7 +200,10 @@ export const validTransitions: Record<string, string[]> = {
     confirmed: ["preparing", "canceled"],
     preparing: ["ready_to_pick", "canceled"],
     completed: [],
-    canceled: [],
+    return_requested: ['return_accepted', 'return_rejected'],
+    return_rejected: ['completed'],
+    return_accepted: ['refunded'],
+    canceled: ['refunded'],
     returned: ['refunded'],
     return_fail: ['returning']
 };
