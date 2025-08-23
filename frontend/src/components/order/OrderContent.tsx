@@ -485,7 +485,7 @@ export const OrderContent: React.FC = () => {
                                                         Đã nhận được hàng
                                                     </button>
                                                 )}
-                                                {["completed"].includes(order.status) && !order.hasRequestedReturn && (
+                                                {["completed"].includes(order.status) && !order?.return && !order.hasRequestedReturn && (
                                                     <button
                                                         className="btn btn-outline-warning btn-sm px-4 fw-medium"
                                                         onClick={() => showReturnModal(order.id)}
