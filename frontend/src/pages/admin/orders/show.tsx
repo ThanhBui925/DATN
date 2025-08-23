@@ -39,7 +39,7 @@ export const OrdersShow = () => {
                     const cancel_reason = `Đơn hàng được huỷ bởi admin, lý do: ${values.cancel_reason}`;
                     updateValues = { order_status: 'canceled', cancel_reason };
                 } else if (values.order_status === 'return_rejected') {
-                    const reject_reason = `Yêu cầu hoàn hàng bị từ chối bởi admin, lý do: ${values.reject_reason}`;
+                    const reject_reason = `Yêu cầu trả hàng bị từ chối bởi admin, lý do: ${values.reject_reason}`;
                     updateValues = { order_status: 'return_rejected', reject_reason };
                 } else {
                     updateValues = { order_status: values.order_status == 'ready_to_pick' ? 'shipping' : values.order_status };

@@ -587,7 +587,7 @@ export const OrderDetailContent = () => {
                     {order.return?.reason && (
                         <div className="mt-5">
                             <div className="section-title-3">
-                                <h2>Lý do yêu cầu hoàn đơn</h2>
+                                <h2>Lý do yêu cầu hoàn tiền</h2>
                             </div>
                             <p>{order.return?.reason}</p>
                             <i className="text-danger">
