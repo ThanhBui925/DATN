@@ -5,7 +5,7 @@ import React from "react";
 import {AdminApp} from "./AdminApp";
 import {ClientApp} from "./ClientApp";
 import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier} from "@refinedev/react-router";
-import {authProvider} from "./providers/authProvider";
+import {accessControlProvider, authProvider, TOKEN_KEY} from "./providers/authProvider";
 import {
     BgColorsOutlined,
     DashboardOutlined, ExpandOutlined, FileTextOutlined, GiftOutlined, PictureOutlined,
@@ -15,7 +15,7 @@ import {
 } from "@ant-design/icons";
 import {RefineKbar, RefineKbarProvider} from "@refinedev/kbar";
 import {ColorModeContextProvider} from "./contexts/color-mode";
-import {App as AntdApp} from "antd";
+import {App as AntdApp, notification} from "antd";
 import {DevtoolsPanel, DevtoolsProvider} from "@refinedev/devtools";
 import dataProvider from "./providers/Provider";
 import {Refine} from "@refinedev/core";
@@ -38,6 +38,9 @@ function App() {
                                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                     // @ts-ignore
                                     notificationProvider={notificationProvider}
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    accessControlProvider={accessControlProvider}
                                     routerProvider={routerBindings}
                                     authProvider={authProvider}
                                     i18nProvider={i18nProvider}
@@ -157,6 +160,19 @@ function App() {
                                             show: "/admin/customers/show/:id",
                                             meta: {
                                                 label: "Quản lý khách hàng",
+                                                icon: <UserOutlined/>,
+                                                canDelete: true,
+                                            },
+                                        },
+
+                                        {
+                                            name: "admins",
+                                            list: "/admin/admins",
+                                            create: "/admin/admins/create",
+                                            edit: "/admin/admins/edit/:id",
+                                            show: "/admin/admins/show/:id",
+                                            meta: {
+                                                label: "Quản lý admin",
                                                 icon: <UserOutlined/>,
                                                 canDelete: true,
                                             },

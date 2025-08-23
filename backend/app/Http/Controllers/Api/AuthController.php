@@ -10,9 +10,15 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
 use Illuminate\Support\Facades\Log;
+use App\Traits\ApiResponseTrait;
+
+// Swagger documentation đã được chuyển sang SwaggerDocumentationController
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
+    
+    // Swagger documentation đã được chuyển sang SwaggerDocumentationController
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -31,6 +37,12 @@ class AuthController extends Controller
             Log::warning('User not found', ['email' => $credentials['email']]);
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        if ($user->status != 1) {
+            Log::warning('User is inactive or blocked', ['user_id' => $user->id, 'status' => $user->status]);
+            return response()->json(['error' => 'Tài khoản của bạn đang bị khóa.'], 403);
+        }
+        
 
         Log::info('User found', [
             'user_id' => $user->id,
@@ -52,34 +64,57 @@ class AuthController extends Controller
         }
     }
 
+    // Swagger documentation đã được chuyển sang SwaggerDocumentationController
     public function register(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|regex:/^0[0-9]{9}$/',
-            'address' => 'required|string|max:255',
+            'phone' => 'nullable|string|regex:/^0[0-9]{9}$/',
+            'address' => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'status' => 'active',
+            'status' => '1',
             'role' => 'client',
         ]);
 
         $customer = Customer::create([
             'user_id' => $user->id,
-            'phone' => $data['phone'],
-            'address' => $data['address'],
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
         ]);
-        
+
         Mail::to($user->email)->queue(new WelcomeMail($user));
 
         $token = $user->createToken('API Token')->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $user, 'customer' => $customer], 201);
+    }
+    public function profile(Request $request) {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+        if ($user->role == 'client') {
+            $user = User::with('customer')->where('id', $user->id)->first();
+        }
+        return $this->successResponse($user, 'success');
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $user->tokens()->delete();
+
+        return $this->successResponse(null, 'Đăng xuất thành công');
     }
 }

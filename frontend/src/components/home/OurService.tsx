@@ -9,8 +9,8 @@ export const OurService = () => {
                                 <img src="/img/icon/1.png" alt=""/>
                             </div>
                             <div className="serivce-cont">
-                                <h3>Giao hàng miễn phí</h3>
-                                <p>Miễn phí giao hàng tất cả đơn hàng</p>
+                                <h3>Giao hàng nhanh chóng</h3>
+                                <p>Thời gian chuẩn bị hàng cực nhanh</p>
                             </div>
                         </div>
                     </div>

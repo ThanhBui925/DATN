@@ -1,5 +1,5 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Breadcrumb, Button, Col, Form, Input, Row, Select, Upload } from "antd";
+import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
 import { useState } from "react";
@@ -11,7 +11,7 @@ export const ProductsEdit = () => {
     });
 
     const { selectProps: categorySelectProps } = useSelect({
-        resource: "categories",
+        resource: "categories/get-list",
         optionLabel: "name",
         optionValue: "id",
         queryOptions: {
@@ -72,18 +72,18 @@ export const ProductsEdit = () => {
             }
         }
 
-        if (
-            values.images &&
-            Array.isArray(values.images) &&
-            values.images.length > 0
-        ) {
-            values.images.forEach((file: any, index: number) => {
-                if (file.originFileObj) {
-                    formData.append(`image_desc[]`, file.originFileObj);
-                } else if (file.url) {
-                    formData.append(`image_desc[]`, file.url);
-                }
-            });
+        if (Array.isArray(values.images)) {
+            if (values.images.length === 0) {
+                formData.append("clear_image_desc", "1");
+            } else {
+                values.images.forEach((file: any, index: number) => {
+                    if (file.originFileObj) {
+                        formData.append(`image_desc[]`, file.originFileObj);
+                    } else if (file.url) {
+                        formData.append(`image_desc[]`, file.url);
+                    }
+                });
+            }
         }
 
         if (values.variants && Array.isArray(values.variants)) {
@@ -93,18 +93,20 @@ export const ProductsEdit = () => {
                 formData.append(`variants[${index}][size_id]`, variant.size_id || "");
                 formData.append(`variants[${index}][color_id]`, variant.color_id || "");
                 formData.append(`variants[${index}][quantity]`, variant.quantity || "0");
-                formData.append(`variants[${index}][status]`, variant.status || "1");
+                formData.append(`variants[${index}][status]`, variant.status !== undefined ? variant.status : "1");
 
-                if (
-                    variant.images &&
-                    Array.isArray(variant.images) &&
-                    variant.images.length > 0
-                ) {
-                    variant.images.forEach((file: any, fileIndex: number) => {
-                        if (file.originFileObj) {
-                            formData.append(`variants[${index}][images][${fileIndex}]`, file.originFileObj);
-                        }
-                    });
+                if (Array.isArray(variant.images)) {
+                    if (variant.images.length === 0) {
+                        formData.append(`variants[${index}][clear_images]`, "1");
+                    } else {
+                        variant.images.forEach((file: any, fileIndex: number) => {
+                            if (file.originFileObj) {
+                                formData.append(`variants[${index}][images][${fileIndex}]`, file.originFileObj);
+                            } else if (file.url) {
+                                formData.append(`variants[${index}][images][${fileIndex}]`, file.url);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -127,9 +129,9 @@ export const ProductsEdit = () => {
                 </Breadcrumb>
             }
         >
-            <Form 
-                {...formProps} 
-                layout="vertical" 
+            <Form
+                {...formProps}
+                layout="vertical"
                 onFinish={onFinish}
                 initialValues={{
                     ...queryResult?.data?.data,
@@ -139,19 +141,19 @@ export const ProductsEdit = () => {
                         status: 'done',
                         url: queryResult?.data?.data?.image,
                     }] : [],
-                    imageDesc: queryResult?.data?.data?.imageDesc?.map((url:string, index: number) => ({
+                    images: queryResult?.data?.data?.images?.map((img: any, index: number) => ({
                         uid: index,
                         name: `imageDesc-${index}`,
                         status: 'done',
-                        url,
+                        url: img.url,
                     })) || [],
                     variants: queryResult?.data?.data?.variants?.map((variant: any, index: any) => ({
                         ...variant,
-                        images: variant.images?.map((imageUrl: any, imgIndex: any) => ({
+                        images: variant.images?.map((image: any, imgIndex: any) => ({
                             uid: `${index}-${imgIndex}`,
                             name: `variant-image-${imgIndex}`,
                             status: "done",
-                            url: imageUrl.image_url,
+                            url: image.image_url,
                         })) || [],
                     })) || [],
                 }}
@@ -305,145 +307,142 @@ export const ProductsEdit = () => {
                                 },
                             ]}
                         >
-                            <Form.List
-                                name="variants"
-                            >
+                            <Form.List name="variants">
                                 {(fields, { add, remove }) => (
                                     <>
-                                        {variantForms.map((variant: any, index: number) => (
-                                            <div
-                                                key={variant.key}
-                                                style={{
-                                                    border: "1px solid #d9d9d9",
-                                                    padding: "16px",
-                                                    marginBottom: "16px",
-                                                    borderRadius: "4px",
-                                                }}
-                                            >
-                                                <Row gutter={16}>
-                                                    <Col sm={12} xs={24}>
-                                                        <Form.Item
-                                                            hidden={true}
-                                                            name={[index, "id"]}
-                                                        >
-                                                            <Input />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Tên biến thể"
-                                                            name={[index, "name"]}
-                                                            rules={[
-                                                                {
-                                                                    required: true,
-                                                                    message: "Vui lòng nhập tên biến thể!",
-                                                                },
-                                                                {
-                                                                    max: 255,
-                                                                    message: "Tên biến thể tối đa 255 ký tự!",
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <Input />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Kích thước"
-                                                            name={[index, "size_id"]}
-                                                            rules={[
-                                                                {
-                                                                    required: true,
-                                                                    message: "Vui lòng chọn kích thước!",
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <Select
-                                                                placeholder="Chọn kích thước"
-                                                                {...sizeSelectProps}
-                                                                loading={sizeSelectProps.loading}
-                                                            />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Màu sắc"
-                                                            name={[index, "color_id"]}
-                                                            rules={[
-                                                                {
-                                                                    required: true,
-                                                                    message: "Vui lòng chọn màu sắc!",
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <Select
-                                                                placeholder="Chọn màu sắc"
-                                                                {...colorSelectProps}
-                                                                loading={colorSelectProps.loading}
-                                                            />
-                                                        </Form.Item>
-                                                    </Col>
-                                                    <Col sm={12} xs={24}>
-                                                        <Form.Item
-                                                            label="Số lượng"
-                                                            name={[index, "quantity"]}
-                                                            rules={[
-                                                                {
-                                                                    required: true,
-                                                                    message: "Vui lòng nhập số lượng!",
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <Input type="number" min="0" />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Trạng thái"
-                                                            name={[index, "status"]}
-                                                            rules={[
-                                                                {
-                                                                    required: true,
-                                                                    message: "Vui lòng chọn trạng thái!",
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <Select
-                                                                options={[
-                                                                    { value: 1, label: "Hoạt động" },
-                                                                    { value: 0, label: "Ngừng hoạt động" },
-                                                                ]}
-                                                            />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Ảnh biến thể"
-                                                            name={[index, "images"]}
-                                                            valuePropName="fileList"
-                                                            getValueFromEvent={(e) => {
-                                                                if (Array.isArray(e)) {
-                                                                    return e;
-                                                                }
-                                                                return e && e.fileList;
-                                                            }}
-                                                        >
-                                                            <Upload
-                                                                name="images"
-                                                                listType="picture"
-                                                                multiple={true}
-                                                                beforeUpload={() => false}
+                                        <Row gutter={[16, 16]}>
+                                            {variantForms.map((variant: any, index: number) => (
+                                                <Col xs={24} lg={12} key={variant.key}>
+                                                    <Card
+                                                        title={`Biến thể ${index + 1}`}
+                                                        extra={
+                                                            <Button
+                                                                type="link"
+                                                                danger
+                                                                onClick={() => {
+                                                                    remove(index);
+                                                                    removeVariantForm(variant.key);
+                                                                }}
                                                             >
-                                                                <Button icon={<UploadOutlined />}>
-                                                                    Chọn nhiều tệp
-                                                                </Button>
-                                                            </Upload>
-                                                        </Form.Item>
-                                                        <Button
-                                                            type="dashed"
-                                                            danger
-                                                            onClick={() => {
-                                                                remove(index);
-                                                                removeVariantForm(variant.key);
-                                                            }}
-                                                            style={{ marginTop: "16px" }}
-                                                        >
-                                                            Xóa biến thể
-                                                        </Button>
-                                                    </Col>
-                                                </Row>
-                                            </div>
-                                        ))}
+                                                                Xóa
+                                                            </Button>
+                                                        }
+                                                    >
+                                                        <Row gutter={16}>
+                                                            <Col xs={24} sm={12}>
+                                                                <Form.Item
+                                                                    hidden={true}
+                                                                    name={[index, "id"]}
+                                                                >
+                                                                    <Input />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    label="Tên biến thể"
+                                                                    name={[index, "name"]}
+                                                                    rules={[
+                                                                        {
+                                                                            required: true,
+                                                                            message: "Vui lòng nhập tên biến thể!",
+                                                                        },
+                                                                        {
+                                                                            max: 255,
+                                                                            message: "Tên biến thể tối đa 255 ký tự!",
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Input placeholder="Nhập tên biến thể" />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    label="Kích thước"
+                                                                    name={[index, "size_id"]}
+                                                                    rules={[
+                                                                        {
+                                                                            required: true,
+                                                                            message: "Vui lòng chọn kích thước!",
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Select
+                                                                        placeholder="Chọn kích thước"
+                                                                        {...sizeSelectProps}
+                                                                        loading={sizeSelectProps.loading}
+                                                                    />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    label="Màu sắc"
+                                                                    name={[index, "color_id"]}
+                                                                    rules={[
+                                                                        {
+                                                                            required: true,
+                                                                            message: "Vui lòng chọn màu sắc!",
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Select
+                                                                        placeholder="Chọn màu sắc"
+                                                                        {...colorSelectProps}
+                                                                        loading={colorSelectProps.loading}
+                                                                    />
+                                                                </Form.Item>
+                                                            </Col>
+                                                            <Col xs={24} sm={12}>
+                                                                <Form.Item
+                                                                    label="Số lượng"
+                                                                    name={[index, "quantity"]}
+                                                                    rules={[
+                                                                        {
+                                                                            required: true,
+                                                                            message: "Vui lòng nhập số lượng!",
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Input type="number" min="0" placeholder="Nhập số lượng" />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    label="Trạng thái"
+                                                                    name={[index, "status"]}
+                                                                    rules={[
+                                                                        {
+                                                                            required: true,
+                                                                            message: "Vui lòng chọn trạng thái!",
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Select
+                                                                        options={[
+                                                                            { value: 1, label: "Hoạt động" },
+                                                                            { value: 0, label: "Ngừng hoạt động" },
+                                                                        ]}
+                                                                    />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    label="Ảnh biến thể"
+                                                                    name={[index, "images"]}
+                                                                    valuePropName="fileList"
+                                                                    getValueFromEvent={(e) => {
+                                                                        if (Array.isArray(e)) {
+                                                                            return e;
+                                                                        }
+                                                                        return e && e.fileList;
+                                                                    }}
+                                                                >
+                                                                    <Upload
+                                                                        name="images"
+                                                                        listType="picture"
+                                                                        multiple={true}
+                                                                        beforeUpload={() => false}
+                                                                    >
+                                                                        <Button icon={<UploadOutlined />}>
+                                                                            Chọn nhiều tệp
+                                                                        </Button>
+                                                                    </Upload>
+                                                                </Form.Item>
+                                                            </Col>
+                                                        </Row>
+                                                    </Card>
+                                                </Col>
+                                            ))}
+                                        </Row>
                                         <Button
                                             type="dashed"
                                             onClick={() => {
@@ -451,6 +450,7 @@ export const ProductsEdit = () => {
                                                 addVariantForm();
                                             }}
                                             block
+                                            style={{ marginTop: 16 }}
                                         >
                                             Thêm biến thể
                                         </Button>

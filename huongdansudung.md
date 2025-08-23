@@ -54,7 +54,7 @@ Mở Docker Desktop, đảm bảo các container sau đang chạy:
 Sau khi đã chạy thành công chỉ cần run các container trên docker
 Nếu có thay đổi Dockerfile cần chạy
 docker-compose down
-
+x
 docker-compose up -d --build
 ## 5. Migration cơ sở dữ liệu
 

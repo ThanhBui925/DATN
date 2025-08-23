@@ -31,7 +31,7 @@ export const CategoryShow = () => {
             }
         >
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-                <Col span={24}>
+                <Col span={12}>
                     <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                         Tên danh mục
                     </Title>
@@ -41,7 +41,7 @@ export const CategoryShow = () => {
                     />
                 </Col>
 
-                <Col span={24}>
+                <Col span={12}>
                     <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                         Mô tả
                     </Title>
@@ -51,7 +51,27 @@ export const CategoryShow = () => {
                     />
                 </Col>
 
-                <Col span={24}>
+                <Col span={12}>
+                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                        Số lượng đơn hàng
+                    </Title>
+                    <TextField
+                        value={record?.order_count}
+                        style={{ fontSize: 16 }}
+                    />
+                </Col>
+
+                <Col span={12}>
+                    <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
+                        Số lượng sản phẩm
+                    </Title>
+                    <TextField
+                        value={record?.product_count}
+                        style={{ fontSize: 16 }}
+                    />
+                </Col>
+
+                <Col span={12}>
                     <Title level={5} style={{ marginBottom: 8, color: "#595959" }}>
                         Trạng thái
                     </Title>

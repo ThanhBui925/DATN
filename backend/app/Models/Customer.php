@@ -15,4 +15,13 @@ class Customer extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id', 'user_id');
+    }
+
 }

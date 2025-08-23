@@ -1,65 +1,136 @@
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import useNotify from "../Notification";
-import {axiosInstance} from "../../utils/axios";
-import {notification, Skeleton} from "antd";
-import {convertToInt} from "../../helpers/common";
+import { axiosInstance } from "../../utils/axios";
+import { notification, Skeleton } from "antd";
+import { convertToInt } from "../../helpers/common";
+import emitter from "../../utils/eventBus";
+
+interface Variant {
+    id: number;
+    size: string;
+    size_id: number;
+    color: string;
+    color_id: number;
+    quantity: number;
+    images: { id: number; image_url: string }[];
+}
+
+interface CartItem {
+    id: number;
+    product_id: number;
+    product_name: string;
+    image: string; // Product's default image
+    price: string;
+    quantity: number;
+    total: number;
+    size: string;
+    size_id: number;
+    color: string;
+    color_id: number;
+    variant_id: number;
+    variant_images: { id: number; image_url: string }[];
+    available_variants: Variant[];
+}
+
+interface CartData {
+    items: CartItem[];
+    total: number;
+}
+
+interface Category {
+    id: number;
+    name: string;
+}
 
 export const HeaderMid = () => {
-
     const { notify } = useNotify();
-
-    const [cartData, setCartData] = useState<{
-        items: any[];
-        total: number;
-    }>({
+    const navigate = useNavigate();
+    const [cartData, setCartData] = useState<CartData>({
         items: [],
         total: 0,
     });
-
     const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const getCartData = async () => {
         setLoading(true);
         try {
-            const res = await axiosInstance.get('/api/client/cart')
+            const res = await axiosInstance.get("/api/client/cart");
             if (res.data.status) {
                 setCartData({
                     items: res.data.data.items,
                     total: res.data.data.total,
                 });
             } else {
-                notify({message: res.data.message});
+                notify({ message: res.data.message });
             }
-        } catch (e) {
-            notify({message: (e as Error).message});
+        } catch (e: any) {
+            notify({ message: e.message });
         } finally {
             setLoading(false);
         }
-    }
+    };
+
+    const fetchCategories = async () => {
+        setLoading(true);
+        try {
+            const res = await axiosInstance.get("/api/client/categories");
+            if (res.data.status) {
+                setCategories(res.data.data);
+            } else {
+                notify({ message: res.data.message });
+            }
+        } catch (e: any) {
+            notify({ message: e.message });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const deleteCartData = async (id: number) => {
         try {
-            await axiosInstance.delete(`/api/client/cart/items/${id}`)
-            notification.success({ message: "Sản phẩm đã được xóa khỏi giỏ hàng !"})
-        } catch (e) {
-            notify({message: (e as Error).message});
+            await axiosInstance.delete(`/api/client/cart/items/${id}`);
+            notification.success({ message: "Sản phẩm đã được xóa khỏi giỏ hàng!" });
+        } catch (e: any) {
+            notify({ message: e.message });
         } finally {
             getCartData();
         }
-    }
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const query = new URLSearchParams();
+        if (searchTerm) query.set("search", searchTerm);
+        if (selectedCategory) query.set("category_id", selectedCategory);
+        navigate(`/danh-muc-san-pham?${query.toString()}`);
+    };
 
     useEffect(() => {
         getCartData();
-    }, [])
+        fetchCategories();
+        emitter.on("addToCart", getCartData);
+        return () => {
+            emitter.off("addToCart", getCartData);
+        };
+    }, []);
+
+    useEffect(() => {
+        emitter.emit("loadCategories", categories);
+    }, [categories]);
 
     return (
         <div className="header-mid-area">
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-lg-3 col md-custom-12">
-                        <div className="logo">
-                            <Link to="/trang-chu"><img src="/img/logo/logo.png" alt=""/></Link>
+                        <div className="logo logo_header_mid">
+                            <Link to="/trang-chu">
+                                <img style={{ width: 120, height: 50 }} src="/img/logo/logo.png" alt="" />
+                            </Link>
                         </div>
                     </div>
                     <div className="col-lg-9 md-custom-12">
@@ -67,95 +138,109 @@ export const HeaderMid = () => {
                             <ul>
                                 <li>
                                     <Link to="/gio-hang">
-                                                <span className="item-cart-inner">
-                                                    <span className="item-cont">{ cartData.items.length ?? 0 }</span>
-                                                    Giỏ hàng
-                                                </span>
-                                        <div className="item-total">{ convertToInt(cartData.total) + ' đ' }</div>
+                                        <span className="item-cart-inner">
+                                            <span className="item-cont">{cartData.items.length ?? 0}</span>
+                                            Giỏ hàng
+                                        </span>
+                                        <div className="item-total">{convertToInt(cartData.total) + " đ"}</div>
                                     </Link>
                                     <ul className="shopping-cart-wrapper">
-                                        {
-                                            loading ? (
-                                                <Skeleton/>
-                                            ) : (
-                                                cartData?.items?.length > 0 ? (
-                                                    <>
-                                                        {
-                                                            cartData?.items.map((cart: any) => (
-                                                                <li>
-                                                                    <div className="shoping-cart-image">
-                                                                        <a href="#">
-                                                                            <img src={cart?.image} style={{ height: 100, width: 100}} alt=""/>
-                                                                            <span className="product-quantity">{cart.quantity}x</span>
-                                                                        </a>
-                                                                    </div>
-                                                                    <div className="shoping-product-details">
-                                                                        <h3><a href="#">{cart?.product_name}</a></h3>
-                                                                        <div className="price-box">
-                                                                            <span className={`text-dark`}>{cart.quantity} x</span><span> {convertToInt(cart.price)} đ</span>
-                                                                        </div>
-                                                                        <div className="sizeandcolor">
-                                                                            <span>{cart.variant?.size}</span>
-                                                                            <span>{cart.variant?.color}</span>
-                                                                        </div>
-                                                                        <div className="remove">
-                                                                            <button title="Xoá khỏi giỏ hàng" onClick={() => deleteCartData(cart.id)}><i
-                                                                                className="ion-android-delete"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            ))
-                                                        }
-                                                        <li>
-                                                            <div className="d-flex justify-content-between" style={{ fontSize: 16}}>
-                                                                <span className={`fw-bold`}>Tổng tiền sản phẩm:</span>
-                                                                <span className="text-original-base fw-bold"> {convertToInt(cartData.total)}đ</span>
+                                        {loading ? (
+                                            <Skeleton />
+                                        ) : cartData?.items?.length > 0 ? (
+                                            <>
+                                                {cartData.items.map((cart: CartItem) => {
+                                                    const selectedVariant = cart.available_variants.find(
+                                                        (variant) => variant.id === cart.variant_id
+                                                    );
+                                                    const variantImage = selectedVariant?.images?.[0]?.image_url;
+                                                    return (
+                                                        <li key={cart.id}>
+                                                            <div className="shoping-cart-image">
+                                                                <Link to={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                                    <img
+                                                                        src={variantImage || cart.image || "/img/default.jpg"}
+                                                                        style={{ height: 100, width: 100 }}
+                                                                        alt={cart.product_name}
+                                                                    />
+                                                                    <span className="product-quantity">{cart.quantity}x</span>
+                                                                </Link>
+                                                            </div>
+                                                            <div className="shoping-product-details">
+                                                                <h3>
+                                                                    <Link to={`/chi-tiet-san-pham/${cart.product_id}`}>
+                                                                        {cart.product_name}
+                                                                    </Link>
+                                                                </h3>
+                                                                <div className="price-box">
+                                                                    <span className="text-dark">{cart.quantity} x</span>
+                                                                    <span> {convertToInt(cart.price)} đ</span>
+                                                                </div>
+                                                                <div className="sizeandcolor">
+                                                                    <span>{cart.size}</span>
+                                                                    <span>{cart.color}</span>
+                                                                </div>
+                                                                <div className="remove">
+                                                                    <button
+                                                                        title="Xoá khỏi giỏ hàng"
+                                                                        onClick={() => deleteCartData(cart.id)}
+                                                                    >
+                                                                        <i className="ion-android-delete"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </li>
-                                                        <li className="shoping-cart-btn">
-                                                            <Link className="checkout-btn" to="/gio-hang">Xem giỏ hàng</Link>
-                                                        </li>
-                                                    </>
-                                                ) : (
-                                                    <p className={`mt-3 fs-6`}>Chưa có sản phẩm nào trong giỏ hàng !</p>
-                                                )
-                                            )
-                                        }
+                                                    );
+                                                })}
+                                                <li>
+                                                    <div className="d-flex justify-content-between" style={{ fontSize: 16 }}>
+                                                        <span className="fw-bold">Tổng tiền sản phẩm:</span>
+                                                        <span className="text-original-base fw-bold">
+                                                            {" "}
+                                                            {convertToInt(cartData.total)}đ
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                                <li className="shoping-cart-btn">
+                                                    <Link className="checkout-btn" to="/gio-hang">
+                                                        Xem giỏ hàng
+                                                    </Link>
+                                                </li>
+                                            </>
+                                        ) : (
+                                            <p className="mt-3 fs-6">Chưa có sản phẩm nào trong giỏ hàng!</p>
+                                        )}
                                     </ul>
                                 </li>
                             </ul>
                         </div>
 
                         <div className="searchbox">
-                            <form action="#">
+                            <form onSubmit={handleSearch}>
                                 <div className="search-form-input">
-                                    <select id="select" name="select" className="nice-select">
+                                    <select
+                                        id="select"
+                                        name="category"
+                                        className="nice-select"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
                                         <option value="">Tất cả danh mục</option>
-                                        <option value="12">Uncategorized</option>
-                                        <option value="22">Electronics</option>
-                                        <option value="26">Accessories</option>
-                                        <option value="27">Cap HDMI</option>
-                                        <option value="28">Headphone</option>
-                                        <option value="29">Keyboard</option>
-                                        <option value="23">Mouse</option>
-                                        <option value="30">Laptops & Tablets</option>
-                                        <option value="31">Laptop</option>
-                                        <option value="31">Macbook</option>
-                                        <option value="31">Smartphone</option>
-                                        <option value="31">Tablets</option>
-                                        <option value="32">Tvs & Audios</option>
-                                        <option value="33">Amply</option>
-                                        <option value="24">Smart TV</option>
-                                        <option value="34">Speaker</option>
-                                        <option value="35">TV</option>
-                                        <option value="36">Fashion & Jewelry</option>
-                                        <option value="37">Accessories</option>
-                                        <option value="25">Rings</option>
-                                        <option value="38">Watches</option>
+                                        {categories.map((category: Category) => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
                                     </select>
-                                    <input type="text" placeholder="Nhập từ khóa sản phẩm ... "/>
-                                    <button className="top-search-btn" type="submit">Tìm kiếm</button>
+                                    <input
+                                        type="text"
+                                        placeholder="Nhập từ khóa sản phẩm ..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <button className="top-search-btn" type="submit">
+                                        Tìm kiếm
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -163,5 +248,5 @@ export const HeaderMid = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

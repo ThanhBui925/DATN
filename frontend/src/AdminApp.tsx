@@ -18,6 +18,9 @@ import {BannerCreate, BannerEdit, BannerList, BannerShow} from "./pages/admin/ba
 import {CustomerList, CustomerShow} from "./pages/admin/customers";
 import {ReviewList, ReviewShow} from "./pages/admin/reviews";
 import React from "react";
+import {AdminList, AdminShow} from "./pages/admin/admins";
+import {ManagerAdminCreate} from "./pages/admin/admins/create";
+import {Link} from "react-router-dom";
 
 export const AdminApp = () => {
     return (
@@ -31,7 +34,15 @@ export const AdminApp = () => {
                     >
                         <ThemedLayoutV2
                             Header={Header}
-                            Sider={(props) => <ThemedSiderV2 {...props} fixed/>}
+                            Sider={(props) => <ThemedSiderV2 {...props} Title={() => (
+                                <Link to="/admin/dashboard">
+                                    <img
+                                        src="/img/logo/logo.png"
+                                        alt="Logo"
+                                        style={{ width: 150, height: 50 }}
+                                    />
+                                </Link>
+                            )} fixed/>}
                         >
                             <Outlet/>
                         </ThemedLayoutV2>
@@ -100,6 +111,12 @@ export const AdminApp = () => {
                 <Route path="/admin/customers">
                     <Route index element={<CustomerList/>}/>
                     <Route path="show/:id" element={<CustomerShow/>}/>
+                </Route>
+
+                <Route path="/admin/admins">
+                    <Route index element={<AdminList/>}/>
+                    <Route path="create" element={<ManagerAdminCreate/>}/>
+                    <Route path="show/:id" element={<AdminShow/>}/>
                 </Route>
 
                 <Route path="/admin/reviews">

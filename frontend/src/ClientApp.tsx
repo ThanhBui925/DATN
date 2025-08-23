@@ -17,6 +17,12 @@ import AuthLayout from "./layout/AuthLayout";
 import {Register} from "./pages/auth/register";
 import {Profile} from "./pages/auth/profile";
 import {Order} from "./pages/order";
+import {OrderDetail} from "./pages/orderDetail";
+import {Address} from "./pages/auth/address";
+import {ReturnOrderInstruct} from "./pages/returnOrderInstruct";
+import {SalesPolicy} from "./pages/salePolicy";
+import {OrderInstruct} from "./pages/orderInstruct";
+import {CompanionBrand} from "./pages/companionBrand";
 
 export const ClientApp = () => {
     return (
@@ -29,14 +35,19 @@ export const ClientApp = () => {
                 
                 <Route path="bai-viet" element={<ListBlogPage />} />
                 <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
-                <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
 
                 <Route path="lien-he" element={<ContactPage />} />
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />
+                <Route path="huong-dan-hoan-hang" element={<ReturnOrderInstruct />} />
+                <Route path="chinh-sach-ban-hang" element={<SalesPolicy />} />
+                <Route path="huong-dan-mua-hang" element={<OrderInstruct />} />
+                <Route path="thuong-hieu-dong-hanh" element={<CompanionBrand />} />
 
                 <Route path="danh-muc-san-pham" element={<Shop />} />
                 <Route path="tai-khoan-cua-toi" element={<Profile />} />
+                <Route path="dia-chi" element={<Address />} />
                 <Route path="don-hang-cua-toi" element={<Order />} />
+                <Route path="chi-tiet-don-hang/:orderId" element={<OrderDetail />} />
             </Route>
             <Route path="/" element={<ClientLayout2 />}>
                 <Route path="gio-hang" element={<Cart />} />

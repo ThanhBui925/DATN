@@ -10,6 +10,8 @@ export const i18nProvider: I18nProvider = {
             "buttons.cancel": "Huỷ",
             "buttons.refresh": "Tải lại trang",
             "buttons.edit": "Chỉnh sửa",
+            "buttons.create": "Thêm mới",
+            "buttons.show": "Xem chi tiết",
 
             "notifications.success": "Thành công",
             "notifications.error": "Có lỗi xảy ra",
@@ -17,6 +19,8 @@ export const i18nProvider: I18nProvider = {
             "notifications.createSuccess": "Tạo thành công",
             "notifications.editError": "Cập nhật thất bại",
             "notifications.editSuccess": "Cập nhật thành công",
+            "notifications.deleteSuccess": "Xóa thành công",
+            "notifications.deleteError": "Xóa thất bại",
 
             "products.titles.list": "Danh sách sản phẩm",
             "vouchers.titles.list": "Danh sách voucher",
@@ -26,6 +30,7 @@ export const i18nProvider: I18nProvider = {
             "banners.titles.list": "Danh sách banner",
             "customers.titles.list": "Danh sách khách hàng",
             "reviews.titles.list": "Danh sách đánh giá",
+            "categories.titles.list": "Danh sách danh mục",
 
             "pages.login.title": "Đăng nhập",
             "pages.login.fields.email": "Email",
@@ -35,6 +40,9 @@ export const i18nProvider: I18nProvider = {
             "pages.login.buttons.noAccount": "Chưa có tài khoản ?",
             "pages.login.signup": "Đăng ký tài khoản",
             "pages.login.signin": "Đăng nhập",
+
+            'admins.titles.show' : 'Chi tiết quản trị viên',
+            'admins.titles.list' : 'Danh sách quản trị viên'
         };
         return translations[key] ?? key;
     },

@@ -86,7 +86,21 @@ const dataProvider = {
   },
 
 
-  deleteOne: unwrapData(base.deleteOne),
+  deleteOne: async (resource: any, params: { id: number }) => {
+    try {
+      const response = await axiosInstance.delete(
+          `/api/${resource?.resource}/${resource.id}`,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+      );
+      return response.data;
+    } catch (error) {
+      handleHttpError(error);
+    }
+  },
 
   forceDelete: async (resource: string, params: { id: number }) => {
     const url = `${BASE_URL}/${resource}/${params.id}/force-delete`;
@@ -109,14 +123,45 @@ const dataProvider = {
 };
 
 function handleHttpError(error: any) {
-  if (error?.response?.data?.errors) {
+  const defaultMessage = "Có lỗi xảy ra";
+  const defaultStatusCode = 400;
+
+  if (error?.response?.data) {
+    const { message, errors } = error.response.data;
+
+    // Normalize the error message
+    let errorMessage = message || defaultMessage;
+
+    // Handle cases where errors is an array
+    if (errors) {
+      if (Array.isArray(errors)) {
+        // If errors is an array, extract messages
+        if (errors.length > 0) {
+          errorMessage = errors
+              .map((err: any) => {
+                if (typeof err === "string") return err;
+                if (typeof err === "object" && err.message) return err.message;
+                return JSON.stringify(err); // Fallback for unknown error formats
+              })
+              .join(", ");
+        }
+      } else if (typeof errors === "string") {
+        errorMessage = errors;
+      }
+    }
+
     throw {
-      message: error?.response?.data?.message || "Có lỗi xảy ra",
-      statusCode: error?.response?.status || 400,
-      errors: error?.response?.data?.errors,
+      message: errorMessage,
+      statusCode: error?.response?.status || defaultStatusCode,
+      errors: errors || undefined,
     };
   }
-  throw error;
+
+  throw {
+    message: defaultMessage,
+    statusCode: defaultStatusCode,
+    errors: undefined,
+  };
 }
 
 export default dataProvider;

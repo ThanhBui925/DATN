@@ -6,8 +6,16 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
+use App\Traits\ApiResponseTrait;
+use Illuminate\Support\Facades\DB;
+use App\Models\VariantProduct;
+use Illuminate\Support\Facades\Log;
+
+
+
 class UpdateProductRequest extends FormRequest
 {
+    use ApiResponseTrait;
     public function authorize(): bool
     {
         return true;
@@ -76,8 +84,88 @@ class UpdateProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
+            'status' => false,
             'message' => 'Validation failed',
             'errors' => $validator->errors(),
         ], 422));
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $variants = $this->input('variants', []);
+            $productId = $this->route('id'); // Lấy id sản phẩm từ route nếu đang cập nhật
+            Log::info('Checking product ID: ' . $productId);
+
+            $names = collect($variants)->pluck('name');
+            if ($names->duplicates()->isNotEmpty()) {
+                $validator->errors()->add('variants', 'Tên các biến thể không được trùng nhau.');
+                throw new HttpResponseException(response()->json([
+                    'status' => false,
+                    'message' => 'Tên các biến thể không được trùng nhau.',
+                    'errors' => $validator->errors(),
+                ], 422));
+                return;
+            }
+
+            $combinations = [];
+
+            foreach ($variants as $variant) {
+                Log::info('Checking variant: ', $variant);
+
+                $sizeId = $variant['size_id'] ?? null;
+                $colorId = $variant['color_id'] ?? null;
+                $variantId = $variant['id'] ?? null;
+
+                if (!$sizeId || !$colorId) {
+                    continue;
+                }
+
+                // Kiểm tra trùng lặp trong chính request
+                $key = $sizeId . '-' . $colorId;
+                if (in_array($key, $combinations)) {
+                    // $validator->errors()->add('variants', 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc bị trùng trong form.');
+                    throw new HttpResponseException(response()->json([
+                        'status' => false,
+                        'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
+                        'errors' => $validator->errors(),
+                    ], 422));
+                    return;
+                }
+                $combinations[] = $key;
+
+                // Kiểm tra trùng với DB (trừ chính nó khi update)
+                $query = \App\Models\VariantProduct::where('product_id', $productId)
+                    ->where('size_id', $sizeId)
+                    ->where('color_id', $colorId);
+
+                if ($variantId) {
+                    $query->where('id', '!=', $variantId);
+                }
+
+                Log::info('Final query for checking DB:', [
+                    'product_id' => $productId,
+                    'size_id' => $sizeId,
+                    'color_id' => $colorId,
+                    'excluded_id' => $variantId,
+                ]);
+
+                if ($query->exists()) {
+                    // $validator->errors()->add('variants', 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại trong hệ thống.');
+                    throw new HttpResponseException(response()->json([
+                        'status' => false,
+                        'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
+                        'errors' => $validator->errors(),
+                    ], 422));
+                    return;
+                }
+            }
+        });
+    }
+
+
+
+
+
+
 }

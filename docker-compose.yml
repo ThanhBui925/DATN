@@ -95,6 +95,19 @@ services:
       - ./backend:/var/www/html
     networks:
       - app-network
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel_scheduler
+    working_dir: /var/www/html
+    command: sh -c "php artisan schedule:work"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
 
 volumes:
   db_data:

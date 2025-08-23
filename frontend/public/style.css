@@ -3974,7 +3974,7 @@ thead {
     padding-left: .9375rem;
   }
   .banner_login_form {
-    background-image: url('/img/slider/home-1-02.jpg');
+    background-image: url('/img/slider/home-1-01.jpg');
   }
 
   .banner_register_form {
@@ -4018,4 +4018,32 @@ thead {
     .slider-wrapper {
         height: 500px;
     }
+}
+
+@media (min-width: 993px) and (max-width: 1250px) {
+  .map iframe{
+    width: 200px;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .map iframe{
+    width: 250px;
+  }
+}
+@media (min-width: 1201px) {
+  .logo_header_mid {
+    margin: 30px 0 !important;
+  }
+}
+.active-tab {
+  background-color: #e85a4f !important;
+  color: #fff !important;
+  border-color: #e85a4f !important;
+}
+
+.inactive-tab {
+  background-color: transparent;
+  color: #e85a4f;
+  border-color: #e85a4f;
 }

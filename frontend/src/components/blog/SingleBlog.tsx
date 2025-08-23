@@ -6,10 +6,10 @@ export const SingleBlog = ({blog} : {blog: any}) => {
         <div className="blog-wrapper mb-30 main-blog">
             <div className="blog-img mb-20">
                 <Link to={'/chi-tiet-bai-viet/1'}>
-                    <img alt={blog.title} src={blog.image}/>
+                    <img alt={blog.title} src={`http://127.0.0.1:8000/storage/${blog.image}`}/>
                 </Link>
             </div>
-            <h3><Link to={'/chi-tiet-bai-viet/1'}>{blog.title}</Link></h3>
+            <h3><Link to={`/chi-tiet-bai-viet/${blog.id}`}>{blog.title}</Link></h3>
             <ul className="meta-box">
                 <li className="meta-date"><span><i aria-hidden="true" className="fa fa-calendar"></i>{convertDate(blog.created_at)}</span>
                 </li>

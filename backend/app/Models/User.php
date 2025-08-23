@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Customer;
 use App\Notifications\ResetPasswordNotification;
-
+use App\Models\Cart;
+use App\Models\ShoppingCartItem;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -60,5 +61,25 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token, $this->email));
+    }
+    public function cart()
+    {
+        return $this->hasOne(Cart::class, 'user_id');
+    }
+    public function ShoppingCartItem()
+    {
+        return $this->hasOne(ShoppingCartItem::class);
+    }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
     }
 }

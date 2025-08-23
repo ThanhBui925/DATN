@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import emitter from "../../../utils/eventBus";
 
 export const Navbar = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState("");
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         const path = location.pathname;
@@ -18,6 +20,25 @@ export const Navbar = () => {
         setActiveTab(tab);
     };
 
+    const chunkArray = (arr: any[], size: number) => {
+        const limitedArr = arr.slice(0, 12);
+        const result = [];
+        for (let i = 0; i < limitedArr.length; i += size) {
+            result.push(limitedArr.slice(i, i + size));
+        }
+        return result;
+    };
+
+
+    useEffect(() => {
+        emitter.on("loadCategories", (data: any) => {
+            setCategories(data || []);
+        });
+        return () => {
+            emitter.off("loadCategories");
+        };
+    }, []);
+
     return (
         <>
             <div className="row">
@@ -31,30 +52,19 @@ export const Navbar = () => {
                                 <li className={activeTab === "/danh-muc-san-pham" ? "active" : ""}>
                                     <a href="#">Danh mục sản phẩm<i className="ion-ios-arrow-down"></i></a>
                                     <ul className="mega-menu">
-                                        <li><a href="#">Giày thể thao</a>
-                                            <ul>
-                                                <li><a href="shop.html">Nike</a></li>
-                                                <li><a href="shop-right.html">Adidas</a></li>
-                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
-                                                <li><a href="single-product.html">Mizuno</a></li>
-                                            </ul>
+                                        <li>
+                                            <a href="#">Đáng chú ý</a>
+                                            {chunkArray(categories, 4).map((group, index) => (
+                                                <ul key={index}>
+                                                    {group.map((cat) => (
+                                                        <li key={cat.id}>
+                                                            <Link to={`/danh-muc-san-pham?category=${cat.id}`}>{cat.name}</Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ))}
                                         </li>
-                                        <li><a href="#">Giày sneaker</a>
-                                            <ul>
-                                                <li><a href="shop.html">Nike</a></li>
-                                                <li><a href="shop-right.html">Adidas</a></li>
-                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
-                                                <li><a href="single-product.html">Mizuno</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="#">Giày thời trang</a>
-                                            <ul>
-                                                <li><a href="shop.html">Nike</a></li>
-                                                <li><a href="shop-right.html">Adidas</a></li>
-                                                <li><a href="shop-fullwidth.html">Jordan</a></li>
-                                                <li><a href="single-product.html">Mizuno</a></li>
-                                            </ul>
-                                        </li>
+
                                         <li>
                                             <Link to="/danh-muc-san-pham" onClick={() => handleTabClick("/danh-muc-san-pham")}>
                                                 Xem tất cả
@@ -72,19 +82,18 @@ export const Navbar = () => {
                                                         Về chúng tôi
                                                     </Link>
                                                 </li>
-                                                <li><a href="shop-right.html">Thương hiệu đồng hành</a></li>
+                                                <li><Link to="/thuong-hieu-dong-hanh">Thương hiệu đồng hành</Link></li>
                                             </ul>
                                         </li>
                                         <li><a href="#">Chính sách</a>
                                             <ul>
-                                                <li><a href="blog.html">Chính sách bán hàng</a></li>
-                                                <li><a href="blog-right.html">Chính sách hoàn hàng</a></li>
+                                                <li><Link to="/chinh-sach-ban-hang">Chính sách bán hàng</Link></li>
                                             </ul>
                                         </li>
                                         <li><a href="#">Hướng dẫn</a>
                                             <ul>
-                                                <li><a href="blog.html">Hưỡng dẫn mua hàng</a></li>
-                                                <li><a href="blog-right.html">Hướng dẫn hoàn hàng</a></li>
+                                                <li><Link to="/huong-dan-mua-hang">Hưỡng dẫn mua hàng</Link></li>
+                                                <li><Link to="/huong-dan-hoan-hang">Hướng dẫn hoàn hàng</Link></li>
                                             </ul>
                                         </li>
                                     </ul>

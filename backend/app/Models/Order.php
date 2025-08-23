@@ -11,10 +11,30 @@ class Order extends Model
     protected $table = 'shop_order';
 
     protected $fillable = [
-        'slug', 'date_order', 'total_price', 'order_status', 'cancel_reason',
-        'payment_status', 'shipping_address', 'payment_method', 'shipped_at',
-        'delivered_at', 'user_id', 'customer_id', 'shipping_id',
-        'recipient_name', 'recipient_phone', 'voucher_id'
+        'date_order',
+        'final_amount',
+        'total_price',
+        'discount_amount',
+        'voucher_code',
+        'order_code',
+        'order_status',
+        'payment_status',
+        'address_id',
+        'shipping_address',
+        'detailed_address',
+        'ward_name',
+        'district_name',
+        'province_name',
+        'payment_method',
+        'user_id',
+        'shipping_id',
+        'shipping_fee',
+        'recipient_name',
+        'recipient_phone',
+        'recipient_email',
+        'cancel_reason',
+        'use_shipping_status',
+        'shipping_status'
     ];
 
     protected $casts = [
@@ -48,4 +68,14 @@ class Order extends Model
     {
         return $this->belongsTo(Voucher::class);
     }
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
+    
+    public function return()
+    {
+        return $this->hasOne(ReturnOrder::class)->latestOfMany('created_at');
+    }
+
 }

@@ -1,30 +1,52 @@
+import { useEffect, useState } from "react";
+import { axiosInstance } from "../../utils/axios";
+import { Skeleton } from "antd";
 import { SingleProduct } from "../SingleProduct";
 import { SingleProductList } from "../SingleProductList";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { Skeleton } from "antd";
+import { useSearchParams } from "react-router-dom";
 
-export const ProductList = () => {
-    const [recentTab, setRecentTab] = useState<string>('grid_view');
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+interface Product {
+    id: number;
+    [key: string]: any;
+}
+
+interface ProductListProps {
+    search: string;
+}
+
+export const ProductList = ({ search }: ProductListProps) => {
+    const [recentTab, setRecentTab] = useState<"grid_view" | "list_view">("grid_view");
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const [searchParams, setSearchParams] = useSearchParams();
     const productsPerPage = 9;
 
-    const changeTab = (tab: string) => {
+    const changeTab = (tab: "grid_view" | "list_view") => {
         setRecentTab(tab);
     };
 
     const fetchProducts = async (page: number) => {
         setLoading(true);
         try {
-            const res = await axios.get(`${import.meta.env.VITE_APP_API_URL}/api/client/products`, {
-                params: {
-                    page,
-                    limit: productsPerPage,
-                },
-            });
+            const queryString = new URLSearchParams(searchParams);
+            queryString.set("page", String(page));
+            queryString.set("limit", String(productsPerPage));
+            if (search) {
+                queryString.set("search", search);
+            } else {
+                queryString.delete("search");
+            }
+
+            const apiUrl = `/api/client/products?${queryString.toString()}`;
+
+            console.log("API Request URL:", apiUrl); // Debug URL
+
+            const res = await axiosInstance.get<{
+                data: Product[];
+                meta?: { totalPages: number };
+            }>(apiUrl);
             setProducts(res.data.data || []);
             setTotalPages(res.data.meta?.totalPages || 1);
         } catch (err) {
@@ -34,9 +56,15 @@ export const ProductList = () => {
         }
     };
 
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        searchParams.set("sort", e.target.value);
+        setSearchParams(searchParams, { replace: true });
+        setCurrentPage(1);
+    };
+
     useEffect(() => {
         fetchProducts(currentPage);
-    }, [currentPage]);
+    }, [currentPage, search, searchParams]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -48,47 +76,50 @@ export const ProductList = () => {
                 <div className="shop-bar-inner">
                     <div className="product-view-mode">
                         <ul className="nav shop-item-filter-list" role="tablist">
-                            <li className="active" role="presentation">
-                                <a onClick={() => {changeTab('grid_view')}} className={`${recentTab == 'grid_view' ? 'active' : ''}`}>
+                            <li className={recentTab === "grid_view" ? "active" : ""}>
+                                <a onClick={() => changeTab("grid_view")}>
                                     <i className="fa fa-th"></i>
                                 </a>
                             </li>
-                            <li role="presentation">
-                                <a onClick={() => {changeTab('list_view')}} className={`${recentTab == 'list_view' ? 'active' : ''}`}>
+                            <li className={recentTab === "list_view" ? "active" : ""}>
+                                <a onClick={() => changeTab("list_view")}>
                                     <i className="fa fa-th-list"></i>
                                 </a>
                             </li>
                         </ul>
                     </div>
                     <div className="toolbar-amount">
-                        <span>Hiển thị {(currentPage - 1) * productsPerPage + 1} đến {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm</span>
+                        <span>
+                            Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
+                            {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm
+                        </span>
                     </div>
                 </div>
                 <div className="product-select-box">
                     <div className="product-short">
                         <p>Sắp xếp theo:</p>
-                        <select className="nice-select">
-                            <option value="trending">Mức độ liên quan</option>
-                            <option value="sales">Tên (A - Z)</option>
-                            <option value="sales">Tên (Z - A)</option>
-                            <option value="rating">Giá (Thấp &gt; Cao)</option>
-                            <option value="date">Đánh giá (Thấp nhất)</option>
-                            <option value="price-asc">Mẫu (A - Z)</option>
-                            <option value="price-asc">Mẫu (Z - A)</option>
+                        <select className="nice-select" onChange={handleSortChange} value={searchParams.get("sort") || "relevance"}>
+                            <option value="relevance">Mức độ liên quan</option>
+                            <option value="name_asc">Tên (A - Z)</option>
+                            <option value="name_desc">Tên (Z - A)</option>
+                            <option value="price_asc">Giá (Thấp &gt; Cao)</option>
+                            <option value="price_desc">Giá (Cao &gt; Thấp)</option>
+                            <option value="rating_asc">Đánh giá (Thấp nhất)</option>
+                            <option value="rating_desc">Đánh giá (Cao nhất)</option>
                         </select>
                     </div>
                 </div>
             </div>
             <div className="shop-products-wrapper">
                 <div className="tab-content">
-                    {recentTab === 'grid_view' ? (
+                    {recentTab === "grid_view" ? (
                         <div id="grid-view" className="tab-pane fade active show" role="tabpanel">
                             <div className="shop-product-area">
                                 <div className="row">
                                     {loading ? (
                                         <Skeleton active />
                                     ) : products.length > 0 ? (
-                                        products.map((product: any) => (
+                                        products.map((product) => (
                                             <div className="col-xl-3 col-lg-4 col-md-4 col-6 mt-40" key={product.id}>
                                                 <SingleProduct product={product} />
                                             </div>
@@ -106,7 +137,7 @@ export const ProductList = () => {
                                     {loading ? (
                                         <Skeleton active />
                                     ) : products.length > 0 ? (
-                                        products.map((product: any) => (
+                                        products.map((product) => (
                                             <SingleProductList key={product.id} product={product} />
                                         ))
                                     ) : (
@@ -136,7 +167,7 @@ export const ProductList = () => {
                                         </a>
                                     </li>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                        <li key={page} className={currentPage === page ? 'active' : ''}>
+                                        <li key={page} className={currentPage === page ? "active" : ""}>
                                             <a
                                                 href="#"
                                                 onClick={(e) => {

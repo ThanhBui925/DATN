@@ -2,28 +2,37 @@ import {
     EditButton,
     List,
     ShowButton,
+    TextField,
     useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Breadcrumb, Space, Table, Tag, Button, Modal, Form, Select, Row, Col, Input, DatePicker, message } from "antd";
+import {
+    Breadcrumb,
+    Space,
+    Table,
+    Tag,
+    Button,
+    Modal,
+    Form,
+    Select,
+    Row,
+    Col,
+    Input,
+    DatePicker,
+    message,
+    notification,
+} from "antd";
 import React, { useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { DateField } from "@refinedev/antd";
 import { convertToInt } from "../../../helpers/common";
-
-const validTransitions: Record<string, string[]> = {
-    pending: ["confirming", "canceled"],
-    confirming: ["confirmed", "canceled"],
-    confirmed: ["preparing", "canceled"],
-    preparing: ["shipping", "canceled"],
-    shipping: ["delivered", "canceled"],
-    delivered: ["completed"],
-    completed: [],
-    canceled: [],
-};
+import { statusMap, validTransitions } from "../../../types/OrderStatusInterface";
+import { paymentStatusMap } from "../../../types/PaymentStatusInterface";
+import { paymentMethodMap } from "../../../types/PaymentMethodMap";
+import { axiosInstance } from "../../../utils/axios";
 
 export const OrdersList = () => {
-    const { tableProps, setFilters } = useTable({
+    const { tableProps, setFilters, tableQueryResult } = useTable({
         syncWithLocation: true,
         filters: {
             initial: [
@@ -39,51 +48,60 @@ export const OrdersList = () => {
     const [form] = Form.useForm();
     const { mutate } = useUpdate();
 
-    const statusMap: Record<string, { color: string; label: string }> = {
-        confirming: { color: "blue", label: "Đang xác nhận" },
-        confirmed: { color: "cyan", label: "Đã xác nhận" },
-        preparing: { color: "purple", label: "Đang chuẩn bị" },
-        shipping: { color: "orange", label: "Đang giao" },
-        delivered: { color: "green", label: "Đã giao" },
-        completed: { color: "success", label: "Hoàn thành" },
-        canceled: { color: "red", label: "Đã hủy" },
-        pending: { color: "default", label: "Chờ xử lý" },
-    };
-
     const handleUpdateStatus = (order: BaseRecord) => {
         setSelectedOrder(order);
         setIsModalVisible(true);
-        form.setFieldsValue({ order_status: order.order_status });
+        form.setFieldsValue({
+            order_status: order.status,
+            cancel_reason: order.cancel_reason || undefined,
+        });
     };
 
     const handleModalOk = () => {
         form.validateFields()
-            .then((values) => {
+            .then(async (values) => {
                 if (!selectedOrder) {
                     message.error("Không tìm thấy đơn hàng!");
                     return;
                 }
 
-                const allowed = validTransitions[selectedOrder.order_status] || [];
+                const allowed = validTransitions[selectedOrder.status] || [];
                 if (!allowed.includes(values.order_status)) {
                     message.error("Không thể chuyển sang trạng thái này!");
                     return;
                 }
 
-                return mutate(
-                    {
-                        resource: "orders",
-                        id: Number(selectedOrder.id),
-                        values: { order_status: values.order_status },
-                    },
-                    {
-                        onSuccess: () => {
-                            setIsModalVisible(false);
-                            form.resetFields();
-                            setSelectedOrder(null);
-                        }
+                let body: any = {};
+                if (values.order_status === "canceled") {
+                    const cancel_reason = `Đơn hàng được huỷ bởi admin, lý do: ${values.cancel_reason}`;
+                    body = { order_status: "canceled", cancel_reason };
+                } else {
+                    body = {
+                        order_status:
+                            values.order_status === "ready_to_pick" ? "shipping" : values.order_status,
+                    };
+                }
+
+                try {
+                    const response = await axiosInstance.put(`/api/orders/${selectedOrder.id}`, body);
+                    if (response?.data?.status === "false") {
+                        return notification.error({
+                            message: response?.data?.errors.order_status[0] || "Cập nhật đơn hàng thất bại",
+                        });
                     }
-                );
+                    tableQueryResult.refetch();
+                    setIsModalVisible(false);
+                    form.resetFields(); // Reset form after successful update
+                    setSelectedOrder(null);
+                    notification.success({
+                        message: response?.data?.message || "Cập nhật đơn hàng thành công !",
+                    });
+                } catch (error) {
+                    console.error("Cập nhật thất bại:", error);
+                    notification.error({
+                        message: "GHN đang quá tải khu vực này, vui lòng thử lại sau !",
+                    });
+                }
             })
             .catch(() => {
                 message.error("Vui lòng kiểm tra lại thông tin!");
@@ -158,7 +176,7 @@ export const OrdersList = () => {
                                 <Select
                                     placeholder="Chọn trạng thái"
                                     allowClear={true}
-                                    mode={'multiple'}
+                                    mode={"multiple"}
                                 >
                                     {Object.entries(statusMap).map(([key, { label }]) => (
                                         <Select.Option key={key} value={key}>
@@ -180,7 +198,18 @@ export const OrdersList = () => {
                         </Col>
                     </Row>
                 </Form>
-                <Table {...tableProps} rowKey="id">
+                <Table
+                    {...tableProps}
+                    rowKey="id"
+                    rowClassName={(record) => {
+                        if (record.order_status === "completed" && record.payment_status === "paid") {
+                            return "bg-green-100";
+                        } else if (record.order_status === "canceled") {
+                            return "bg-red-100";
+                        }
+                        return "";
+                    }}
+                >
                     <Table.Column
                         title="STT"
                         key="index"
@@ -199,17 +228,18 @@ export const OrdersList = () => {
                     <Table.Column
                         title="Tổng tiền"
                         dataIndex="total_price"
-                        render={(value: number) =>
-                            value ? `${convertToInt(value)} VNĐ` : "0 VNĐ"
-                        }
+                        render={(_, record) => {
+                            const finalPrice = (record.total_price || 0) - (record.discount_amount || 0);
+                            return `${convertToInt(finalPrice)} VNĐ`;
+                        }}
                     />
                     <Table.Column
-                        title="Trạng thái đơn"
-                        dataIndex="order_status"
+                        title="Trạng thái đơn hàng"
+                        dataIndex="status"
                         render={(value: string) => {
                             const status = statusMap[value];
                             return status ? (
-                                <Tag color={status.color}>{status.label}</Tag>
+                                <Tag color={status.cssColor}>{status.label}</Tag>
                             ) : (
                                 <Tag>{value}</Tag>
                             );
@@ -218,24 +248,14 @@ export const OrdersList = () => {
                     <Table.Column
                         title="Phương thức thanh toán"
                         dataIndex="payment_method"
-                        render={(value: string) => {
-                            const paymentMap: Record<string, string> = {
-                                cash: "Tiền mặt",
-                                card: "Thẻ",
-                                paypal: "PayPal",
-                                vnpay: "VNPay",
-                            };
-                            return paymentMap[value] || value || "-";
-                        }}
+                        render={(value: string) => (
+                            <Tag color={paymentMethodMap[value]?.color}>{paymentMethodMap[value]?.label || value}</Tag>
+                        )}
                     />
                     <Table.Column
                         title="Trạng thái thanh toán"
                         dataIndex="payment_status"
                         render={(value: string) => {
-                            const paymentStatusMap: Record<string, { color: string; label: string }> = {
-                                unpaid: { color: "red", label: "Chưa thanh toán" },
-                                paid: { color: "green", label: "Đã thanh toán" },
-                            };
                             const status = paymentStatusMap[value];
                             return status ? (
                                 <Tag color={status.color}>{status.label}</Tag>
@@ -259,7 +279,7 @@ export const OrdersList = () => {
                         dataIndex="actions"
                         render={(_, record: BaseRecord) => (
                             <Space>
-                                <EditButton hideText size="large" onClick={() => handleUpdateStatus(record)} />
+                                {/*<EditButton hideText size="large" onClick={() => handleUpdateStatus(record)} />*/}
                                 <ShowButton hideText size="large" recordItemId={record.id} />
                             </Space>
                         )}
@@ -285,12 +305,28 @@ export const OrdersList = () => {
                                 <Select.Option
                                     key={key}
                                     value={key}
-                                    disabled={selectedOrder ? !validTransitions[selectedOrder.order_status]?.includes(key) : true}
+                                    disabled={selectedOrder ? !validTransitions[selectedOrder.status]?.includes(key) : true}
                                 >
                                     {label}
                                 </Select.Option>
                             ))}
                         </Select>
+                    </Form.Item>
+                    <Form.Item
+                        noStyle
+                        shouldUpdate={(prevValues, curValues) => prevValues.order_status !== curValues.order_status}
+                    >
+                        {({ getFieldValue }) =>
+                            getFieldValue("order_status") === "canceled" && (
+                                <Form.Item
+                                    name="cancel_reason"
+                                    label="Lý do hủy"
+                                    rules={[{ required: true, message: "Vui lòng nhập lý do hủy" }]}
+                                >
+                                    <Input.TextArea placeholder="Nhập lý do hủy đơn" />
+                                </Form.Item>
+                            )
+                        }
                     </Form.Item>
                 </Form>
             </Modal>

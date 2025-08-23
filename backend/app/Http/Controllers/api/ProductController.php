@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
 use Illuminate\Support\Str;
+use App\Models\OrderItem;
+use App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -55,9 +57,7 @@ class ProductController extends Controller
 
         return $this->successResponse($products);
     }
-
-
-
+    
     public function show($id)
     {
         $product = Product::with([
@@ -65,15 +65,29 @@ class ProductController extends Controller
             'variants.size',
             'variants.color',
             'variants.images',
-            'images' // Thêm quan hệ ảnh mô tả sản phẩm
+            'images',
+            'reviews.user'
         ])->find($id);
-
+    
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
-
+    
+        // Tổng số lượng đơn hàng
+        $orderQuantity = OrderItem::where('product_id', $id)->sum('quantity');
+        $product->total_ordered_quantity = $orderQuantity;
+    
+        // Tính điểm đánh giá trung bình và tổng số đánh giá
+        $averageRating = $product->reviews()->avg('rating');
+        $reviewCount = $product->reviews()->count();
+    
+        $product->average_rating = round($averageRating, 1); // làm tròn 1 chữ số
+        $product->review_count = $reviewCount;
+    
         return $this->successResponse($product);
     }
+    
+
 
 
     public function store(StoreProductRequest $request)
@@ -101,7 +115,6 @@ class ProductController extends Controller
             // Create product
             $product = Product::create($productData);
 
-            // ✅ Xử lý ảnh mô tả sản phẩm (imageDesc)
             if ($request->hasFile('imageDesc')) {
                 $images = [];
 
@@ -121,6 +134,14 @@ class ProductController extends Controller
             }
 
             // Xử lý variants
+            $existingVariant = VariantProduct::where('product_id', $product->id)
+                ->where('name', $variantInput['name'] ?? '')
+                ->first();
+
+            if ($existingVariant) {
+                // Tên biến thể đã tồn tại → có thể throw exception hoặc bỏ qua, hoặc trả lỗi
+                throw new \Exception('Tên biến thể đã tồn tại trong sản phẩm.');
+            }
             $variantsInput = $request->input('variants', []);
             foreach ($variantsInput as $index => $variantInput) {
                 $variant = VariantProduct::create([
@@ -189,35 +210,36 @@ class ProductController extends Controller
             $product->update($data);
 
             // Xử lý ảnh mô tả sản phẩm
-            if ($request->hasFile('image_desc')) {
-            // XÓA MỀM ẢNH MÔ TẢ CŨ
+            $clearDesc = $request->has('clear_image_desc');
+            $hasFileDesc = $request->hasFile('image_desc');
+            $inputDesc = $request->input('image_desc', []);
+
+            if ($clearDesc) {
+                $product->images()->delete(); // Soft delete
+            } elseif ($hasFileDesc || !empty($inputDesc)) {
                 $product->images()->delete(); // Soft delete
 
-                $descImages = [];
-                foreach ($request->file('image_desc') as $file) {
-                    $path = $file->store('products/descriptions', 'public');
-                    $url = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
-                    $descImages[] = [
+                $descUrls = is_array($inputDesc) ? $inputDesc : [];
+                $uploadedDesc = [];
+                if ($hasFileDesc) {
+                    foreach ($request->file('image_desc') as $file) {
+                        $path = $file->store('products/descriptions', 'public');
+                        $url = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                        $uploadedDesc[] = $url;
+                    }
+                }
+                $allDesc = array_merge($descUrls, $uploadedDesc);
+
+                if (!empty($allDesc)) {
+                    $descImages = array_map(fn ($url) => [
                         'product_id' => $product->id,
                         'url' => $url,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ];
+                    ], $allDesc);
+
+                    Image::insert($descImages);
                 }
-
-                Image::insert($descImages);
-            } elseif ($request->has('image_desc') && is_array($request->image_desc)) {
-                // XÓA MỀM ẢNH MÔ TẢ CŨ
-                $product->images()->delete(); // Soft delete
-
-                $descImages = array_map(fn ($url) => [
-                    'product_id' => $product->id,
-                    'url' => $url,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ], $request->image_desc);
-
-                Image::insert($descImages);
             }
 
             $variantIdsMustDelete = array_diff(
@@ -226,33 +248,39 @@ class ProductController extends Controller
             );
 
             if (!empty($variantIdsMustDelete)) {
+                $hasOrderedVariant = VariantProduct::whereIn('id', $variantIdsMustDelete)
+                    ->whereHas('orderItems')
+                    ->exists();
 
+                if ($hasOrderedVariant) {
+                    DB::rollBack();
+                    return $this->errorResponse('Không thể xoá biến thể vì biến thể đã phát sinh đơn hàng', 400);
+                }
+
+                // Nếu không có biến thể nào đã được đặt hàng, mới xoá ảnh và biến thể
                 $variantImages = VariantImage::whereIn('variant_product_id', $variantIdsMustDelete)->get();
-
                 foreach ($variantImages as $variantImage) {
                     if (isset($variantImage->image_url)) {
                         $imageUrl = $variantImage->image_url;
-
-                        if (Str::startsWith($imageUrl, ['http://', 'https://'])) {
-                            $path = Str::after($imageUrl, '/storage/');
-                        } else {
-                            $path = Str::replaceFirst('/storage/', '', $imageUrl);
-                        }
+                        $path = Str::startsWith($imageUrl, ['http://', 'https://'])
+                            ? Str::after($imageUrl, '/storage/')
+                            : Str::replaceFirst('/storage/', '', $imageUrl);
 
                         if (Storage::disk('public')->exists($path)) {
                             Storage::disk('public')->delete($path);
                         }
                     }
-
                     $variantImage->delete();
                 }
 
                 VariantProduct::whereIn('id', $variantIdsMustDelete)->delete();
             }
 
-            // dd(1);
             if (!empty($request->variants)) {
                 foreach ($request->variants as $index => $variantInput) {
+                    $variantImagesKey = "variants.$index.images";
+                    $clearVarImages = isset($variantInput['clear_images']);
+
                     if (isset($variantInput['id'])) {
                         $variant = $product->variants->firstWhere('id', $variantInput['id']);
                         if ($variant) {
@@ -261,37 +289,48 @@ class ProductController extends Controller
                                 'quantity' => $variantInput['quantity'],
                                 'size_id' => $variantInput['size_id'],
                                 'color_id' => $variantInput['color_id'],
-                                'status' => $variantInput['status'],
+                                'status' => isset($variantInput['status']) ? (int) $variantInput['status'] : $variant->status,
                             ]);
 
-                            $variantImagesKey = "variants.$index.images";
-                            if ($request->hasFile($variantImagesKey)) {
+                            if ($clearVarImages) {
                                 $variant->images()->delete();
-                                $images = [];
-                                foreach ($request->file($variantImagesKey) as $file) {
-                                    $path = $file->store('products/variants', 'public');
-                                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                            } elseif ($request->hasFile($variantImagesKey) || isset($variantInput['images'])) {
+                                $variant->images()->delete();
 
-                                    $images[] = [
+                                $varUrls = [];
+                                if (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                                    $varUrls = array_filter($variantInput['images'], fn($img) => is_string($img) && !empty($img));
+                                }
+                                $varUploaded = [];
+                                if ($request->hasFile($variantImagesKey)) {
+                                    foreach ($request->file($variantImagesKey) as $file) {
+                                        $path = $file->store('products/variants', 'public');
+                                        $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                                        $varUploaded[] = $fullUrl;
+                                    }
+                                }
+                                $allVar = array_merge($varUrls, $varUploaded);
+
+                                if (!empty($allVar)) {
+                                    $images = array_map(fn ($url) => [
                                         'variant_product_id' => $variant->id,
-                                        'image_url' => $fullUrl,
+                                        'image_url' => $url,
                                         'created_at' => now(),
                                         'updated_at' => now(),
-                                    ];
+                                    ], $allVar);
+                                    VariantImage::insert($images);
                                 }
-                                VariantImage::insert($images);
-                            } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
-                                $variant->images()->delete();
-                                $newImages = array_map(fn ($url) => [
-                                    'variant_product_id' => $variant->id,
-                                    'image_url' => $url,
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
-                                ], $variantInput['images']);
-                                VariantImage::insert($newImages);
                             }
                         }
                     } else {
+                        $duplicate = $product->variants
+                            ->where('name', $variantInput['name'])
+                            ->first();
+
+                        if ($duplicate) {
+                            return $this->errorResponse("Tên biến thể '{$variantInput['name']}' đã tồn tại trong sản phẩm.", 422);
+                        }
+
                         $newVariant = VariantProduct::create([
                             'product_id' => $product->id,
                             'name' => $variantInput['name'],
@@ -301,39 +340,41 @@ class ProductController extends Controller
                             'status' => $variantInput['status'],
                         ]);
 
-                        $variantImagesKey = "variants.$index.images";
-                        if ($request->hasFile($variantImagesKey)) {
-                            $images = [];
-                            foreach ($request->file($variantImagesKey) as $file) {
-                                $path = $file->store('products/variants', 'public');
-                                $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                        if (!$clearVarImages && ($request->hasFile($variantImagesKey) || isset($variantInput['images']))) {
+                            $varUrls = [];
+                            if (isset($variantInput['images']) && is_array($variantInput['images'])) {
+                                $varUrls = array_filter($variantInput['images'], fn($img) => is_string($img) && !empty($img));
+                            }
+                            $varUploaded = [];
+                            if ($request->hasFile($variantImagesKey)) {
+                                foreach ($request->file($variantImagesKey) as $file) {
+                                    $path = $file->store('products/variants', 'public');
+                                    $fullUrl = env('APP_URL', 'http://127.0.0.1:8000') . Storage::url($path);
+                                    $varUploaded[] = $fullUrl;
+                                }
+                            }
+                            $allVar = array_merge($varUrls, $varUploaded);
 
-                                $images[] = [
+                            if (!empty($allVar)) {
+                                $images = array_map(fn ($url) => [
                                     'variant_product_id' => $newVariant->id,
-                                    'image_url' => $fullUrl,
+                                    'image_url' => $url,
                                     'created_at' => now(),
                                     'updated_at' => now(),
-                                ];
+                                ], $allVar);
+                                VariantImage::insert($images);
                             }
-                            VariantImage::insert($images);
-                        } elseif (isset($variantInput['images']) && is_array($variantInput['images'])) {
-                            $newImages = array_map(fn ($url) => [
-                                'variant_product_id' => $newVariant->id,
-                                'image_url' => $url,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ], $variantInput['images']);
-                            VariantImage::insert($newImages);
                         }
                     }
                 }
             }
 
             DB::commit();
-            return $this->successResponse(
-                $product->load(['variants.size', 'variants.color', 'variants.images', 'images']),
-                'Cập nhật sản phẩm thành công'
-            );
+
+            $product = $product->fresh(['variants.size', 'variants.color', 'variants.images', 'images']);
+
+            return $this->successResponse($product, 'Cập nhật sản phẩm thành công');
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi cập nhật sản phẩm: ' . $e->getMessage());
@@ -346,32 +387,39 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::with('variants.images')->find($id);
+
         if (!$product) {
             return $this->errorResponse('Sản phẩm không tồn tại', 404);
         }
 
+        if ($product->orderItems()->exists()) {
+            return $this->errorResponse('Không thể xóa sản phẩm này vì sản phẩm đã phát sinh đơn hàng', 400);
+        }
+
+        foreach ($product->variants as $variant) {
+            if ($variant->orderItems()->exists()) {
+                return $this->errorResponse('Không thể xóa sản phẩm này vì có biến thể đã được đặt hàng', 400);
+            }
+        }
+
         DB::beginTransaction();
         try {
-            // Xóa mềm ảnh của các biến thể
             foreach ($product->variants as $variant) {
-                $variant->images()->delete(); // xóa mềm ảnh biến thể
+                $variant->images()->delete();
             }
 
-            // Xóa mềm các biến thể
             $product->variants()->delete();
-
-            // Xóa mềm sản phẩm
             $product->delete();
 
             DB::commit();
-
             return $this->successResponse(null, 'Xóa sản phẩm thành công');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Product deletion failed: ' . $e->getMessage());
+            log::error('Product deletion failed: ' . $e->getMessage());
             return $this->errorResponse('Xóa sản phẩm thất bại. Vui lòng thử lại.', 500);
         }
     }
+
 
 
     public function trashed()

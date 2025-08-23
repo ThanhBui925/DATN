@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuthController,
@@ -15,48 +16,119 @@ use App\Http\Controllers\Api\{
     BlogController,
     CartController,
     CustomerController,
-    ForgotPasswordController
+    ForgotPasswordController,
+    ManagerAdminController
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
 use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
+use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
+use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
+use App\Http\Controllers\Api\Client\ProfileController as ProfileClientController;
+use App\Http\Controllers\Api\Client\AddressController;
+use App\Http\Controllers\Api\Client\ShippingFeeController;
+use App\Http\Controllers\Api\Client\CheckoutController;
+use App\Http\Controllers\Api\Client\BlogController as ClientBlogController;
 
 
 Route::prefix('client')->group(function () {
-    Route::get('/', [ClientProductController::class, 'index']);
+    // Các route public (không cần đăng nhập)
+    Route::get('/new-arrival-product', [ClientProductController::class, 'newArrivalProduct']);
+    Route::get('/best-seller-product', [ClientProductController::class, 'bestSellerProduct']);
+    // Route::get('/feature-product', [ClientProductController::class, 'featureProduct']);
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
+        Route::get('/{id}/related-products', [ClientProductController::class, 'getRelatedProduct']);
     });
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+        
     });
-    Route::prefix('cart')->group(function () {
-        Route::get('/', [ClientCartController::class, 'index']); // Lấy giỏ hàng
-        Route::post('/items', [ClientCartController::class, 'store']); // Thêm sản phẩm vào giỏ
-        Route::put('/items/{itemId}', [ClientCartController::class, 'update']); // Cập nhật số lượng sản phẩm
-        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']); // Xoá sản phẩm khỏi giỏ
+
+    Route::prefix('blogs')->group(function () {
+        Route::get('/', [ClientBlogController::class, 'index']);
+        Route::get('/{id}', [ClientBlogController::class, 'show']);
+    });
+
+    Route::get('sizes', [ClientProductController::class, 'getAllSize']);
+    Route::get('colors', [ClientProductController::class, 'getAllColor']);
+
+
+    Route::prefix('banners')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Client\BannerController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BannerController::class, 'show']);
+    });
+    Route::get('/products/{id}/reviews', [ClientProductController::class, 'getReviewsByProduct']);
+
+
+    Route::middleware('auth:sanctum')->post('/shipping-fee', [ShippingFeeController::class, 'calculate']);
+
+    // Các route cần đăng nhập
+    Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
+        Route::get('/', [ClientCartController::class, 'index']);
+        Route::post('/items', [ClientCartController::class, 'store']);
+        Route::put('/items/{itemId}', [ClientCartController::class, 'update']);
+        Route::delete('/items/{itemId}', [ClientCartController::class, 'destroy']);
         Route::get('/{productId}/variants', [ClientCartController::class, 'getProductVariants']);
     });
-    Route::prefix('orders')->group(function () {
-        Route::get('/', [ClientOrderController::class, 'index']); // Lấy danh sách đơn hàng của user
-        Route::post('/', [ClientOrderController::class, 'store']); // Tạo đơn hàng mới
-        Route::get('/{id}', [ClientOrderController::class, 'show']); // Xem chi tiết đơn hàng
-        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']); // Hủy đơn hàng
+
+    Route::middleware('auth:sanctum')->post('/confirm_checkout', [CheckoutController::class, 'confirm']);
+
+    Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+        Route::get('/', [ClientOrderController::class, 'index']);
+        Route::post('/', [ClientOrderController::class, 'store']);
+        Route::get('/{id}', [ClientOrderController::class, 'show']);
+        Route::put('/{id}/cancel', [ClientOrderController::class, 'cancel']);
+        Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
+        Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
+        Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
+        Route::put('/{id}/return', [ClientOrderController::class, 'requestReturn']);
     });
-    Route::prefix('blogs')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\Client\BlogController::class, 'index']); // Danh sách blog
-        Route::get('/{id}', [\App\Http\Controllers\Api\Client\BlogController::class, 'show']); // Chi tiết blog
+
+
+
+    Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+        Route::get('/', [ClientReviewController::class, 'index']);
+        Route::post('/', [ClientReviewController::class, 'store']);
+        Route::put('/{id}', [ClientReviewController::class, 'update']);
+        Route::delete('/{id}', [ClientReviewController::class, 'destroy']);
     });
+    Route::middleware('auth:sanctum')->post('/checkout/apply_coupon', [ClientOrderController::class, 'applyVoucher']);
+    Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
+        Route::post('/', [AddressController::class, 'store']);
+        Route::get('/', [AddressController::class, 'index']);
+        Route::put('/{id}', [AddressController::class, 'update']);
+        Route::delete('/{id}', [AddressController::class, 'destroy']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('vouchers')->group(function () {
+        Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
+        Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
+    });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileClientController::class, 'show']);
+    Route::put('/profile', [ProfileClientController::class, 'update']);
 });
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
     Route::post('/register', 'register');
     Route::get('/user', 'user');
+    Route::get('/profile', 'profile')->middleware('auth:sanctum');
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+
+
+
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
@@ -70,12 +142,43 @@ Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthl
 Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
 Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
 
+Route::get('/dashboard/products-by-category', [DashboardController::class, 'getProductCountByCategory']);
+
+Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
+Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
+Route::get('/dashboard/voucher-usage-count', [DashboardController::class, 'getUsedVoucherCount']);
+Route::get('/dashboard/voucher-usage', [DashboardController::class, 'getUsedVoucherCount']);
+
+Route::get('/dashboard/orders/status-counters', [DashboardController::class, 'getOrderStatusCounters']);
+Route::get('/dashboard/orders/by-period', [DashboardController::class, 'getOrdersByPeriod']);
+Route::get('/dashboard/orders/cancel-rate', [DashboardController::class, 'getCancelRate']);
+Route::get('/dashboard/orders/status-timeline', [DashboardController::class, 'getOrderStatusTimeline']);
+
+Route::get('/dashboard/product-ratings', [DashboardController::class, 'getProductRatings']);
+Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class, 'getProductRatings'])->whereNumber('productId');
+Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
+Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
+Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
+Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatusSummary']);
+Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
+Route::get('/dashboard/total-product',  [DashboardController::class, 'getTotalProducts']);
+Route::get('/dashboard/total-variant',  [DashboardController::class, 'getTotalVariants']);
+Route::get('/dashboard/return-order-rate',     [DashboardController::class, 'getRefundRate']);
+
+
+Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
+Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
 Route::apiResource('banners', BannerController::class);
 
 Route::prefix('categories')->controller(CategoryController::class)->group(function () {
     Route::get('/trashed', 'trashed');
     Route::post('{id}/restore', 'restore');
     Route::delete('{id}/force-delete', 'forceDelete');
+    Route::get('/get-list', 'getCategoryActive');
     Route::apiResource('/', CategoryController::class)->parameter('', 'category');
 });
 
@@ -93,6 +196,7 @@ Route::prefix('orders')->controller(OrderController::class)->group(function () {
     Route::put('/{id}', 'updateStatus');
     Route::get('/{id}', 'show');
     Route::get('/{id}/pdf', 'generatePDF');
+    Route::post('/{id}/refunded', 'refundOrder');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {
@@ -103,14 +207,18 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
 });
 
 Route::apiResource('customers', CustomerController::class)->only([
-    'index', 'store', 'update', 'destroy', 'show'
+    'index',
+    'store',
+    'update',
+    'destroy',
+    'show'
 ]);
 
 Route::apiResource('colors', ColorController::class)->only(['index']);
-Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('colors', ColorController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::apiResource('sizes', SizeController::class)->only(['index']);
-Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy']);
+Route::apiResource('sizes', SizeController::class)->only(['store', 'update', 'destroy', 'show']);
 
 Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
     Route::get('/', 'index');
@@ -145,9 +253,12 @@ Route::prefix('blogs')->controller(BlogController::class)->group(function () {
     Route::put('/comments/{commentId}/restore', 'restoreComment');
 });
 
-Route::prefix('cart')->controller(CartController::class)->group(function () {
+
+Route::prefix('manager-admin')->controller(ManagerAdminController::class)->group(function () {
     Route::get('/', 'index');
     Route::post('/', 'store');
-    Route::put('/', 'update');
-    Route::delete('/', 'destroy');
+    Route::get('/{id}', 'show');
+    Route::put('/{id}', 'update');
+    Route::delete('/{id}', 'destroy');
+    Route::post('/{id}', 'restore');
 });
