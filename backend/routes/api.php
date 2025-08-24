@@ -141,6 +141,8 @@ Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverage
 Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
 Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
 Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+Route::get('/dashboard/revenue-by-product', [DashboardController::class, 'getRevenueByProduct']);
+
 
 Route::get('/dashboard/products-by-category', [DashboardController::class, 'getProductCountByCategory']);
 
@@ -161,7 +163,7 @@ Route::get('/dashboard/best-selling-products', [DashboardController::class, 'get
 Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
 Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
-Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatusSummary']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatusCounters']);
 Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
 Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts']);
 Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
