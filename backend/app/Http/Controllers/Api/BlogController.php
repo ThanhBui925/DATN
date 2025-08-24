@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use App\Http\Requests\Blog\StoreBlogRequest;
+use App\Http\Requests\Blog\UpdateBlogRequest;
 use Illuminate\Support\Facades\Auth;
 
 class BlogController extends Controller
@@ -32,22 +34,9 @@ class BlogController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(StoreBlogRequest $request)
     {
-        // Ép kiểu status về số nguyên nếu FE gửi về dạng chuỗi
-        $request->merge([
-            'status' => (int) $request->status,
-        ]);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'content' => 'required',
-            'image' => 'image|max:2048',
-            'status' => 'required|integer|in:0,1,2',
-        ]);
-
-        $data = $request->only(['title', 'description', 'content', 'status']);
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('blogs', 'public');
@@ -57,9 +46,10 @@ class BlogController extends Controller
 
         return response()->json([
             'message' => 'Thêm bài viết thành công',
-            'data' => $blog,
+            'data'    => $blog,
         ], 201);
     }
+
 
     public function show($id)
     {
@@ -87,24 +77,10 @@ class BlogController extends Controller
     }
 
 
-    public function update(Request $request, $id)
+    public function update(UpdateBlogRequest $request, $id)
     {
         $blog = Blog::findOrFail($id);
-
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'content' => 'sometimes|required',
-            'image' => 'nullable|image|max:2048',
-            'status' => 'sometimes|required|integer|in:0,1,2',
-        ]);
-
-        $data = [
-            'title' => $request->input('title', $blog->title),
-            'description' => $request->input('description', $blog->description),
-            'content' => $request->input('content', $blog->content),
-            'status' => $request->has('status') ? (int) $request->status : $blog->status, // ✅ sửa ở đây
-        ];
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('blogs', 'public');
@@ -116,9 +92,10 @@ class BlogController extends Controller
 
         return response()->json([
             'message' => 'Cập nhật bài viết thành công',
-            'data' => $blog
+            'data'    => $blog
         ]);
     }
+
 
 
 
@@ -177,5 +154,4 @@ class BlogController extends Controller
         $comment->restore();
         return response()->json(['message' => 'Khôi phục bình luận thành công']);
     }
-
 }
