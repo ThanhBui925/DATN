@@ -23,63 +23,100 @@ use App\Traits\ApiResponseTrait;
 class CartController extends Controller
 {
     use ApiResponseTrait;
-    public function index(Request $request)
-    {
-        $userId = $request->user()->id;
-        $cart = Cart::with(['items.product', 'items.variant.size', 'items.variant.color'])
-            ->where('user_id', $userId)
-            ->first();
+   public function index(Request $request)
+{
+    $userId = $request->user()->id;
 
-        if (!$cart) {
-            return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
+    $cart = Cart::with([
+        'items.product',
+        'items.variant.size',
+        'items.variant.color'
+    ])
+    ->where('user_id', $userId)
+    ->first();
+
+    if (!$cart) {
+        return $this->success(['items' => [], 'total' => 0], 'Giỏ hàng rỗng');
+    }
+
+    $invalidProducts = [];
+    $invalidVariants = [];
+
+    $cartItems = $cart->items->map(function ($item) use (&$invalidProducts, &$invalidVariants) {
+
+        // Nếu product không tồn tại hoặc đã ngừng kinh doanh
+        if (!$item->product || $item->product->status != 1) {
+            $invalidProducts[] = $item->product->name ?? "Sản phẩm ID {$item->product_id}";
+            $item->delete();
+            return null;
         }
 
-        $cartItems = $cart->items->map(function ($item) {
-            $price = $item->product->sale_price ?? $item->product->price;
-            $productVariants = VariantProduct::where('product_id', $item->product_id)
-                ->where('status', 1)
-                ->where('quantity', '>', 0)
-                ->with(['size', 'color', 'images'])
-                ->get()
-                ->map(function ($variant) {
-                    return [
-                        'id' => $variant->id,
-                        'size' => $variant->size->name ?? null,
-                        'color' => $variant->color->name ?? null,
-                        'quantity' => $variant->quantity,
-                        'images' => $variant->images->map(function ($image) {
-                            return [
-                                'id' => $image->id,
-                                'image_url' => $image->image_url,
-                            ];
-                        })->toArray(),
-                    ];
-                });
+        // Nếu variant không tồn tại, ngừng kinh doanh hoặc hết số lượng
+        if (!$item->variant || $item->variant->status != 1 || $item->variant->quantity <= 0) {
+            $invalidVariants[] = $item->variant->name ?? "Variant ID {$item->variant_id}";
+            $item->delete();
+            return null;
+        }
 
-            return [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'product' => $item->product,
-                'product_name' => $item->product->name,
-                'variant_id' => $item->variant_id,
-                'size' => $item->variant->size->name ?? null,
-                'color' => $item->variant->color->name ?? null,
-                'price' => $price,
-                'quantity' => $item->quantity,
-                'total' => $price * $item->quantity,
-                'image' => $item->product->image,
-                'available_variants' => $productVariants,
-            ];
-        });
+        // Giá bán
+        $price = $item->product->sale_price ?? $item->product->price;
 
-        $total = $cartItems->sum('total');
+        // Lấy các biến thể chỉ của sản phẩm này
+        $productVariants = $item->product
+            ->variants()
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->with(['size', 'color', 'images'])
+            ->get()
+            ->map(function ($variant) {
+                return [
+                    'id'       => $variant->id,
+                    'size'     => $variant->size->name ?? null,
+                    'color'    => $variant->color->name ?? null,
+                    'quantity' => $variant->quantity,
+                    'status'   => $variant->status,
+                    'images'   => $variant->images->map(fn($image) => [
+                        'id'        => $image->id,
+                        'image_url' => $image->image_url,
+                    ])->toArray(),
+                ];
+            });
 
-        return $this->success([
-            'items' => $cartItems,
-            'total' => $total,
-        ], 'Lấy giỏ hàng thành công');
+        return [
+            'id'                => $item->id,
+            'product_id'        => $item->product_id,
+            'product'           => $item->product,
+            'product_name'      => $item->product->name,
+            'variant_id'        => $item->variant_id,
+            'size'              => $item->variant->size->name ?? null,
+            'color'             => $item->variant->color->name ?? null,
+            'price'             => $price,
+            'quantity'          => $item->quantity,
+            'total'             => $price * $item->quantity,
+            'image'             => $item->product->image,
+            'available_variants'=> $productVariants,
+        ];
+    })->filter();
+
+    // Tổng tiền
+    $total = $cartItems->sum('total');
+
+    // Message
+    $message = 'Lấy giỏ hàng thành công';
+    if (!empty($invalidProducts)) {
+        $message .= '. Một số sản phẩm đã ngừng kinh doanh và được xóa khỏi giỏ: ' . implode(', ', $invalidProducts);
     }
-    
+    if (!empty($invalidVariants)) {
+        $message .= '. Một số biến thể đã ngừng kinh doanh hoặc hết hàng và được xóa khỏi giỏ: ' . implode(', ', $invalidVariants);
+    }
+
+    return $this->success([
+        'items' => $cartItems,
+        'total' => $total,
+    ], $message);
+}
+
+
     public function store(Request $request)
     {
         $userId = $request->user()->id ?? $request->input('user_id');
@@ -132,35 +169,40 @@ class CartController extends Controller
     }
 
     public function update(Request $request, $cartItemId)
-    {
-        $request->validate([
-            'variant_id' => 'required|exists:variant_products,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+{
+    $request->validate([
+        'variant_id' => 'required|exists:variant_products,id',
+        'quantity'   => 'required|integer|min:1',
+    ]);
 
-        $cartItem = ShoppingCartItem::where('id', $cartItemId)
-            ->whereHas('cart', function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id);
-            })
-            ->firstOrFail();
+    $cartItem = ShoppingCartItem::where('id', $cartItemId)
+        ->whereHas('cart', fn($q) => $q->where('user_id', $request->user()->id))
+        ->firstOrFail();
 
-        $variant = VariantProduct::where('id', $request->variant_id)
-            ->where('product_id', $cartItem->product_id)
-            ->where('quantity', '>', 0)
-            ->where('status', 1)
-            ->firstOrFail();
+    $variant = VariantProduct::where('id', $request->variant_id)
+        ->where('product_id', $cartItem->product_id)
+        ->where('status', 1)
+        ->first();
 
-        if ($variant->quantity < $request->quantity) {
-            return $this->error('Số lượng vượt quá tồn kho', 400);
-        }
-
-        $cartItem->update([
-            'variant_id' => $request->variant_id,
-            'quantity' => $request->quantity,
-        ]);
-
-        return $this->success(null, 'Cập nhật giỏ hàng thành công');
+    if (!$variant) {
+        return $this->error('Biến thể không tồn tại hoặc đã ngừng kinh doanh', 404);
     }
+
+    if ($variant->quantity <= 0) {
+        return $this->error('Sản phẩm đã hết hàng', 400);
+    }
+
+    if ($variant->quantity < $request->quantity) {
+        return $this->error("Chỉ còn {$variant->quantity} sản phẩm", 400);
+    }
+
+    $cartItem->variant_id = $request->variant_id;
+    $cartItem->quantity   = $request->quantity;
+    $cartItem->save();
+
+    return $this->success($cartItem, 'Cập nhật giỏ hàng thành công');
+}
+
 
     public function getProductVariants(Request $request, $productId)
     {

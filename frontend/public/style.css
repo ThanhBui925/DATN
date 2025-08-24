@@ -3974,7 +3974,7 @@ thead {
     padding-left: .9375rem;
   }
   .banner_login_form {
-    background-image: url('/img/slider/home-1-02.jpg');
+    background-image: url('/img/slider/home-1-01.jpg');
   }
 
   .banner_register_form {
@@ -4046,4 +4046,36 @@ thead {
   background-color: transparent;
   color: #e85a4f;
   border-color: #e85a4f;
+}
+
+.blog-img-container {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+}
+
+.blog-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.blog-img:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .blog-img-container {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 576px) {
+  .blog-wrapper {
+    margin-bottom: 20px;
+  }
 }

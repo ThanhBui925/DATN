@@ -118,14 +118,9 @@ class UserController extends Controller
         $user->password = Hash::make($request->input('password'));
         $user->save();
 
-        return response()->json([
-            'message' => 'Mật khẩu đã được đặt lại thành công.',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ]
-        ], 200);
+        return redirect('http://localhost:3000/dang-nhap')
+            ->with('message', 'Mật khẩu đã được đặt lại thành công.');
+
     }
 
     public function updateRole(Request $request, $id)
@@ -152,4 +147,6 @@ class UserController extends Controller
         $user->save();
         return response()->json(['message' => 'Role updated successfully', 'user' => $user]);
     }
+
+    
 }

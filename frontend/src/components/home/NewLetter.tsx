@@ -7,7 +7,7 @@ export const NewLetter = () => {
                         <div className="newsletter-inner text-center newsletter-bg">
                             <h4 className="text">Tham gia</h4>
                             <h2>Nhận tin tức mới nhất !</h2>
-                            <p className="desc">Theo dõi kênh Juta để nhận được email mới nhất về danh sách mã giảm giá,
+                            <p className="desc">Theo dõi kênh SportWolk để nhận được email mới nhất về danh sách mã giảm giá,
                                 danh sách chương trình giảm giá</p>
                             <form
                                 action="http://devitems.us11.list-manage.com/subscribe/post?u=6bbb9b6f5827bd842d9640c82&amp;id=05d85f18ef"

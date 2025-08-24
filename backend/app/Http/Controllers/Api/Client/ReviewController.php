@@ -37,64 +37,81 @@ class ReviewController extends Controller
      * POST /api/client/reviews
      */
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'required|exists:products,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|max:1000',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'product_id' => 'required|exists:products,id',
+        'order_id'   => 'required|exists:shop_order,id', // thêm order_id
+        'rating'     => 'required|integer|min:1|max:5',
+        'comment'    => 'required|string|max:1000',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // 🔐 Kiểm tra đã mua sản phẩm chưa
-        $hasPurchased = Order::where('user_id', $request->user()->id)
-            ->whereIn('order_status', ['completed', 'delivered']) // Đơn hoàn tất
-            ->whereHas('orderItems', function ($q) use ($request) {
-                $q->where('product_id', $request->product_id);
-            })->exists();
-
-        if (!$hasPurchased) {
-            return response()->json([
-                'message' => 'Bạn chỉ có thể đánh giá sản phẩm đã mua.'
-            ], 403);
-        }
-
-        // 🔍 Kiểm tra từ nhạy cảm
-        $comment = $request->comment;
-        $bannedWords = ['xấu', 'lừa đảo', 'rác', 'đồ tệ'];
-        $isVisible = true;
-
-        foreach ($bannedWords as $word) {
-            if (stripos($comment, $word) !== false) {
-                $isVisible = false;
-                break;
-            }
-        }
-
-        $review = Review::create([
-            'product_id' => $request->product_id,
-            'user_id' => $request->user()->id,
-            'rating' => $request->rating,
-            'comment' => $comment,
-            'is_visible' => $isVisible,
-        ]);
-
-        OrderItem::whereHas('order', function ($q) use ($request) {
-            $q->where('user_id', $request->user()->id)
-              ->whereIn('order_status', ['completed', 'delivered']);
-        })
-        ->where('product_id', $request->product_id)
-        ->update(['is_review' => true]);
-
-        return response()->json([
-            'message' => $isVisible
-                ? 'Gửi đánh giá thành công'
-                : 'Gửi thành công, đánh giá đang chờ duyệt',
-            'data' => $review->load('user'),
-        ], 201);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    $userId = $request->user()->id;
+    $productId = $request->product_id;
+    $orderId   = $request->order_id;
+
+    // Kiểm tra xem order_item này đã đánh giá chưa
+    $alreadyReviewed = OrderItem::where('order_id', $orderId)
+        ->where('product_id', $productId)
+        ->where('is_review', 1)
+        ->exists();
+
+    if ($alreadyReviewed) {
+        return response()->json([
+            'message' => 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.'
+        ], 403);
+    }
+
+    // Kiểm tra xem sản phẩm có thuộc đơn hàng của user và đơn đã hoàn tất
+    $hasPurchased = Order::where('id', $orderId)
+        ->where('user_id', $userId)
+        ->whereIn('order_status', ['completed', 'delivered'])
+        ->whereHas('orderItems', function ($q) use ($productId) {
+            $q->where('product_id', $productId);
+        })
+        ->exists();
+
+    if (!$hasPurchased) {
+        return response()->json([
+            'message' => 'Bạn chỉ có thể đánh giá sản phẩm đã mua trong đơn hàng này.'
+        ], 403);
+    }
+
+    // 🔍 Kiểm tra từ nhạy cảm
+    $comment = $request->comment;
+    $bannedWords = ['xấu', 'lừa đảo', 'rác', 'đồ tệ'];
+    $isVisible = true;
+    foreach ($bannedWords as $word) {
+        if (stripos($comment, $word) !== false) {
+            $isVisible = false;
+            break;
+        }
+    }
+
+    $review = Review::create([
+        'product_id' => $productId,
+        'user_id'    => $userId,
+        'rating'     => $request->rating,
+        'comment'    => $comment,
+        'is_visible' => $isVisible,
+    ]);
+
+    // Cập nhật is_review cho đúng order_item
+    OrderItem::where('order_id', $orderId)
+        ->where('product_id', $productId)
+        ->update(['is_review' => 1]);
+
+    return response()->json([
+        'message' => $isVisible
+            ? 'Gửi đánh giá thành công'
+            : 'Gửi thành công, đánh giá đang chờ duyệt',
+        'data' => $review->load('user'),
+    ], 201);
+}
+
 
     /**
      * Sửa đánh giá của chính mình

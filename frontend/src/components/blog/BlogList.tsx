@@ -20,7 +20,7 @@ export const BlogList = ({ keyword }: BlogListProps)  => {
             const res = await axios.get(
                 `${import.meta.env.VITE_APP_API_URL}/api/client/blogs?page=${page}&limit=${pageSize}&search=${keyword}`
             );
-            setBlogs(res.data.data ?? []);
+            setBlogs(res.data.data.data ?? []);
             setTotalItems(res.data.total ?? 0);
         } catch (err) {
             console.error(err);
@@ -41,21 +41,19 @@ export const BlogList = ({ keyword }: BlogListProps)  => {
         <div className="col-lg-9 order-1 order-lg-2">
             <div className="blog-content-wrap mt-95">
                 <div className="row">
-                    <div className="col-12">
-                        {loading ? (
-                            <Skeleton />
+                    {loading ? (
+                        <Skeleton />
+                    ) : (
+                        (blogs && blogs.length > 0) ? (
+                            blogs.map((blog: any) => (
+                                <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-4" key={blog.id}>
+                                    <SingleBlog blog={blog} />
+                                </div>
+                            ))
                         ) : (
-                            (blogs && blogs.length > 0) ? (
-                                blogs.map((blog: any) => (
-                                    <div className="col-xl-4 col-lg-6 col-md-6 col-sm-6 col-12 mb-4" key={blog.id}>
-                                        <SingleBlog blog={blog} />
-                                    </div>
-                                ))
-                            ) : (
-                                <h4 className={`text-center`}>Không có bài viết nào</h4>
-                            )
-                        )}
-                    </div>
+                            <h4 className={`text-center`}>Không có bài viết nào</h4>
+                        )
+                    )}
                 </div>
             </div>
             <div className="row">

@@ -2,6 +2,7 @@ import { Show, TextField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Row, Col, Image, Breadcrumb, Card, Table, Divider } from "antd";
 import { convertDate, convertToInt } from "../../../helpers/common";
+import MDEditor from "@uiw/react-md-editor";
 
 // Define interfaces for type safety
 interface ImageType {
@@ -149,7 +150,7 @@ export const ProductsShow: React.FC = () => {
             title: <Text strong style={{ color: "#444" }}>Trạng thái</Text>,
             dataIndex: "status",
             key: "status",
-            render: (value: any) => <TextField value={value === "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
+            render: (value: any) => <TextField value={value == "1" ? "Hoạt động" : "Ngừng hoạt động"} />,
         },
         {
             title: <Text strong style={{ color: "#444" }}>Ảnh biến thể</Text>,
@@ -158,21 +159,20 @@ export const ProductsShow: React.FC = () => {
             render: (value: any) =>
                 value && value.length > 0 ? (
                     <Image.PreviewGroup>
-                        <Row gutter={[4, 8]}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                             {value.map((image: any, index: string) => (
-                                <Col key={index} span={3}>
-                                    <Image
-                                        src={image.image_url}
-                                        style={{
-                                            width: 50,
-                                            height: 50,
-                                            objectFit: "cover",
-                                            borderRadius: 4,
-                                        }}
-                                    />
-                                </Col>
+                                <Image
+                                    key={index}
+                                    src={image.image_url}
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        objectFit: "cover",
+                                        borderRadius: 4,
+                                    }}
+                                />
                             ))}
-                        </Row>
+                        </div>
                     </Image.PreviewGroup>
                 ) : (
                     <TextField value="Chưa có ảnh" />
@@ -275,7 +275,8 @@ export const ProductsShow: React.FC = () => {
                     <Card title={<Title level={4} style={{ margin: 0 }}>Mô tả sản phẩm</Title>}>
                         {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                         {/*@ts-ignore*/}
-                        <div dangerouslySetInnerHTML={{ __html: record?.description }} />
+                        {/*<div dangerouslySetInnerHTML={{ __html:  }} />*/}
+                        <MDEditor.Markdown source={record?.description} />
                     </Card>
                 </Col>
             </Row>

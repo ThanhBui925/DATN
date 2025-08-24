@@ -9,6 +9,7 @@ import moment from "moment";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import MDEditor from "@uiw/react-md-editor";
 
 interface ImageType {
     url: string;
@@ -28,7 +29,7 @@ interface Product {
     price: number;
     sale_price?: number;
     description: string;
-    average_rating: number;
+    rating: number;
     review_count: number;
     total_ordered_quantity: number;
     image?: string;
@@ -75,7 +76,7 @@ export const DetailProduct: React.FC = () => {
         const fetchProduct = async () => {
             setLoading(true);
             try {
-                const res = await axiosInstance.get(`${BASE_URL}/products/${id}`);
+                const res = await axiosInstance.get(`${BASE_URL}/client/products/${id}`);
                 setProduct(res.data.data || res.data);
             } catch (err: any) {
                 console.error("Lỗi khi tải chi tiết sản phẩm:", err);
@@ -378,7 +379,7 @@ export const DetailProduct: React.FC = () => {
                         <h2 className="fw-bold">{product.name}</h2>
                         <div className="d-flex align-items-center mb-2">
                             <div className="d-flex gap-1">
-                                <span className="text-decoration-underline"> { product.average_rating }</span>
+                                <span className="text-decoration-underline"> { product.rating }</span>
                                 <span className="text-warning">
                   {[...Array(5)].map((_, i: number) => (
                       <i key={i} className="fa fa-star"></i>
@@ -520,9 +521,9 @@ export const DetailProduct: React.FC = () => {
                                 <a href="#" className="btn btn-outline-secondary">
                                     <i className="fa fa-pinterest"></i>
                                 </a>
-                                <button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger">
-                                    <i className="fa fa-heart"></i> Đã thích (218)
-                                </button>
+                                {/*<button style={{ backgroundColor: "#eb3e32" }} className="btn btn-danger">*/}
+                                {/*    <i className="fa fa-heart"></i> Đã thích (218)*/}
+                                {/*</button>*/}
                             </div>
                         </div>
                     </div>
@@ -535,7 +536,7 @@ export const DetailProduct: React.FC = () => {
                             <div className="section-title-3">
                                 <h2>Mô tả sản phẩm</h2>
                             </div>
-                            <p>{product.description}</p>
+                            <MDEditor.Markdown source={product.description} />
                         </section>
 
                         <section className="rate-section mb-3">

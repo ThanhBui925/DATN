@@ -35,7 +35,6 @@ export const ClientApp = () => {
                 
                 <Route path="bai-viet" element={<ListBlogPage />} />
                 <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
-                <Route path="chi-tiet-bai-viet/:id" element={<DetailBlogPage />} />
 
                 <Route path="lien-he" element={<ContactPage />} />
                 <Route path="ve-chung-toi" element={<AboutUsPage />} />

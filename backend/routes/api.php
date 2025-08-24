@@ -18,7 +18,6 @@ use App\Http\Controllers\Api\{
     CustomerController,
     ForgotPasswordController,
     ManagerAdminController
-
 };
 use App\Http\Controllers\Api\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Api\Client\CategoryController as ClientCategoryController;
@@ -26,9 +25,11 @@ use App\Http\Controllers\Api\Client\CartController as ClientCartController;
 use App\Http\Controllers\Api\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Api\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Api\Client\VoucherController as ClientVoucherController;
+use App\Http\Controllers\Api\Client\ProfileController as ProfileClientController;
 use App\Http\Controllers\Api\Client\AddressController;
 use App\Http\Controllers\Api\Client\ShippingFeeController;
 use App\Http\Controllers\Api\Client\CheckoutController;
+use App\Http\Controllers\Api\Client\BlogController as ClientBlogController;
 
 
 Route::prefix('client')->group(function () {
@@ -39,10 +40,17 @@ Route::prefix('client')->group(function () {
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
+        Route::get('/{id}/related-products', [ClientProductController::class, 'getRelatedProduct']);
     });
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
         Route::get('/{id}', [ClientCategoryController::class, 'show']);
+        
+    });
+
+    Route::prefix('blogs')->group(function () {
+        Route::get('/', [ClientBlogController::class, 'index']);
+        Route::get('/{id}', [ClientBlogController::class, 'show']);
     });
 
     Route::get('sizes', [ClientProductController::class, 'getAllSize']);
@@ -77,7 +85,7 @@ Route::prefix('client')->group(function () {
         Route::put('/{id}/address', [ClientOrderController::class, 'updateAddress']);
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
         Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
-
+        Route::put('/{id}/return', [ClientOrderController::class, 'requestReturn']);
     });
 
 
@@ -100,7 +108,11 @@ Route::prefix('client')->group(function () {
         Route::get('/', [ClientVoucherController::class, 'index']); // Lấy toàn bộ voucher
         Route::get('/{id}', [ClientVoucherController::class, 'show'])->whereNumber('id'); // Xem chi tiết voucher
     });
+});
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileClientController::class, 'show']);
+    Route::put('/profile', [ProfileClientController::class, 'update']);
 });
 
 Route::controller(AuthController::class)->group(function () {
@@ -129,8 +141,10 @@ Route::get('/dashboard/average-rating', [DashboardController::class, 'getAverage
 Route::get('/dashboard/monthly-revenue', [DashboardController::class, 'getMonthlyRevenue']);
 Route::get('/dashboard/user-growth', [DashboardController::class, 'getUserGrowth']);
 Route::get('/dashboard/revenue-by-category', [DashboardController::class, 'getRevenueByCategory']);
+Route::get('/dashboard/revenue-by-product', [DashboardController::class, 'getRevenueByProduct']);
 
-Route::get('/dashboard/products-by-category', [DashboardController::class, 'getProductsByCategory']);
+
+Route::get('/dashboard/products-by-category', [DashboardController::class, 'getProductCountByCategory']);
 
 Route::get('/dashboard/revenue/by-product', [DashboardController::class, 'getRevenueByProduct']);
 Route::get('/dashboard/revenue/summary', [DashboardController::class, 'getRevenueSummary']);
@@ -147,9 +161,16 @@ Route::get('/dashboard/product-ratings/{productId}', [DashboardController::class
 Route::get('/dashboard/payment-methods', [DashboardController::class, 'getPaymentMethods']);
 Route::get('/dashboard/best-selling-products', [DashboardController::class, 'getBestSellingProducts']);
 Route::get('/dashboard/low-stock-products', [DashboardController::class, 'getLowStockProducts']);
-Route::get('/dashboard/shipping-status', action: [DashboardController::class, 'getShippingStatus']);
+Route::get('/dashboard/shipping-status', [DashboardController::class, 'getShippingStatus']);
 Route::get('/dashboard/active-products-count', [DashboardController::class, 'getActiveProductsCount']);
-Route::get('/dashboard/top-products', [DashboardController::class, 'getTopProducts']);
+Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStatusCounters']);
+Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
+Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts']);
+Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
+Route::get('/dashboard/total-product',  [DashboardController::class, 'getTotalProducts']);
+Route::get('/dashboard/total-variant',  [DashboardController::class, 'getTotalVariants']);
+Route::get('/dashboard/return-order-rate',     [DashboardController::class, 'getRefundRate']);
+
 
 Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
 Route::get('/dashboard/out-of-stock-count', [DashboardController::class, 'getOutOfStockCount']);
@@ -159,6 +180,7 @@ Route::prefix('categories')->controller(CategoryController::class)->group(functi
     Route::get('/trashed', 'trashed');
     Route::post('{id}/restore', 'restore');
     Route::delete('{id}/force-delete', 'forceDelete');
+    Route::get('/get-list', 'getCategoryActive');
     Route::apiResource('/', CategoryController::class)->parameter('', 'category');
 });
 
@@ -176,6 +198,7 @@ Route::prefix('orders')->controller(OrderController::class)->group(function () {
     Route::put('/{id}', 'updateStatus');
     Route::get('/{id}', 'show');
     Route::get('/{id}/pdf', 'generatePDF');
+    Route::post('/{id}/refunded', 'refundOrder');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {

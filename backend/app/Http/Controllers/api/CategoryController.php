@@ -212,4 +212,14 @@ class CategoryController extends Controller
         $categories = Category::paginate($perPage);
         return $this->success($categories);
     }
+
+    public function getCategoryActive(Request $request)
+    {
+        $categories = Category::query()
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
+        return $this->success($categories);
+    }
+
 }

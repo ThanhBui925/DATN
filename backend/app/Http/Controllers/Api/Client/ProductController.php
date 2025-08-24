@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Color;
 use App\Models\Size;
 use App\Models\Review;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -18,6 +19,7 @@ class ProductController extends Controller
     {
         $query = Product::query()
             ->with(['category', 'images', 'variants'])
+            ->withAvg('reviews as rating', 'rating') // <-- thêm avg rating
             ->where('status', 1)
             ->when($request->filled('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->input('category_id'));
@@ -26,101 +28,142 @@ class ProductController extends Controller
                 $query->where('name', 'like', '%' . $request->input('search') . '%');
             });
 
-        if ($request->filled('colors')) {
-            $colorIds = explode(',', $request->query('colors'));
-
-            $query->whereHas('variants', function ($q) use ($colorIds) {
-                $q->whereIn('color_id', $colorIds);
-            });
+        if ($request->filled('color_id')) {
+            $colorIds = (array) $request->query('color_id');
+            $query->whereHas('variants', fn($q) => $q->whereIn('color_id', $colorIds));
         }
 
-        if ($request->filled('sizes')) {
-            $sizeIds = explode(',', $request->query('sizes'));
-
-            $query->whereHas('variants', function ($q) use ($sizeIds) {
-                $q->whereIn('size_id', $sizeIds);
-            });
+        if ($request->filled('size_id')) {
+            $sizeIds = (array) $request->query('size_id');
+            $query->whereHas('variants', fn($q) => $q->whereIn('size_id', $sizeIds));
         }
 
 
         if ($request->filled('prices')) {
             $priceRange = explode(',', $request->query('prices'));
-
             if (count($priceRange) === 2) {
                 $minPrice = floatval($priceRange[0]);
                 $maxPrice = floatval($priceRange[1]);
-
-                $query->whereHas('variants', function ($q) use ($minPrice, $maxPrice) {
-                    $q->whereBetween('price', [$minPrice, $maxPrice]);
-                });
+                $query->whereHas('variants', fn($q) => $q->whereBetween('price', [$minPrice, $maxPrice]));
             }
         }
 
         $sort = $request->query('sort');
         switch ($sort) {
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'rating_desc':
-                $query->orderBy('rating', 'desc');
-                break;
-            case 'color_asc':
-                $query->orderBy('color', 'asc');
-                break;
-            case 'color_desc':
-                $query->orderBy('color', 'desc');
-                break;
-            default:
-                $query->latest();
+            case 'name_asc':  $query->orderBy('name', 'asc'); break;
+            case 'name_desc': $query->orderBy('name', 'desc'); break;
+            case 'price_asc': $query->orderBy('price', 'asc'); break;
+            case 'price_desc': $query->orderBy('price', 'desc'); break;
+            case 'rating_desc': $query->orderBy('rating', 'desc'); break; // <-- sort theo rating
+            default: $query->latest();
         }
 
+        $products = $query->get();
 
-        $products = $query->latest()->get();
-
+        // format rating
+        $products->each(function ($p) {
+            $p->rating = $p->rating ? round($p->rating, 1) : null;
+        });
 
         return $this->success($products);
     }
 
 
-    // New arrivals
+
+        // New arrivals
     public function newArrivalProduct()
     {
-        return Product::orderBy('created_at', 'desc')->take(8)->get();
+        $products = Product::withAvg('reviews as rating', 'rating')
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get();
+
+        $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
+
+        return $this->success($products);
     }
 
-    // Best sellers
+        // Best sellers
     public function bestSellerProduct()
     {
-        return Product::withCount('orderItems')
+        $products = Product::with(['category']) // load thêm danh mục
+            ->withCount('orderItems')
+            ->withAvg('reviews as rating', 'rating')
             ->orderBy('order_items_count', 'desc')
             ->take(8)
             ->get();
+
+        // Làm tròn rating
+        $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
+
+        return $this->success($products);
     }
 
-    // Featured products
+
+
+        // Featured products
     public function featureProduct()
     {
-        return Product::where('is_featured', true)->take(8)->get();
+        $products = Product::withAvg('reviews as rating', 'rating')
+            ->where('is_featured', true)
+            ->take(8)
+            ->get();
+
+        $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
+
+        return $this->success($products);
     }
+
 
 
 
 
     public function show($id)
     {
-        $product = Product::with(['category', 'images', 'reviews.user', 'variants','variants.images'])
-            ->findOrFail($id);
-        return $this->success($product); 
+        $product = Product::with([
+            'category',
+            'images',
+            'reviews.user',
+            'variants' => function ($q) {
+                $q->where('status', 1)
+                    ->with(['images', 'size', 'color']);
+            },
+        ])
+        ->withCount([
+            'orderItems as total_ordered_quantity' => function ($q) {
+                $q->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
+                ->whereIn('shop_order.order_status', ['completed', 'delivered'])
+                ->select(DB::raw("COALESCE(SUM(shop_order_items.quantity),0)"));
+            },
+            'reviews as review_count'
+        ])
+        ->selectSub(function($q) {
+            $q->from('reviews')
+            ->selectRaw('ROUND(AVG(rating), 1)')
+            ->whereColumn('reviews.product_id', 'products.id');
+        }, 'rating')
+        ->findOrFail($id);
+
+        return $this->success($product);
     }
+
+    public function getRelatedProduct(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $id)
+            ->withAvg('reviews as rating', 'rating')
+            ->take(8)
+            ->get();
+
+        $relatedProducts->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
+
+        return $this->success($relatedProducts);
+    }
+
+
+
 
     public function getReviewsByProduct($id)
     {

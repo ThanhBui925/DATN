@@ -1,38 +1,42 @@
+import { DeleteOutlined, PauseOutlined, PlayCircleOutlined, SearchOutlined } from "@ant-design/icons";
 import {
+    CreateButton,
     DateField,
     List,
-    ShowButton, useSelect,
+    ShowButton,
+    useSelect,
     useTable,
 } from "@refinedev/antd";
-import { type BaseRecord } from "@refinedev/core";
+import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Button, Col, Form, Input, Row, Select, Space, Table } from "antd";
+import { useForm } from "antd/es/form/Form";
 
 export const ReviewList = () => {
     const { tableProps, setFilters } = useTable({
         syncWithLocation: true,
-        filters: {
-            initial: [
-                { field: "name", operator: "contains", value: undefined },
-                { field: "status", operator: "eq", value: undefined },
-            ],
-        },
+        resource: "reviews",
     });
 
-    const [form] = Form.useForm();
+    const [form] = useForm();
 
-    const handleFilter = (values: any) => {
+    const handleSearch = (values: any) => {
         setFilters([
-            { field: "name", operator: "contains", value: values.name || undefined },
-            { field: "status", operator: "eq", value: values.status || undefined },
-        ]);
+            {
+                field: "product_id",
+                operator: "eq",
+                value: values.product_id || undefined,
+            },
+            {
+                field: "rating",
+                operator: "eq",
+                value: values.rating !== undefined ? values.rating : undefined,
+            },
+        ], "replace");
     };
 
     const handleReset = () => {
         form.resetFields();
-        setFilters([
-            { field: "name", operator: "contains", value: undefined },
-            { field: "status", operator: "eq", value: undefined },
-        ]);
+        setFilters([], "replace");
     };
 
     const { selectProps: productSelectProps } = useSelect({
@@ -53,17 +57,16 @@ export const ReviewList = () => {
                     <Breadcrumb.Item>Đánh giá</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={ false }
         >
             <Form
                 form={form}
                 layout="vertical"
-                onFinish={handleFilter}
+                onFinish={handleSearch}
                 style={{ marginBottom: 16 }}
             >
                 <Row gutter={16}>
                     <Col xs={24} sm={12} md={8}>
-                        <Form.Item label="Sản phẩm" name="product_name">
+                        <Form.Item label="Sản phẩm" name="product_id">
                             <Select
                                 placeholder="Chọn sản phẩm"
                                 allowClear
@@ -73,7 +76,7 @@ export const ReviewList = () => {
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12} md={8}>
-                        <Form.Item label="Xếp hạng" name="ranking">
+                        <Form.Item label="Xếp hạng" name="rating">
                             <Select
                                 placeholder="Chọn xếp hạng"
                                 allowClear
@@ -90,7 +93,7 @@ export const ReviewList = () => {
                     <Col xs={24} sm={12} md={8}>
                         <Form.Item label=" ">
                             <Space>
-                                <Button type="primary" htmlType="submit">
+                                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
                                     Lọc
                                 </Button>
                                 <Button onClick={handleReset}>Xóa bộ lọc</Button>
@@ -114,7 +117,7 @@ export const ReviewList = () => {
                 <Table.Column
                     dataIndex={['product', 'name']}
                     title={"Sản phẩm"}
-                    render={(value: number) => `Product ${value}`}
+                    render={(value: string) => value || "Chưa cung cấp"}
                 />
                 <Table.Column
                     dataIndex="rating"

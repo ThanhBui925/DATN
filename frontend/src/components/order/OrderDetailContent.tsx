@@ -2,9 +2,10 @@ import React, {useEffect, useState, useRef} from "react";
 import {useParams, Link, useSearchParams} from "react-router-dom";
 import {axiosInstance} from "../../utils/axios";
 import {convertDate, convertToInt} from "../../helpers/common";
-import {notification} from "antd";
+import {Input, Modal, notification, Upload, Button} from "antd";
 import {statusMap} from "../../types/OrderStatusInterface";
 import {paymentMethodMap} from "../../types/PaymentMethodMap";
+import {paymentStatusMap} from "../../types/PaymentStatusInterface";
 
 interface Product {
     id: number;
@@ -91,6 +92,8 @@ interface Order {
     }
     pickup_time: string | null;
     picked_date: string | null;
+    return_reason: string | null;
+    return: any;
 }
 
 export const OrderDetailContent = () => {
@@ -109,6 +112,21 @@ export const OrderDetailContent = () => {
     const [submitting, setSubmitting] = useState<boolean>(false);
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
     const [queryParams] = useSearchParams();
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [cancelReason, setCancelReason] = useState<string>('');
+    const [refundBank, setRefundBank] = useState<string>('');
+    const [refundAccountName, setRefundAccountName] = useState<string>('');
+    const [refundAccountNumber, setRefundAccountNumber] = useState<string>('');
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [hidingBtnReceived, setHidingBtnReceived] = useState(false);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
+    const [returnReason, setReturnReason] = useState<string>('');
+    const [returnRefundBank, setReturnRefundBank] = useState<string>('');
+    const [returnRefundAccountName, setReturnRefundAccountName] = useState<string>('');
+    const [returnRefundAccountNumber, setReturnRefundAccountNumber] = useState<string>('');
+    const [returnErrors, setReturnErrors] = useState<{ [key: string]: string }>({});
+    const [hasRequestedReturn, setHasRequestedReturn] = useState(false);
+    const [returnFiles, setReturnFiles] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -125,17 +143,18 @@ export const OrderDetailContent = () => {
     }, [orderId]);
 
     const updateOrderStatus = async () => {
-            try {
-                const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
-                if (res.data.status) {
-                    notification.success({message: "Đã nhận được hàng !"})
-                } else {
-                    notification.error({message: 'Cập nhật trạng thái thất bại !'});
-                }
-            } catch (e) {
-                console.log(e)
+        try {
+            const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered'});
+            if (res.data.status) {
+                notification.success({message: "Đã nhận được hàng !"})
+                setHidingBtnReceived(true);
+            } else {
+                notification.error({message: 'Cập nhật trạng thái thất bại !'});
             }
+        } catch (e) {
+            console.log(e)
         }
+    }
 
     const getUrlRepayVnpay = async () => {
         try {
@@ -173,6 +192,146 @@ export const OrderDetailContent = () => {
         setRating(0);
         setComment("");
         setReviewError(null);
+    };
+
+    const handleCancelOrder = async (reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
+        try {
+            const payload: any = { cancel_reason: reason };
+            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid') {
+                payload.refund_bank = refundBank;
+                payload.refund_account_name = refundAccountName;
+                payload.refund_account_number = refundAccountNumber;
+            }
+            const res = await axiosInstance.put(`/api/client/orders/${orderId}/cancel`, payload);
+            if (res.data.status) {
+                notification.success({message: "Đơn hàng đã được hủy!"});
+                setOrder(prev => prev ? { ...prev, status: 'canceled', cancel_reason: reason } : null);
+            } else {
+                notification.error({message: 'Hủy đơn thất bại!'});
+            }
+        } catch (e) {
+            console.error(e);
+            notification.error({message: 'Lỗi khi hủy đơn'});
+        }
+    };
+
+    const handleModalOk = () => {
+        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
+        let newErrors: { [key: string]: string } = {};
+        if (!cancelReason.trim()) {
+            newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";
+        }
+        if (isRefundRequired) {
+            if (!refundAccountName.trim()) {
+                newErrors.refund_account_name = "Vui lòng nhập tên chủ tài khoản";
+            }
+            if (!refundBank.trim()) {
+                newErrors.refund_bank = "Vui lòng nhập tên ngân hàng";
+            }
+            if (!refundAccountNumber.trim()) {
+                newErrors.refund_account_number = "Vui lòng nhập số tài khoản";
+            }
+        }
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
+        handleCancelOrder(cancelReason, refundBank, refundAccountName, refundAccountNumber);
+        setIsModalOpen(false);
+        setCancelReason('');
+        setRefundBank('');
+        setRefundAccountName('');
+        setRefundAccountNumber('');
+        setErrors({});
+    };
+
+    const handleModalCancel = () => {
+        setIsModalOpen(false);
+        setCancelReason('');
+        setRefundBank('');
+        setRefundAccountName('');
+        setRefundAccountNumber('');
+        setErrors({});
+    };
+
+    const showCancelModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleReturnOrder = async (reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
+        try {
+            const formData = new FormData();
+            formData.append('return_reason', reason);
+            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash') {
+                formData.append('refund_bank', refundBank || '');
+                formData.append('refund_account_name', refundAccountName || '');
+                formData.append('refund_account_number', refundAccountNumber || '');
+            }
+            returnFiles.forEach((file, index) => {
+                formData.append(`return_images[${index}]`, file.originFileObj);
+            });
+            formData.append("_method", "PUT");
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.status) {
+                notification.success({message: "Yêu cầu trả hàng thành công!"});
+                setHasRequestedReturn(true);
+            } else {
+                notification.error({message: 'Yêu cầu trả hàng thất bại!'});
+            }
+        } catch (e) {
+            console.error(e);
+            notification.error({message: 'Lỗi khi yêu cầu trả hàng'});
+        }
+    };
+
+    const handleReturnModalOk = () => {
+        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
+        let newErrors: { [key: string]: string } = {};
+        if (!returnReason.trim()) {
+            newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
+        }
+        if (returnFiles.length === 0) {
+            newErrors.return_files = "Vui lòng upload ít nhất một ảnh (tối đa 5 ảnh)";
+        }
+        if (isRefundRequired) {
+            if (!returnRefundAccountName.trim()) {
+                newErrors.refund_account_name = "Vui lòng nhập tên chủ tài khoản";
+            }
+            if (!returnRefundBank.trim()) {
+                newErrors.refund_bank = "Vui lòng nhập tên ngân hàng";
+            }
+            if (!returnRefundAccountNumber.trim()) {
+                newErrors.refund_account_number = "Vui lòng nhập số tài khoản";
+            }
+        }
+        setReturnErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
+        handleReturnOrder(returnReason, returnRefundBank, returnRefundAccountName, returnRefundAccountNumber);
+        setIsReturnModalOpen(false);
+        setReturnReason('');
+        setReturnRefundBank('');
+        setReturnRefundAccountName('');
+        setReturnRefundAccountNumber('');
+        setReturnFiles([]);
+        setReturnErrors({});
+    };
+
+    const handleReturnModalCancel = () => {
+        setIsReturnModalOpen(false);
+        setReturnReason('');
+        setReturnRefundBank('');
+        setReturnRefundAccountName('');
+        setReturnRefundAccountNumber('');
+        setReturnFiles([]);
+        setReturnErrors({});
+    };
+
+    const showReturnModal = () => {
+        setIsReturnModalOpen(true);
     };
 
     const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -213,6 +372,8 @@ export const OrderDetailContent = () => {
     if (loading) return <div className="container my-5 text-center">Đang tải...</div>;
     if (error) return <div className="container my-5 text-center text-danger">Lỗi: {error}</div>;
     if (!order) return <div className="container my-5 text-center">Không tìm thấy đơn hàng</div>;
+
+    const isRefundRequired =  order.payment_method === 'vnpay' && order.payment_status === 'paid' || order.payment_method === 'cash';
 
     return (
         <div className="col-12 col-lg-10">
@@ -318,7 +479,7 @@ export const OrderDetailContent = () => {
                                         <td>
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
-                                                    src={item.variant.images[0].image_url || "/path/to/fallback-image.jpg"}
+                                                    src={item.variant.images[0]?.image_url || item.product.image || "/path/to/fallback-image.jpg"}
                                                     alt={item.product.name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
@@ -371,8 +532,8 @@ export const OrderDetailContent = () => {
                                 className="text-original-base fs-4">{convertToInt(order.final_amount)} ₫</span>
                             </h6>
                             <p className="text-muted small mb-0">
-                                Thanh toán: {paymentMethodMap[order.payment_method]?.label || "Không xác định"} (
-                                {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"})
+                                Thanh toán: <span className={`text-${paymentMethodMap[order.payment_method]?.class}`}>{paymentMethodMap[order.payment_method]?.label || "Không xác định"}</span> (
+                                <span className={`text-${paymentStatusMap[order.payment_status]?.class}`}>{paymentStatusMap[order.payment_status]?.label || order.payment_status}</span>)
                             </p>
                         </div>
                         <div className="d-flex gap-2 flex-wrap">
@@ -381,15 +542,25 @@ export const OrderDetailContent = () => {
                                     <button onClick={getUrlRepayVnpay} className="btn bg-original-base text-white btn-sm px-4 fw-medium">Thanh toán lại</button>
                                 )
                             }
-                            {["pending", "preparing", "confirmed"].includes(order.status) && (
-                                <button className="btn btn-outline-danger btn-sm px-4 fw-medium">Hủy Đơn</button>
+                            {["pending", "preparing", "confirmed", "preparing"].includes(order.status) && (
+                                <button className="btn btn-outline-danger btn-sm px-4 fw-medium"
+                                        onClick={showCancelModal}>Hủy Đơn
+                                </button>
                             )}
                             {["delivered"].includes(order.status) && (
                                 <button
-                                    className="btn btn-outline-success btn-sm px-4 fw-medium"
+                                    className={`btn btn-outline-success btn-sm px-4 fw-medium ${hidingBtnReceived && 'd-none'}`}
                                     onClick={updateOrderStatus}
                                 >
                                     Đã nhận được hàng
+                                </button>
+                            )}
+                            {order.status === "completed" && !order?.return && !hasRequestedReturn && (
+                                <button
+                                    className="btn btn-outline-warning btn-sm px-4 fw-medium"
+                                    onClick={showReturnModal}
+                                >
+                                    {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
                                 </button>
                             )}
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
@@ -400,9 +571,37 @@ export const OrderDetailContent = () => {
                     {order.cancel_reason && (
                         <div className="mt-5">
                             <div className="section-title-3">
-                                <h2>Lý do hủy đơn</h2>
+                                <h2>Lý do yêu cầu hủy đơn</h2>
                             </div>
                             <p>{order.cancel_reason}</p>
+                        </div>
+                    )}
+                    {order.return?.reason_for_refusal && (
+                        <div className="mt-5">
+                            <div className="section-title-3">
+                                <h2>Lý do từ chối hủy đơn</h2>
+                            </div>
+                            <p>{order.return?.reason_for_refusal}</p>
+                        </div>
+                    )}
+                    {order.return?.reason && (
+                        <div className="mt-5">
+                            <div className="section-title-3">
+                                <h2>Lý do yêu cầu hoàn tiền</h2>
+                            </div>
+                            <p>{order.return?.reason}</p>
+                            <i className="text-danger">
+                                Hình ảnh dẫn chứng:
+                            </i>
+                            <div className="d-flex gap-3">
+                                {
+                                    order.return.evidences && order.return.evidences.length > 0 && (
+                                        order.return.evidences.map((evd: any) => (
+                                            <img src={evd.file_path} style={{ width: 200, height: 200 }} alt=""/>
+                                        ))
+                                    )
+                                }
+                            </div>
                         </div>
                     )}
                 </div>
@@ -481,6 +680,102 @@ export const OrderDetailContent = () => {
                     </div>
                 </div>
             </div>
+            <Modal
+                title="Lý do hủy đơn"
+                open={isModalOpen}
+                onOk={handleModalOk}
+                onCancel={handleModalCancel}
+                okText="Xác nhận"
+                cancelText="Hủy"
+            >
+                <Input.TextArea
+                    name="cancel_reason"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Vui lòng nhập lý do hủy đơn"
+                    rows={4}
+                />
+                {errors.cancel_reason && <div className="text-danger">{errors.cancel_reason}</div>}
+                {order?.payment_method === 'vnpay' && order?.payment_status === 'paid' && (
+                    <>
+                        <Input
+                            required
+                            style={{ marginTop: 16 }}
+                            value={refundAccountName}
+                            onChange={(e) => setRefundAccountName(e.target.value)}
+                            placeholder="Nhập tên chủ tài khoản"
+                        />
+                        {errors.refund_account_name && <div className="text-danger">{errors.refund_account_name}</div>}
+                        <Input
+                            style={{ marginTop: 16 }}
+                            value={refundBank}
+                            onChange={(e) => setRefundBank(e.target.value)}
+                            placeholder="Nhập tên ngân hàng"
+                        />
+                        {errors.refund_bank && <div className="text-danger">{errors.refund_bank}</div>}
+                        <Input
+                            style={{ marginTop: 16 }}
+                            value={refundAccountNumber}
+                            onChange={(e) => setRefundAccountNumber(e.target.value)}
+                            placeholder="Nhập số tài khoản"
+                        />
+                        {errors.refund_account_number && <div className="text-danger">{errors.refund_account_number}</div>}
+                    </>
+                )}
+            </Modal>
+            <Modal
+                title={isRefundRequired ? "Lý do trả hàng hoàn tiền" : "Lý do trả hàng"}
+                open={isReturnModalOpen}
+                onOk={handleReturnModalOk}
+                onCancel={handleReturnModalCancel}
+                okText="Xác nhận"
+                cancelText="Hủy"
+            >
+                <Input.TextArea
+                    name="return_reason"
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    placeholder={isRefundRequired ? "Vui lòng nhập lý do trả hàng hoàn tiền" : "Vui lòng nhập lý do trả hàng"}
+                    rows={4}
+                />
+                {returnErrors.return_reason && <div className="text-danger">{returnErrors.return_reason}</div>}
+                <Upload
+                    multiple
+                    maxCount={5}
+                    listType="picture"
+                    onChange={({ fileList }) => setReturnFiles(fileList)}
+                    beforeUpload={() => false}
+                >
+                    <Button style={{ marginTop: 16 }}>Upload Ảnh</Button>
+                </Upload>
+                {returnErrors.return_files && <div className="text-danger">{returnErrors.return_files}</div>}
+                {isRefundRequired && (
+                    <>
+                        <Input
+                            required
+                            style={{ marginTop: 16 }}
+                            value={returnRefundAccountName}
+                            onChange={(e) => setReturnRefundAccountName(e.target.value)}
+                            placeholder="Nhập tên chủ tài khoản"
+                        />
+                        {returnErrors.refund_account_name && <div className="text-danger">{returnErrors.refund_account_name}</div>}
+                        <Input
+                            style={{ marginTop: 16 }}
+                            value={returnRefundBank}
+                            onChange={(e) => setReturnRefundBank(e.target.value)}
+                            placeholder="Nhập tên ngân hàng"
+                        />
+                        {returnErrors.refund_bank && <div className="text-danger">{returnErrors.refund_bank}</div>}
+                        <Input
+                            style={{ marginTop: 16 }}
+                            value={returnRefundAccountNumber}
+                            onChange={(e) => setReturnRefundAccountNumber(e.target.value)}
+                            placeholder="Nhập số tài khoản"
+                        />
+                        {returnErrors.refund_account_number && <div className="text-danger">{returnErrors.refund_account_number}</div>}
+                    </>
+                )}
+            </Modal>
         </div>
     );
 };

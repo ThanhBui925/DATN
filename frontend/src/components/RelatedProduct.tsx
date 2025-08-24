@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Skeleton } from "antd";
 import {SingleProduct} from "./SingleProduct";
+import {useParams} from "react-router-dom";
 
 interface Product {
     id: number;
@@ -16,22 +17,22 @@ interface Product {
 export const RelatedProduct: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const { id } = useParams<{ id: string }>();
 
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(
+                `${import.meta.env.VITE_APP_API_URL}/api/client/products/${id}/related-products`
+            );
+            setProducts(Array.isArray(res.data.data) ? res.data.data : []);
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const res = await axios.get(
-                    `${import.meta.env.VITE_APP_API_URL}/api/client/related-products`
-                );
-                setProducts(Array.isArray(res.data.data) ? res.data.data : []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProducts();
     }, []);
 

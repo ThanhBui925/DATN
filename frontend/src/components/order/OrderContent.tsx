@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { axiosInstance } from "../../utils/axios";
 import { convertDate, convertToInt } from "../../helpers/common";
 import { Link, useNavigate } from "react-router-dom";
-import { notification, Modal, Input } from "antd";
+import { notification, Modal, Input, Checkbox, Upload, Button } from "antd";
 import { statusMap } from "../../types/OrderStatusInterface";
 import { paymentMethodMap } from "../../types/PaymentMethodMap";
 
@@ -34,6 +34,9 @@ interface Order {
     final_amount: string;
     order_items: OrderItem[];
     tracking_number?: string;
+    payment_status: string;
+    status: string;
+    hasRequestedReturn?: boolean; // Added to track return status
 }
 
 interface PaginationLink {
@@ -58,7 +61,18 @@ export const OrderContent: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [cancelReason, setCancelReason] = useState<string>('');
+    const [refundBank, setRefundBank] = useState<string>('');
+    const [refundAccountName, setRefundAccountName] = useState<string>('');
+    const [refundAccountNumber, setRefundAccountNumber] = useState<string>('');
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
+    const [returnReason, setReturnReason] = useState<string>('');
+    const [returnRefundBank, setReturnRefundBank] = useState<string>('');
+    const [returnRefundAccountName, setReturnRefundAccountName] = useState<string>('');
+    const [returnRefundAccountNumber, setReturnRefundAccountNumber] = useState<string>('');
+    const [returnErrors, setReturnErrors] = useState<{ [key: string]: string }>({});
+    const [returnFiles, setReturnFiles] = useState<any[]>([]);
     const [pagination, setPagination] = useState<PaginationData | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -83,11 +97,18 @@ export const OrderContent: React.FC = () => {
     }, []);
 
     const handleCancelOrder = useCallback(
-        async (orderId: number, reason: string) => {
+        async (orderId: number, reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
             try {
+                const payload: any = { cancel_reason: reason };
+                const selectedOrder = orders.find(o => o.id === orderId);
+                if (selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid') {
+                    payload.refund_bank = refundBank;
+                    payload.refund_account_name = refundAccountName;
+                    payload.refund_account_number = refundAccountNumber;
+                }
                 const res = await axiosInstance.put<{ status: boolean; message?: string }>(
                     `/api/client/orders/${orderId}/cancel`,
-                    { cancel_reason: reason }
+                    payload
                 );
                 if (res.data.status) {
                     notification.success({ message: "Đã hủy đơn hàng thành công" });
@@ -100,12 +121,17 @@ export const OrderContent: React.FC = () => {
                 notification.error({ message: "Có lỗi xảy ra khi hủy đơn hàng" });
             }
         },
-        [fetchOrders, currentPage]
+        [fetchOrders, currentPage, orders]
     );
 
     const showCancelModal = useCallback((orderId: number) => {
         setSelectedOrderId(orderId);
         setIsModalOpen(true);
+    }, []);
+
+    const showReturnModal = useCallback((orderId: number) => {
+        setSelectedOrderId(orderId);
+        setIsReturnModalOpen(true);
     }, []);
 
     const updateOrderStatus = async (orderId: number) => {
@@ -122,20 +148,134 @@ export const OrderContent: React.FC = () => {
         }
     };
 
-    const handleModalOk = useCallback(() => {
-        if (selectedOrderId && cancelReason.trim()) {
-            handleCancelOrder(selectedOrderId, cancelReason);
-            setIsModalOpen(false);
-            setCancelReason('');
-            setSelectedOrderId(null);
-        } else {
-            notification.error({ message: "Vui lòng nhập lý do hủy đơn" });
-        }
-    }, [selectedOrderId, cancelReason, handleCancelOrder]);
-
     const handleModalCancel = useCallback(() => {
         setIsModalOpen(false);
         setCancelReason('');
+        setRefundBank('');
+        setRefundAccountName('');
+        setRefundAccountNumber('');
+        setErrors({});
+        setSelectedOrderId(null);
+    }, []);
+
+    const handleReturnOrder = async (orderId: number, reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
+        try {
+            const formData = new FormData();
+            formData.append('return_reason', reason);
+
+            const order = orders.find(o => o.id === orderId);
+            if (order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash') {
+                formData.append('refund_bank', refundBank || '');
+                formData.append('refund_account_name', refundAccountName || '');
+                formData.append('refund_account_number', refundAccountNumber || '');
+            }
+
+            returnFiles.forEach((file, index) => {
+                formData.append(`return_images[${index}]`, file.originFileObj);
+            });
+
+            // Method spoofing
+            formData.append("_method", "PUT");
+
+            // Gửi POST thay vì PUT
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/return`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            if (res.data.status) {
+                notification.success({ message: "Yêu cầu trả hàng thành công!" });
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
+                fetchOrders(currentPage);
+            } else {
+                notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
+            }
+        } catch (e) {
+            console.error(e);
+            notification.error({ message: 'Lỗi khi yêu cầu trả hàng' });
+        }
+    };
+
+
+    const handleModalOk = useCallback(() => {
+        const selectedOrder = orders.find(o => o.id === selectedOrderId);
+        const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid';
+        let newErrors: { [key: string]: string } = {};
+        if (!cancelReason.trim()) {
+            newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";
+        }
+        if (isRefundRequired) {
+            if (!refundAccountName.trim()) {
+                newErrors.refund_account_name = "Vui lòng nhập tên chủ tài khoản";
+            }
+            if (!refundBank.trim()) {
+                newErrors.refund_bank = "Vui lòng nhập tên ngân hàng";
+            }
+            if (!refundAccountNumber.trim()) {
+                newErrors.refund_account_number = "Vui lòng nhập số tài khoản";
+            }
+        }
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
+        if (selectedOrderId) {
+            handleCancelOrder(selectedOrderId, cancelReason, refundBank, refundAccountName, refundAccountNumber);
+            setIsModalOpen(false);
+            setCancelReason('');
+            setRefundBank('');
+            setRefundAccountName('');
+            setRefundAccountNumber('');
+            setErrors({});
+            setSelectedOrderId(null);
+        }
+    }, [selectedOrderId, cancelReason, refundBank, refundAccountName, refundAccountNumber, handleCancelOrder, orders]);
+
+    const handleReturnModalOk = useCallback(() => {
+        const selectedOrder = orders.find(o => o.id === selectedOrderId);
+        const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash';
+        let newErrors: { [key: string]: string } = {};
+        if (!returnReason.trim()) {
+            newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
+        }
+        if (returnFiles.length === 0) {
+            newErrors.return_files = "Vui lòng upload ít nhất một ảnh (tối đa 5 ảnh)";
+        }
+        if (isRefundRequired) {
+            if (!returnRefundAccountName.trim()) {
+                newErrors.refund_account_name = "Vui lòng nhập tên chủ tài khoản";
+            }
+            if (!returnRefundBank.trim()) {
+                newErrors.refund_bank = "Vui lòng nhập tên ngân hàng";
+            }
+            if (!returnRefundAccountNumber.trim()) {
+                newErrors.refund_account_number = "Vui lòng nhập số tài khoản";
+            }
+        }
+        setReturnErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
+        if (selectedOrderId) {
+            handleReturnOrder(selectedOrderId, returnReason, returnRefundBank, returnRefundAccountName, returnRefundAccountNumber);
+            setIsReturnModalOpen(false);
+            setReturnReason('');
+            setReturnRefundBank('');
+            setReturnRefundAccountName('');
+            setReturnRefundAccountNumber('');
+            setReturnFiles([]);
+            setReturnErrors({});
+            setSelectedOrderId(null);
+        }
+    }, [selectedOrderId, returnReason, returnRefundBank, returnRefundAccountName, returnRefundAccountNumber, returnFiles, handleReturnOrder, orders]);
+
+    const handleReturnModalCancel = useCallback(() => {
+        setIsReturnModalOpen(false);
+        setReturnReason('');
+        setReturnRefundBank('');
+        setReturnRefundAccountName('');
+        setReturnRefundAccountNumber('');
+        setReturnFiles([]);
+        setReturnErrors({});
         setSelectedOrderId(null);
     }, []);
 
@@ -235,121 +375,131 @@ export const OrderContent: React.FC = () => {
                             placeholder="Bạn có thể tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
                         />
                     </div>
-                    {filteredOrders.map((order: any) => (
-                        <div key={order.id} className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden">
-                            <div className="card-header bg-white py-2 px-4 d-flex justify-content-between align-items-center border-bottom">
-                                <div className="d-flex align-items-center gap-2">
-                                    <span className="text-muted fw-medium">Đơn hàng #{order.id}</span>
-                                    <span className="text-muted">|</span>
-                                    <span className="text-muted">Đặt ngày: {convertDate(order.date_order)}</span>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <span
-                                        className="badge text-white fw-semibold"
-                                        style={{
-                                            backgroundColor: paymentMethodMap[order.payment_method]?.color || "#6B7280",
-                                            padding: "0.5em 1em",
-                                            fontSize: "0.9em",
-                                        }}
-                                    >
-                                        {paymentMethodMap[order.payment_method]?.label || "Không xác định"}
-                                    </span>
-                                    <span
-                                        className="badge text-white fw-semibold"
-                                        style={{
-                                            backgroundColor: statusMap[order.status]?.cssColor || "#6B7280",
-                                            padding: "0.5em 1em",
-                                            fontSize: "0.9em",
-                                        }}
-                                    >
-                                        {statusMap[order.status]?.label || "Không xác định"}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="card-body p-4">
-                                <div className="d-flex flex-column gap-3">
-                                    {order.order_items?.map((item: OrderItem, index: number) => (
-                                        <div
-                                            key={item.id}
-                                            className={`d-flex align-items-center gap-3 ${index < order.order_items.length - 1 ? "pb-3 border-bottom" : ""}`}
+                    {filteredOrders.map((order: any) => {
+                        const isRefundRequired = true; //order.payment_method === 'vnpay' && order.payment_status === 'paid';
+                        return (
+                            <div key={order.id} className="card mb-4 shadow-lg border-0 rounded-3 overflow-hidden">
+                                <div className="card-header bg-white py-2 px-4 d-flex justify-content-between align-items-center border-bottom">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <span className="text-muted fw-medium">Đơn hàng #{order.id}</span>
+                                        <span className="text-muted">|</span>
+                                        <span className="text-muted">Đặt ngày: {convertDate(order.date_order)}</span>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <span
+                                            className="badge text-white fw-semibold"
+                                            style={{
+                                                backgroundColor: paymentMethodMap[order.payment_method]?.color || "#6B7280",
+                                                padding: "0.5em 1em",
+                                                fontSize: "0.9em",
+                                            }}
                                         >
-                                            <img
-                                                src={item.variant?.images[0].image_url || "/path/to/fallback-image.jpg"}
-                                                alt={item.product?.name}
-                                                className="rounded"
-                                                style={{ width: "80px", height: "80px", objectFit: "cover" }}
-                                            />
-                                            <div className="flex-grow-1">
-                                                <h6 className="fw-bold mb-1 text-dark">{item.product?.name}</h6>
-                                                <p className="text-muted mb-1 small">
-                                                    Phân loại: {item.variant?.size?.name}, {item.variant?.color?.name}
-                                                </p>
-                                                <p className="text-muted mb-0 small">Số lượng: {item.quantity}</p>
-                                            </div>
-                                            <div className="text-end">
-                                                <span className="fw-bold text-original-base">
-                                                    {convertToInt(item.price)}₫
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {activeTab === 'shipping' && (
-                                        <div className="mt-3">
-                                            <p className="text-muted mb-1">
-                                                Số vận đơn (Giao Hàng Nhanh):{' '}
-                                                <span className="fw-bold">
-                                                    {order.tracking_number || "Chưa có số vận đơn"}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    )}
-                                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
-                                        <div>
-                                            <span className="fw-bold text-muted">
-                                                Thành tiền:{" "}
-                                                <span className="text-original-base fs-5">
-                                                    {convertToInt(order.final_amount)}₫
-                                                </span>
-                                            </span>
-                                        </div>
-                                        <div className="d-flex gap-2 flex-wrap">
-                                            {order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status === 'pending' && (
-                                                <button
-                                                    className="btn bg-original-base text-white btn-sm px-4 fw-medium"
-                                                    onClick={() => getUrlRepayVnpay(order.id)}
-                                                >
-                                                    Thanh toán lại
-                                                </button>
-                                            )}
-                                            <button
-                                                className="btn btn-outline-secondary btn-sm px-4 fw-medium"
-                                                onClick={() => navigate(`/chi-tiet-don-hang/${order.id}`)}
+                                            {paymentMethodMap[order.payment_method]?.label || "Không xác định"}
+                                        </span>
+                                        <span
+                                            className="badge text-white fw-semibold"
+                                            style={{
+                                                backgroundColor: statusMap[order.status]?.cssColor || "#6B7280",
+                                                padding: "0.5em 1em",
+                                                fontSize: "0.9em",
+                                            }}
+                                        >
+                                            {statusMap[order.status]?.label || "Không xác định"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="card-body p-4">
+                                    <div className="d-flex flex-column gap-3">
+                                        {order.order_items?.map((item: OrderItem, index: number) => (
+                                            <div
+                                                key={item.id}
+                                                className={`d-flex align-items-center gap-3 ${index < order.order_items.length - 1 ? "pb-3 border-bottom" : ""}`}
                                             >
-                                                Xem Chi Tiết
-                                            </button>
-                                            {["pending", "confirmed", "confirming"].includes(order.status) && (
+                                                <img
+                                                    src={item.variant?.images[0]?.image_url || item.product?.image || "/path/to/fallback-image.jpg"}
+                                                    alt={item.product?.name}
+                                                    className="rounded"
+                                                    style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                                                />
+                                                <div className="flex-grow-1">
+                                                    <h6 className="fw-bold mb-1 text-dark">{item.product?.name}</h6>
+                                                    <p className="text-muted mb-1 small">
+                                                        Phân loại: {item.variant?.size?.name}, {item.variant?.color?.name}
+                                                    </p>
+                                                    <p className="text-muted mb-0 small">Số lượng: {item.quantity}</p>
+                                                </div>
+                                                <div className="text-end">
+                                                    <span className="fw-bold text-original-base">
+                                                        {convertToInt(item.price)}₫
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {activeTab === 'shipping' && (
+                                            <div className="mt-3">
+                                                <p className="text-muted mb-1">
+                                                    Số vận đơn (Giao Hàng Nhanh):{' '}
+                                                    <span className="fw-bold">
+                                                        {order.tracking_number || "Chưa có số vận đơn"}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
+                                            <div>
+                                                <span className="fw-bold text-muted">
+                                                    Thành tiền:{" "}
+                                                    <span className="text-original-base fs-5">
+                                                        {convertToInt(order.final_amount)}₫
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div className="d-flex gap-2 flex-wrap">
+                                                {order.payment_method === 'vnpay' && order.payment_status !== "paid" && order.status === 'pending' && (
+                                                    <button
+                                                        className="btn bg-original-base text-white btn-sm px-4 fw-medium"
+                                                        onClick={() => getUrlRepayVnpay(order.id)}
+                                                    >
+                                                        Thanh toán lại
+                                                    </button>
+                                                )}
                                                 <button
-                                                    className="btn btn-outline-danger btn-sm px-4 fw-medium"
-                                                    onClick={() => showCancelModal(order.id)}
+                                                    className="btn btn-outline-secondary btn-sm px-4 fw-medium"
+                                                    onClick={() => navigate(`/chi-tiet-don-hang/${order.id}`)}
                                                 >
-                                                    Hủy Đơn
+                                                    Xem Chi Tiết
                                                 </button>
-                                            )}
-                                            {["delivered"].includes(order.status) && (
-                                                <button
-                                                    className="btn btn-outline-success btn-sm px-4 fw-medium"
-                                                    onClick={() => updateOrderStatus(order.id)}
-                                                >
-                                                    Đã nhận được hàng
-                                                </button>
-                                            )}
+                                                {["pending", "confirmed", "confirming", "preparing"].includes(order.status) && (
+                                                    <button
+                                                        className="btn btn-outline-danger btn-sm px-4 fw-medium"
+                                                        onClick={() => showCancelModal(order.id)}
+                                                    >
+                                                        Hủy Đơn
+                                                    </button>
+                                                )}
+                                                {["delivered"].includes(order.status) && (
+                                                    <button
+                                                        className="btn btn-outline-success btn-sm px-4 fw-medium"
+                                                        onClick={() => updateOrderStatus(order.id)}
+                                                    >
+                                                        Đã nhận được hàng
+                                                    </button>
+                                                )}
+                                                {["completed"].includes(order.status) && !order?.return && !order.hasRequestedReturn && (
+                                                    <button
+                                                        className="btn btn-outline-warning btn-sm px-4 fw-medium"
+                                                        onClick={() => showReturnModal(order.id)}
+                                                    >
+                                                        {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                    {/* Pagination Component */}
+                        );
+                    })}
                     {pagination && (
                         <nav aria-label="Page navigation" className="mt-4">
                             <ul className="pagination justify-content-center gap-1">
@@ -463,6 +613,101 @@ export const OrderContent: React.FC = () => {
                     placeholder="Vui lòng nhập lý do hủy đơn"
                     rows={4}
                 />
+                {errors.cancel_reason && <div className="text-danger">{errors.cancel_reason}</div>}
+                {(() => {
+                    const selectedOrder = orders.find(o => o.id === selectedOrderId);
+                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' && (
+                        <>
+                            <Input
+                                required
+                                style={{ marginTop: 16 }}
+                                value={refundAccountName}
+                                onChange={(e) => setRefundAccountName(e.target.value)}
+                                placeholder="Nhập tên chủ tài khoản"
+                            />
+                            {errors.refund_account_name && <div className="text-danger">{errors.refund_account_name}</div>}
+                            <Input
+                                style={{ marginTop: 16 }}
+                                value={refundBank}
+                                onChange={(e) => setRefundBank(e.target.value)}
+                                placeholder="Nhập tên ngân hàng"
+                            />
+                            {errors.refund_bank && <div className="text-danger">{errors.refund_bank}</div>}
+                            <Input
+                                style={{ marginTop: 16 }}
+                                value={refundAccountNumber}
+                                onChange={(e) => setRefundAccountNumber(e.target.value)}
+                                placeholder="Nhập số tài khoản"
+                            />
+                            {errors.refund_account_number && <div className="text-danger">{errors.refund_account_number}</div>}
+                        </>
+                    );
+                })()}
+            </Modal>
+            <Modal
+                title={(() => {
+                    const selectedOrder = orders.find(o => o.id === selectedOrderId);
+                    return selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash'
+                        ? "Lý do trả hàng hoàn tiền"
+                        : "Lý do trả hàng";
+                })()}
+                open={isReturnModalOpen}
+                onOk={handleReturnModalOk}
+                onCancel={handleReturnModalCancel}
+                okText="Xác nhận"
+                cancelText="Hủy"
+                width={600}
+            >
+                <Input.TextArea
+                    name="return_reason"
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    placeholder="Vui lòng nhập lý do trả hàng"
+                    rows={4}
+                />
+                {returnErrors.return_reason && <div className="text-danger">{returnErrors.return_reason}</div>}
+                <Upload
+                    multiple
+                    maxCount={5}
+                    listType="picture"
+                    onChange={({ fileList }) => setReturnFiles(fileList)}
+                    beforeUpload={() => false}
+                >
+                    <Button style={{ marginTop: 16 }}>Upload Ảnh</Button>
+                </Upload>
+                {returnErrors.return_files && <div className="text-danger">{returnErrors.return_files}</div>}
+                {(() => {
+                    const selectedOrder = orders.find(o => o.id === selectedOrderId);
+                    const isRefundRequired =
+                        (selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid')
+                        || (selectedOrder?.payment_method === 'cash' ? true : false);
+                    return isRefundRequired && (
+                        <>
+                            <Input
+                                required
+                                style={{ marginTop: 16 }}
+                                value={returnRefundAccountName}
+                                onChange={(e) => setReturnRefundAccountName(e.target.value)}
+                                placeholder="Nhập tên chủ tài khoản"
+                            />
+                            {returnErrors.refund_account_name && <div className="text-danger">{returnErrors.refund_account_name}</div>}
+                            <Input
+                                style={{ marginTop: 16 }}
+                                value={returnRefundBank}
+                                onChange={(e) => setReturnRefundBank(e.target.value)}
+                                placeholder="Nhập tên ngân hàng"
+                            />
+                            {returnErrors.refund_bank && <div className="text-danger">{returnErrors.refund_bank}</div>}
+                            <Input
+                                style={{ marginTop: 16 }}
+                                value={returnRefundAccountNumber}
+                                onChange={(e) => setReturnRefundAccountNumber(e.target.value)}
+                                placeholder="Nhập số tài khoản"
+                            />
+                            {returnErrors.refund_account_number && <div className="text-danger">{returnErrors.refund_account_number}</div>}
+                        </>
+                    );
+                })()}
             </Modal>
         </div>
     );
