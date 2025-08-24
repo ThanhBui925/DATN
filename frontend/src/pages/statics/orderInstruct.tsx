@@ -1,9 +1,9 @@
-import { Breadcrumb } from "../components/Breadcrumb";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
-export const CompanionBrand = () => {
+export const OrderInstruct = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",
-        breadcrumb2: "Thương hiệu đồng hành",
+        breadcrumb2: "Hướng dẫn mua hàng",
     };
 
     return (
@@ -14,9 +14,9 @@ export const CompanionBrand = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Thương hiệu đồng hành cùng SportWolk</h2>
+                                <h2>Hướng dẫn mua hàng tại SportWolk</h2>
                                 <p>
-                                    SportWolk tự hào hợp tác với các thương hiệu giày dép và thời trang hàng đầu thế giới, mang đến cho khách hàng những sản phẩm chất lượng cao, thiết kế tinh tế và phong cách hiện đại.
+                                    Tại SportWolk, chúng tôi mang đến quy trình mua sắm đơn giản, nhanh chóng và minh bạch để đảm bảo trải nghiệm tuyệt vời nhất cho khách hàng. Hãy tham khảo hướng dẫn dưới đây để bắt đầu mua sắm!
                                 </p>
                             </div>
                         </div>
@@ -24,28 +24,28 @@ export const CompanionBrand = () => {
                     <div className="row mt-50">
                         <div className="col-lg-6">
                             <div className="about-us-img">
-                                <img alt="Thương hiệu đồng hành" src="img/about/about1.jpg" />
+                                <img alt="Hướng dẫn mua hàng" src="img/about/about1.jpg" />
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="about-info-wrapper">
-                                <h3>Về các đối tác của chúng tôi</h3>
+                                <h3>Cách thức mua hàng</h3>
                                 <p>
-                                    SportWolk chỉ hợp tác với các thương hiệu uy tín, đảm bảo sản phẩm chính hãng, chất lượng vượt trội và dịch vụ hậu mãi chuyên nghiệp.
+                                    SportWolk cung cấp hai hình thức mua sắm: trực tuyến qua website và trực tiếp tại các cửa hàng trên toàn quốc.
                                 </p>
                                 <p>
-                                    Một số thương hiệu tiêu biểu:
+                                    Các bước mua hàng trực tuyến:
                                 </p>
                                 <ul>
-                                    <li><strong>Nike</strong>: Thương hiệu thể thao hàng đầu với các sản phẩm giày và phụ kiện tiên tiến.</li>
-                                    <li><strong>Adidas</strong>: Biểu tượng thời trang thể thao với thiết kế độc đáo và chất lượng cao.</li>
-                                    <li><strong>Converse</strong>: Phong cách cổ điển, trẻ trung, phù hợp với mọi lứa tuổi.</li>
+                                    <li>Truy cập website SportWolk, chọn sản phẩm và thêm vào giỏ hàng.</li>
+                                    <li>Điền thông tin giao hàng và thanh toán.</li>
+                                    <li>Xác nhận đơn hàng và chờ giao hàng trong vòng 2-5 ngày.</li>
                                 </ul>
                                 <p>
-                                    Chúng tôi cam kết mang đến sự đa dạng và chất lượng từ các thương hiệu đồng hành để đáp ứng nhu cầu của khách hàng.
+                                    Lưu ý: Khách hàng vui lòng kiểm tra kỹ thông tin sản phẩm (kích cỡ, màu sắc) trước khi đặt hàng.
                                 </p>
                                 <div className="read-more-btn">
-                                    <a href="#">Khám phá sản phẩm</a>
+                                    <a href="#">Liên hệ hỗ trợ</a>
                                 </div>
                             </div>
                         </div>
@@ -61,8 +61,8 @@ export const CompanionBrand = () => {
                                     <span className="ion-ios-briefcase-outline"></span>
                                 </div>
                                 <div className="count-title">
-                                    <h2 className="count">20+</h2>
-                                    <span>Thương hiệu toàn cầu</span>
+                                    <h2 className="count">2-5</h2>
+                                    <span>Ngày giao hàng</span>
                                 </div>
                             </div>
                         </div>
@@ -107,39 +107,39 @@ export const CompanionBrand = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
-                                <h2>Các thương hiệu nổi bật</h2>
-                                <p>Chúng tôi tự hào là đối tác chiến lược của những thương hiệu hàng đầu, mang đến sản phẩm chất lượng cho bạn.</p>
+                                <h2>Các bước mua hàng trực tuyến</h2>
+                                <p>Quy trình mua hàng tại SportWolk được thiết kế để đơn giản và thuận tiện cho bạn.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Nike</h3>
-                                    <p>Cung cấp các dòng giày thể thao và thời trang với công nghệ tiên tiến, phù hợp cho mọi hoạt động.</p>
+                                    <h3>Bước 1: Chọn sản phẩm</h3>
+                                    <p>Truy cập website SportWolk, tìm và chọn sản phẩm phù hợp.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Adidas</h3>
-                                    <p>Kết hợp phong cách và hiệu suất, mang đến sản phẩm thời thượng và bền bỉ.</p>
+                                    <h3>Bước 2: Thêm vào giỏ hàng</h3>
+                                    <p>Chọn kích cỡ, màu sắc và thêm sản phẩm vào giỏ hàng.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Converse</h3>
-                                    <p>Biểu tượng của phong cách cổ điển, phù hợp với mọi lứa tuổi và phong cách.</p>
+                                    <h3>Bước 3: Thanh toán</h3>
+                                    <p>Điền thông tin giao hàng và chọn phương thức thanh toán.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Puma</h3>
-                                    <p>Thương hiệu năng động với các sản phẩm thời trang và thể thao chất lượng cao.</p>
+                                    <h3>Bước 4: Nhận hàng</h3>
+                                    <p>Nhận sản phẩm tại địa chỉ đã cung cấp hoặc tại cửa hàng SportWolk.</p>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@ export const CompanionBrand = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Sản phẩm từ các thương hiệu tại SportWolk luôn chính hãng và chất lượng, tôi rất hài lòng!
+                                        Mua sắm tại SportWolk rất dễ dàng, website thân thiện và giao hàng đúng hẹn!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
@@ -162,7 +162,7 @@ export const CompanionBrand = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        SportWolk mang đến nhiều lựa chọn từ các thương hiệu lớn, dịch vụ hỗ trợ rất tuyệt vời!
+                                        Tôi rất hài lòng với quy trình mua hàng tại SportWolk, nhân viên hỗ trợ rất nhiệt tình!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>
