@@ -1027,16 +1027,12 @@ class DashboardController extends Controller
         ->groupBy('order_status')
         ->get();
 
-    $result = [
-        'order_status' => $rows->map(fn($row) => [
-            'status'        => $row->order_status,
-            'count'  => (int) $row->total,
-        ])->values(),
-    ];
+    $result = $rows->map(fn($row) => [
+        'status' => $row->order_status,
+        'count'  => (int) $row->total,
+    ])->values();
 
-    return response()->json([
-        'data'    => $result
-    ]);
+    return response()->json($result);
 }
 
 
@@ -1114,9 +1110,7 @@ class DashboardController extends Controller
     }
 
     return response()->json([
-        'status'  => true,
-        'message' => 'Thành công',
-        'data'    => $data
+        $data
     ]);
 }
 

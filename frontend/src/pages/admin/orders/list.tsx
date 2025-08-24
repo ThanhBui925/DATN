@@ -226,7 +226,7 @@ export const OrdersList = () => {
                         render={(value: any) => <DateField value={value} format="DD/MM/YYYY HH:mm" />}
                     />
                     <Table.Column
-                        title="Tổng tiền"
+                        title="Doanh thu"
                         dataIndex="total_price"
                         render={(_, record) => {
                             const finalPrice = (record.total_price || 0) - (record.discount_amount || 0);
