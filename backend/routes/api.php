@@ -199,6 +199,7 @@ Route::prefix('orders')->controller(OrderController::class)->group(function () {
     Route::get('/{id}', 'show');
     Route::get('/{id}/pdf', 'generatePDF');
     Route::post('/{id}/refunded', 'refundOrder');
+    Route::post('/{id}/confirmRefund', 'confirmRefund');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {

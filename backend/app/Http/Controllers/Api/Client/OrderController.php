@@ -31,6 +31,8 @@ use App\Models\ReturnOrder as ReturnRequest;
 use App\Models\ReturnEviden as ReturnEvidence;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\RetryVNPayRequest;
+use App\Mail\NewOrderNotification;
+use App\Models\User;
 
 
 
@@ -304,14 +306,17 @@ class OrderController extends Controller
             $cart->items()->whereIn('id', $cartItemsIds)->delete(); 
 
             DB::commit();
+
+            $admins = User::where('role', 'admin')->pluck('email');
             //Gửi mail thông báo đặt đơn hàng thành công
             Mail::to($order->user->email)->queue(new OrderSuccessMail($order)); // người đặt
             if ($order->recipient_email && $order->recipient_email !== $order->user->email) {
                 Mail::to($order->recipient_email)->queue(new OrderSuccessMail($order)); // người nhận nếu khác
             }
             // //Gửi mail thông báo cho admin
-            // $emails = $admins->pluck('email')->toArray();
-            // Mail::to($emails)->queue(new OrderSuccessMail($order, true));
+            foreach ($admins as $email) {
+                Mail::to($email)->queue(new NewOrderNotification($order));
+            }
 
 
             return $this->successResponse($order->load('orderItems'), 'Tạo đơn hàng thành công từ giỏ hàng', 201);
