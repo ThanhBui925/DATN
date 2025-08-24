@@ -20,18 +20,6 @@ export const FeatureProductList = () => {
         }
     };
 
-    const fetchFeatureProduct = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(import.meta.env.VITE_APP_API_URL + '/api/client/feature-product');
-            setFeatureProducts(res.data.data || []);
-        } catch (err) {
-            console.error("Lỗi khi tải sản phẩm:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         fetchBestSeller();
     }, []);
@@ -52,14 +40,6 @@ export const FeatureProductList = () => {
                                             aria-selected="true"
                                             href="#best-sellers">
                                             Bán chạy nhất
-                                        </a>
-                                    </li>
-                                    <li role="presentation">
-                                        <a data-bs-toggle="tab"
-                                            onClick={fetchFeatureProduct}
-                                            role="tab"
-                                            aria-controls="on-sellers" href="#on-sellers">
-                                            Sản phẩm nổi bật
                                         </a>
                                     </li>
                                 </ul>

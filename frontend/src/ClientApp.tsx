@@ -6,8 +6,8 @@ import React from "react";
 import {DetailProductPage} from "./pages/detailProduct";
 import {ListBlogPage} from "./pages/listBlog";
 import {DetailBlogPage} from "./pages/detailBlog";
-import {ContactPage} from "./pages/contact";
-import {AboutUsPage} from "./pages/aboutUs";
+import {ContactPage} from "./pages/statics/contact";
+import {AboutUsPage} from "./pages/statics/aboutUs";
 import {Shop} from "./pages/shop";
 import {Cart} from "./pages/cart";
 import ClientLayout2 from "./layout/ClientLayout2";
@@ -19,10 +19,10 @@ import {Profile} from "./pages/auth/profile";
 import {Order} from "./pages/order";
 import {OrderDetail} from "./pages/orderDetail";
 import {Address} from "./pages/auth/address";
-import {ReturnOrderInstruct} from "./pages/returnOrderInstruct";
-import {SalesPolicy} from "./pages/salePolicy";
-import {OrderInstruct} from "./pages/orderInstruct";
-import {CompanionBrand} from "./pages/companionBrand";
+import {ReturnOrderInstruct} from "./pages/statics/returnOrderInstruct";
+import {SalesPolicy} from "./pages/statics/salePolicy";
+import {OrderInstruct} from "./pages/statics/orderInstruct";
+import {CompanionBrand} from "./pages/statics/companionBrand";
 
 export const ClientApp = () => {
     return (
