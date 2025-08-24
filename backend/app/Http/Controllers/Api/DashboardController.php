@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Models\Order;
+use App\Traits\ApiResponseTrait;
 
 class DashboardController extends Controller
 {
+    use ApiResponseTrait;
     // Trạng thái được ghi nhận doanh thu (paid + status hợp lệ)
-    private array $orderStatusesForRevenue = ['confirmed', 'preparing', 'shipping', 'delivered'];
+    private array $orderStatusesForRevenue = ['delivered', 'completed'];
 
     // Gom nhóm trạng thái cho thống kê đơn
     private array $statusBuckets = [
@@ -178,7 +182,6 @@ class DashboardController extends Controller
     public function getTotalOrders(Request $request)
     {
         $query = DB::table('shop_order');
-        $this->revenueOrderFilter($query);
 
         $now = Carbon::now();
 
@@ -326,7 +329,7 @@ class DashboardController extends Controller
     public function getAverageOrderValue(Request $request)
     {
         $base = DB::table('shop_order');
-        $this->revenueOrderFilter($base);
+        // $this->revenueOrderFilter($base);
 
         $now = Carbon::now();
 
@@ -676,87 +679,87 @@ class DashboardController extends Controller
      * GET /dashboard/revenue/by-product
      */
     public function getRevenueByProduct(Request $request)
-    {
-        $search  = $request->input('search');
-        $sortBy  = $request->input('sortBy', 'revenue');
-        $sortDir = $request->input('sortDir', 'desc') === 'asc' ? 'asc' : 'desc';
+{
+    $search  = $request->input('search');
+    $sortBy  = $request->input('sortBy', 'total_revenue'); // đổi default theo interface
+    $sortDir = $request->input('sortDir', 'desc') === 'asc' ? 'asc' : 'desc';
 
-        $q = DB::table('shop_order_items')
-            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-            ->join('products', 'products.id', '=', 'shop_order_items.product_id');
+    $q = DB::table('shop_order_items')
+        ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
+        ->join('products', 'products.id', '=', 'shop_order_items.product_id');
 
-        $this->revenueOrderFilter($q);
+    $this->revenueOrderFilter($q);
 
-        // Áp dụng filter ngày
-        $now = Carbon::now();
-        $filter = $request->input('filter');
+    // Filter ngày
+    $now = Carbon::now();
+    $filter = $request->input('filter');
 
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('shop_order.date_order', $now->toDateString());
-                break;
-            case 'yesterday':
-                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
-                break;
-            case 'this_week':
-                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-                break;
-            case 'last_week':
-                $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
-                $q->whereBetween('shop_order.date_order', [$start, $end]);
-                break;
-            case 'this_month':
-                $q->whereYear('shop_order.date_order', $now->year)
-                    ->whereMonth('shop_order.date_order', $now->month);
-                break;
-            case 'last_month':
-                $lastMonth = $now->copy()->subMonth();
-                $q->whereYear('shop_order.date_order', $lastMonth->year)
-                    ->whereMonth('shop_order.date_order', $lastMonth->month);
-                break;
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                if (!$from || !$to) {
-                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-                }
-                try {
-                    $q->whereBetween('shop_order.date_order', [
-                        Carbon::parse($from)->startOfDay(),
-                        Carbon::parse($to)->endOfDay(),
-                    ]);
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-                }
-                break;
-        }
-
-        // Tìm kiếm
-        if ($search) {
-            $q->where('products.name', 'like', "%{$search}%");
-        }
-
-        // Group và select
-        $q->groupBy('shop_order_items.product_id', 'products.name', 'products.sku')
-            ->select([
-                'shop_order_items.product_id as product_id',
-                'products.name as product_name',
-                'products.sku as sku',
-                DB::raw('SUM(' . $this->itemFinalPriceSql() . ' * shop_order_items.quantity) as revenue'),
-                DB::raw('SUM(shop_order_items.quantity) as quantity'),
-                DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
-            ]);
-
-        // Sắp xếp
-        $allowed = ['revenue', 'quantity', 'orders_count', 'product_name'];
-        if (!in_array($sortBy, $allowed)) $sortBy = 'revenue';
-        $q->orderBy($sortBy, $sortDir);
-
-        return response()->json([
-            'revenue_by_product' => $q->get(),
-        ]);
+    switch ($filter) {
+        case 'today':
+            $q->whereDate('shop_order.date_order', $now->toDateString());
+            break;
+        case 'yesterday':
+            $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
+            break;
+        case 'this_week':
+            $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+            break;
+        case 'last_week':
+            $start = $now->copy()->subWeek()->startOfWeek();
+            $end   = $now->copy()->subWeek()->endOfWeek();
+            $q->whereBetween('shop_order.date_order', [$start, $end]);
+            break;
+        case 'this_month':
+            $q->whereYear('shop_order.date_order', $now->year)
+                ->whereMonth('shop_order.date_order', $now->month);
+            break;
+        case 'last_month':
+            $lastMonth = $now->copy()->subMonth();
+            $q->whereYear('shop_order.date_order', $lastMonth->year)
+                ->whereMonth('shop_order.date_order', $lastMonth->month);
+            break;
+        case 'range':
+            $from = $request->input('from');
+            $to   = $request->input('to');
+            if (!$from || !$to) {
+                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+            }
+            try {
+                $q->whereBetween('shop_order.date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
+            break;
     }
+
+    // Tìm kiếm
+    if ($search) {
+        $q->where('products.name', 'like', "%{$search}%");
+    }
+
+    // Group và select
+    $q->groupBy('shop_order_items.product_id', 'products.name')
+        ->select([
+            'shop_order_items.product_id as product_id',
+            'products.name as product_name',
+            DB::raw('SUM(' . $this->itemFinalPriceSql() . ' * shop_order_items.quantity) as total_revenue'), // đổi alias
+            DB::raw('SUM(shop_order_items.quantity) as quantity'),
+            DB::raw('COUNT(DISTINCT shop_order.id) as orders_count'),
+        ]);
+
+    // Sắp xếp
+    $allowed = ['total_revenue', 'quantity', 'orders_count', 'product_name'];
+    if (!in_array($sortBy, $allowed)) $sortBy = 'total_revenue';
+    $q->orderBy($sortBy, $sortDir);
+
+    return response()->json([
+        'revenue_by_product' => $q->get(),
+    ]);
+}
+
 
     /**
      * API: Số lượng sản phẩm theo danh mục (catalog)
@@ -968,147 +971,157 @@ class DashboardController extends Controller
      * GET /dashboard/orders/status-counters
      */
     public function getOrderStatusCounters(Request $request)
-    {
-        $q = DB::table('shop_order');
+{
+    $q = DB::table('shop_order');
 
-        // Áp dụng filter ngày (switch-case)
-        $filter = $request->input('filter');
-        $now = Carbon::now();
+    // Áp dụng filter ngày (switch-case)
+    $filter = $request->input('filter');
+    $now = Carbon::now();
 
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('shop_order.date_order', $now->toDateString());
-                break;
-            case 'yesterday':
-                $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
-                break;
-            case 'this_week':
-                $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-                break;
-            case 'last_week':
-                $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
-                $q->whereBetween('shop_order.date_order', [$start, $end]);
-                break;
-            case 'this_month':
-                $q->whereYear('shop_order.date_order', $now->year)
-                    ->whereMonth('shop_order.date_order', $now->month);
-                break;
-            case 'last_month':
-                $lastMonth = $now->copy()->subMonth();
-                $q->whereYear('shop_order.date_order', $lastMonth->year)
-                    ->whereMonth('shop_order.date_order', $lastMonth->month);
-                break;
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                if (!$from || !$to) {
-                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-                }
-                try {
-                    $q->whereBetween('shop_order.date_order', [
-                        Carbon::parse($from)->startOfDay(),
-                        Carbon::parse($to)->endOfDay(),
-                    ]);
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
-                }
-                break;
-        }
-
-        // Đếm số lượng theo trạng thái
-        $selects = [
-            DB::raw('COUNT(*) as total_orders'),
-            DB::raw("SUM(CASE WHEN order_status IN ('" . implode("','", $this->statusBuckets['placed']) . "') THEN 1 ELSE 0 END) as placed"),
-            DB::raw("SUM(CASE WHEN order_status IN ('" . implode("','", $this->statusBuckets['processing']) . "') THEN 1 ELSE 0 END) as processing"),
-            DB::raw("SUM(CASE WHEN order_status IN ('" . implode("','", $this->statusBuckets['delivered']) . "') THEN 1 ELSE 0 END) as delivered"),
-            DB::raw("SUM(CASE WHEN order_status IN ('" . implode("','", $this->statusBuckets['canceled']) . "') THEN 1 ELSE 0 END) as canceled"),
-        ];
-
-        $row = $q->select($selects)->first();
-
-        return response()->json([
-            'order_status_counters' => [
-                'total'      => (int) ($row->total_orders ?? 0),
-                'placed'     => (int) ($row->placed ?? 0),
-                'processing' => (int) ($row->processing ?? 0),
-                'delivered'  => (int) ($row->delivered ?? 0),
-                'canceled'   => (int) ($row->canceled ?? 0),
-            ]
-        ]);
+    switch ($filter) {
+        case 'today':
+            $q->whereDate('shop_order.date_order', $now->toDateString());
+            break;
+        case 'yesterday':
+            $q->whereDate('shop_order.date_order', $now->copy()->subDay()->toDateString());
+            break;
+        case 'this_week':
+            $q->whereBetween('shop_order.date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+            break;
+        case 'last_week':
+            $start = $now->copy()->subWeek()->startOfWeek();
+            $end   = $now->copy()->subWeek()->endOfWeek();
+            $q->whereBetween('shop_order.date_order', [$start, $end]);
+            break;
+        case 'this_month':
+            $q->whereYear('shop_order.date_order', $now->year)
+              ->whereMonth('shop_order.date_order', $now->month);
+            break;
+        case 'last_month':
+            $lastMonth = $now->copy()->subMonth();
+            $q->whereYear('shop_order.date_order', $lastMonth->year)
+              ->whereMonth('shop_order.date_order', $lastMonth->month);
+            break;
+        case 'range':
+            $from = $request->input('from');
+            $to   = $request->input('to');
+            if (!$from || !$to) {
+                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+            }
+            try {
+                $q->whereBetween('shop_order.date_order', [
+                    Carbon::parse($from)->startOfDay(),
+                    Carbon::parse($to)->endOfDay(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
+            break;
     }
+
+    // Đếm số lượng theo trạng thái
+    $rows = $q->select(
+            'order_status',
+            DB::raw('COUNT(*) as total')
+        )
+        ->groupBy('order_status')
+        ->get();
+
+    $result = [
+        'order_status' => $rows->map(fn($row) => [
+            'status'        => $row->order_status,
+            'count'  => (int) $row->total,
+        ])->values(),
+    ];
+
+    return response()->json([
+        'data'    => $result
+    ]);
+}
+
+
 
 
     /**
      * API: Thống kê đơn hàng theo ngày/tháng
      * GET /dashboard/orders/by-period
      */
-    public function getOrdersByPeriod(Request $request)
-    {
-        $timeType = $request->input('timeType', 'day');
-        $filter   = $request->input('filter'); // today, yesterday, this_week, last_week, this_month, last_month
-        $now      = Carbon::now();
+  public function getOrdersByPeriod(Request $request)
+{
+    $timeType = $request->input('timeType', 'day');
+    $filter   = $request->input('filter'); 
+    $now      = Carbon::now();
 
-        $q = DB::table('shop_order');
+    $q = DB::table('shop_order');
 
-        // Áp dụng filter ngày
-        switch ($filter) {
-            case 'today':
-                $q->whereDate('date_order', $now->toDateString());
-                break;
-            case 'yesterday':
-                $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
-                break;
-            case 'this_week':
-                $q->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
-                break;
-            case 'last_week':
-                $start = $now->copy()->subWeek()->startOfWeek();
-                $end   = $now->copy()->subWeek()->endOfWeek();
-                $q->whereBetween('date_order', [$start, $end]);
-                break;
-            case 'this_month':
-                $q->whereYear('date_order', $now->year)
-                    ->whereMonth('date_order', $now->month);
-                break;
-            case 'last_month':
-                $lastMonth = $now->copy()->subMonth();
-                $q->whereYear('date_order', $lastMonth->year)
-                    ->whereMonth('date_order', $lastMonth->month);
-                break;
-        }
-
-        // Xác định periodExpr theo timeType
-        switch ($timeType) {
-            case 'week':
-                $periodExpr = 'YEARWEEK(date_order, 3)';
-                break;
-            case 'month':
-                $periodExpr = 'DATE_FORMAT(date_order, "%Y-%m")';
-                break;
-            case 'year':
-                $periodExpr = 'YEAR(date_order)';
-                break;
-            default: // day
-                $periodExpr = 'DATE(date_order)';
-                break;
-        }
-
-        // Lấy dữ liệu
-        $rows = $q->select([
-            DB::raw($periodExpr . ' as period'),
-            DB::raw('COUNT(*) as orders'),
-        ])
-            ->groupBy(DB::raw($periodExpr))
-            ->orderBy(DB::raw($periodExpr))
-            ->get()
-            ->map(fn($r) => [
-                'time'   => $r->period,
-                'orders' => (int)$r->orders
-            ]);
-
-        return response()->json(['orders_by_period' => $rows]);
+    // Filter ngày
+    switch ($filter) {
+        case 'today':
+            $q->whereDate('date_order', $now->toDateString());
+            break;
+        case 'yesterday':
+            $q->whereDate('date_order', $now->copy()->subDay()->toDateString());
+            break;
+        case 'this_week':
+            $q->whereBetween('date_order', [$now->startOfWeek(), $now->endOfWeek()]);
+            break;
+        case 'last_week':
+            $start = $now->copy()->subWeek()->startOfWeek();
+            $end   = $now->copy()->subWeek()->endOfWeek();
+            $q->whereBetween('date_order', [$start, $end]);
+            break;
+        case 'this_month':
+            $q->whereYear('date_order', $now->year)
+              ->whereMonth('date_order', $now->month);
+            break;
+        case 'last_month':
+            $lastMonth = $now->copy()->subMonth();
+            $q->whereYear('date_order', $lastMonth->year)
+              ->whereMonth('date_order', $lastMonth->month);
+            break;
     }
+
+    // Xác định periodExpr theo timeType
+    switch ($timeType) {
+        case 'week':
+            $periodExpr = 'YEARWEEK(date_order, 3)';
+            break;
+        case 'month':
+            $periodExpr = 'DATE_FORMAT(date_order, "%Y-%m")';
+            break;
+        case 'year':
+            $periodExpr = 'YEAR(date_order)';
+            break;
+        default: // day
+            $periodExpr = 'DATE(date_order)';
+            break;
+    }
+
+    // Lấy dữ liệu
+    $rows = $q->select([
+            'order_status as status',
+            DB::raw('COUNT(*) as count'),
+            DB::raw($periodExpr . ' as date'),
+        ])
+        ->groupBy('order_status', DB::raw($periodExpr))
+        ->orderBy(DB::raw($periodExpr))
+        ->get();
+
+    // Re-map sang object phẳng
+    $data = [];
+    foreach ($rows as $r) {
+        $data[$r->status] = (int)$r->count;
+    }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Thành công',
+        'data'    => $data
+    ]);
+}
+
+
+
 
 
 

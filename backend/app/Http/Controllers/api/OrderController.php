@@ -246,7 +246,7 @@ public function show($id)
         }
 
         // Kiểm tra điều kiện hoàn tiền
-        if (!in_array($order->order_status, ['return_accepted', 'cancelled'])) {
+        if (!in_array($order->order_status, ['return_accepted', 'canceled'])) {
             return $this->errorResponse('Đơn hàng không đủ điều kiện hoàn tiền', null, 400);
         }
 
@@ -260,7 +260,7 @@ public function show($id)
             'transaction_code' => $transactionCode,
         ]);
 
-        if ($order->order_status === 'cancelled') {
+        if ($order->order_status === 'canceled') {
             // Nếu đã hủy thì chỉ cập nhật payment_status
             $order->payment_status = 'refunded';
         } else {
