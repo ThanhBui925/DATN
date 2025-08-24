@@ -57,9 +57,6 @@ export const ReviewList = () => {
                     <Breadcrumb.Item>Đánh giá</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={() => (
-                <CreateButton>Thêm đánh giá</CreateButton>
-            )}
         >
             <Form
                 form={form}
