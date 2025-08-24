@@ -41,8 +41,8 @@ export const i18nProvider: I18nProvider = {
             "pages.login.signup": "Đăng ký tài khoản",
             "pages.login.signin": "Đăng nhập",
 
-            'admins.titles.show' : 'Chi tiết quản trị viên',
-            'admins.titles.list' : 'Danh sách quản trị viên'
+            'manager-admin.titles.show' : 'Chi tiết quản trị viên',
+            'manager-admin.titles.list' : 'Danh sách quản trị viên'
         };
         return translations[key] ?? key;
     },

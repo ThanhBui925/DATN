@@ -27,9 +27,6 @@ export const ManagerAdminCreate = () => {
             }
         }
 
-        // Debugging: Log FormData content
-        console.log("FormData entries:", [...formData.entries()]);
-
         return formProps.onFinish?.(formData);
     };
 
