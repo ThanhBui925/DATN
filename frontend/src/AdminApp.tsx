@@ -113,7 +113,7 @@ export const AdminApp = () => {
                     <Route path="show/:id" element={<CustomerShow/>}/>
                 </Route>
 
-                <Route path="/admin/admins">
+                <Route path="/admin/manager-admin">
                     <Route index element={<AdminList/>}/>
                     <Route path="create" element={<ManagerAdminCreate/>}/>
                     <Route path="show/:id" element={<AdminShow/>}/>

@@ -166,11 +166,11 @@ function App() {
                                         },
 
                                         {
-                                            name: "admins",
-                                            list: "/admin/admins",
-                                            create: "/admin/admins/create",
-                                            edit: "/admin/admins/edit/:id",
-                                            show: "/admin/admins/show/:id",
+                                            name: "manager-admin",
+                                            list: "/admin/manager-admin",
+                                            create: "/admin/manager-admin/create",
+                                            edit: "/admin/manager-admin/edit/:id",
+                                            show: "/admin/manager-admin/show/:id",
                                             meta: {
                                                 label: "Quản lý admin",
                                                 icon: <UserOutlined/>,
