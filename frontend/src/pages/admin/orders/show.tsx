@@ -353,7 +353,8 @@ export const OrdersShow = () => {
                                         )}
                                         {(
                                             (record?.status === "return_accepted" && record?.payment_status !== "refunded") ||
-                                            (record?.status === "canceled" && record?.payment_status === "paid")
+                                            (record?.status === "canceled" && record?.payment_status === "paid") ||
+                                            (record?.status === "wait_for_refund")
                                         ) && (
                                             <Button
                                                 type="dashed"
