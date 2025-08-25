@@ -38,11 +38,17 @@ interface Product {
 }
 
 interface Review {
-    user?: { name?: string; avatar?: string };
+    user?: {
+        name?: string;
+        customer?: {
+            avatar?: string;
+        };
+    };
     rating: number;
     comment: string;
     created_at: string;
 }
+
 
 interface SizeOption {
     id: string;
@@ -97,6 +103,7 @@ export const DetailProduct: React.FC = () => {
                 });
                 setReviews(res.data.data || []);
                 setTotalReviews(res.data.total || 0);
+                console.log(res.data.data.reviews);
             } catch (err: any) {
                 console.error("Lỗi khi tải đánh giá:", err);
                 notification.error({ message: "Không thể tải đánh giá." });
@@ -559,7 +566,7 @@ export const DetailProduct: React.FC = () => {
                                         >
                                             <div className="d-flex align-items-center mb-2">
                                                 <img
-                                                    src={review.user?.avatar || "/img/default-avatar.jpg"}
+                                                    src={review.user?.customer?.avatar || "/img/default-avatar.jpg"}
                                                     alt="avatar"
                                                     style={{
                                                         width: "40px",
@@ -568,7 +575,8 @@ export const DetailProduct: React.FC = () => {
                                                         marginRight: "10px",
                                                         objectFit: "cover",
                                                     }}
-                                                />
+                                                    />
+
                                                 <div>
                                                     <strong>{review.user?.name || "Ẩn danh"}</strong>
                                                     <div>
@@ -580,8 +588,8 @@ export const DetailProduct: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <span className="ms-auto text-muted">
-                          {moment(review.created_at).format("DD/MM/YYYY HH:mm")}
-                        </span>
+                                                {moment(review.created_at).format("DD/MM/YYYY HH:mm")}
+                                                </span>
                                             </div>
                                             <p className="mb-2">{review.comment}</p>
                                         </div>

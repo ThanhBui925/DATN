@@ -533,7 +533,12 @@ class DashboardController extends Controller
             ->selectRaw('DATE_FORMAT(date_order, "%Y-%m") as month, SUM(final_amount - discount_amount - shipping_fee) as total')
             ->groupBy('month')
             ->orderBy('month', 'asc')
-            ->get();
+            ->get()
+            ->map(fn($r) => [
+                'month' => $r->month,
+                'total' => number_format((float)$r->total, 0, '.', ','),
+            ]);
+
 
         return response()->json(['monthly_revenue' => $revenues]);
     }
@@ -1027,10 +1032,26 @@ class DashboardController extends Controller
         ->groupBy('order_status')
         ->get();
 
+        $statusMap = [
+        'confirmed'       => 'Đã xác nhận',
+        'preparing'       => 'Đang chuẩn bị',
+        'shipping'        => 'Đang vận chuyển',
+        'delivered'       => 'Đã giao',
+        'completed'       => 'Hoàn thành',
+        'canceled'        => 'Đã hủy',
+        'pending'         => 'Đang chờ',
+        'returned'        => 'Đã trả lại',
+        'refunded'        => 'Đã hoàn tiền',
+        'return_requested'=> 'Yêu cầu trả hàng',
+        'return_accepted' => 'Chấp nhận trả hàng',
+        'return_rejected' => 'Từ chối trả hàng',
+    ];
+
     $result = $rows->map(fn($row) => [
-        'status' => $row->order_status,
+        'status' => $statusMap[$row->order_status] ?? $row->order_status,
         'count'  => (int) $row->total,
     ])->values();
+
 
     return response()->json(['order_status' => $result]);
 }
@@ -1549,14 +1570,19 @@ class DashboardController extends Controller
             DB::raw('COUNT(*) as orders_count'),
             DB::raw("SUM($amountSql) as total_amount"),
         ])
-            ->groupBy('payment_method')
-            ->orderBy('method')
-            ->get()
-            ->map(fn($r) => [
-                'method'       => (string)$r->method,
-                'count' => (int)$r->orders_count,
-                'total_amount' => (float)$r->total_amount,
-            ]);
+        ->groupBy('payment_method')
+        ->orderBy('method')
+        ->get()
+        ->map(fn($r) => [
+            'method'       => match($r->method) {
+                'cash'  => 'Tiền mặt',
+                'vnpay' => 'VNPay',
+                default => $r->method,
+            },
+            'count'        => (int)$r->orders_count,
+            'total_amount' => (float)$r->total_amount,
+        ]);
+
 
         return response()->json(['payment_methods' => $rows]);
     }
