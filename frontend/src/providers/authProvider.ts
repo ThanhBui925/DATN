@@ -172,7 +172,7 @@ export const accessControlProvider: AccessControlProvider = {
         try {
             const profile = await getProfile();
             const role = profile.role;
-            if (resource === "admins" && role !== "super_admin") {
+            if (resource === "manager-admin" && role !== "super_admin") {
                 return { can: false, reason: "Chỉ Super Admin mới có quyền truy cập Quản lý admin." };
             }
             return { can: true };
