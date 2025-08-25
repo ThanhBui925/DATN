@@ -42,8 +42,8 @@ class UpdateVoucherRequest extends FormRequest
                 ),
             ],
 
-            'max_discount_amount' => 'nullable|numeric|min:0',
-            'min_order_amount' => 'nullable|numeric|min:0',
+            'max_discount_amount' => 'required|numeric|min:0',
+            'min_order_amount' => 'required|numeric|min:0',
             'expiry_date' => 'nullable|date|after:now',
             'usage_limit' => 'nullable|integer|min:1',
             'usage_limit_per_user' => 'nullable|integer|min:1',
@@ -66,8 +66,10 @@ class UpdateVoucherRequest extends FormRequest
             'discount.min' => 'Giá trị giảm phải lớn hơn 0.',
             'discount.max' => 'Phần trăm giảm không được vượt quá 100 hoặc số tiền giảm quá lớn.',
 
-            'max_discount_amount.numeric' => 'Giảm tối đa phải là số.',
-            'max_discount_amount.min' => 'Giảm tối đa không được âm.',
+            'max_discount_amount.numeric' => 'Giá trị giảm tối đa phải là số.',
+            'max_discount_amount.min' => 'Giá trị giảm tối đa không được nhỏ hơn 0.',
+            'max_discount_amount.required' => 'Giá trị giảm tối đa là bắt buộc.',
+            'min_order_amount.required' => 'Giá trị đơn hàng tối thiểu là bắt buộc.',
 
             'min_order_amount.numeric' => 'Giá trị đơn hàng tối thiểu phải là số.',
             'min_order_amount.min' => 'Đơn hàng tối thiểu không được âm.',
