@@ -26,6 +26,7 @@ export const ColorList = () => {
         resource: "colors",
         action: "create",
         onMutationSuccess: () => {
+            createFormProps.form?.resetFields();
             setIsCreateModalOpen(false);
         },
     });
@@ -37,9 +38,8 @@ export const ColorList = () => {
         resource: "colors",
         action: "edit",
         id: selectedRecord?.id,
-        redirect: false,
         onMutationSuccess: () => {
-            setIsCreateModalOpen(false);
+            setIsEditModalOpen(false);
         },
     });
 

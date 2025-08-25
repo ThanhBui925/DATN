@@ -16,6 +16,7 @@ class VoucherController extends Controller
         $now = Carbon::now();
 
         $vouchers = Voucher::where('status', 1)
+            ->where('is_public', 1)
             ->where(function ($query) use ($now) {
                 $query->whereNull('start_date')
                       ->orWhere('start_date', '<=', $now);

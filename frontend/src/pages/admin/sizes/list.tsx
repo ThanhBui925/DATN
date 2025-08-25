@@ -25,6 +25,10 @@ export const SizeList = () => {
     } = useForm({
         resource: "sizes",
         action: "create",
+        onMutationSuccess: () => {
+            createFormProps.form?.resetFields();
+            setIsCreateModalOpen(false);
+        },
     });
 
     const {
@@ -34,7 +38,9 @@ export const SizeList = () => {
         resource: "sizes",
         action: "edit",
         id: selectedRecord?.id,
-        redirect: false,
+        onMutationSuccess: () => {
+            setIsEditModalOpen(false);
+        },
     });
 
     const onCreateFinish = async (values: any) => {

@@ -1,9 +1,9 @@
-import { Breadcrumb } from "../components/Breadcrumb";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
-export const OrderInstruct = () => {
+export const SalesPolicy = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",
-        breadcrumb2: "Hướng dẫn mua hàng",
+        breadcrumb2: "Chính sách bán hàng",
     };
 
     return (
@@ -14,9 +14,9 @@ export const OrderInstruct = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Hướng dẫn mua hàng tại SportWolk</h2>
+                                <h2>Chính sách bán hàng tại SportWolk</h2>
                                 <p>
-                                    Tại SportWolk, chúng tôi mang đến quy trình mua sắm đơn giản, nhanh chóng và minh bạch để đảm bảo trải nghiệm tuyệt vời nhất cho khách hàng. Hãy tham khảo hướng dẫn dưới đây để bắt đầu mua sắm!
+                                    Tại SportWolk, chúng tôi cam kết cung cấp sản phẩm chất lượng và dịch vụ bán hàng chuyên nghiệp, minh bạch để mang lại trải nghiệm mua sắm tuyệt vời nhất cho khách hàng.
                                 </p>
                             </div>
                         </div>
@@ -24,25 +24,25 @@ export const OrderInstruct = () => {
                     <div className="row mt-50">
                         <div className="col-lg-6">
                             <div className="about-us-img">
-                                <img alt="Hướng dẫn mua hàng" src="img/about/about1.jpg" />
+                                <img alt="Chính sách bán hàng" src="img/about/about1.jpg" />
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="about-info-wrapper">
-                                <h3>Cách thức mua hàng</h3>
+                                <h3>Cam kết bán hàng</h3>
                                 <p>
-                                    SportWolk cung cấp hai hình thức mua sắm: trực tuyến qua website và trực tiếp tại các cửa hàng trên toàn quốc.
+                                    Tất cả sản phẩm tại SportWolk đều là hàng chính hãng, có nguồn gốc rõ ràng và được bảo hành theo chính sách của nhà sản xuất.
                                 </p>
                                 <p>
-                                    Các bước mua hàng trực tuyến:
+                                    Điều kiện áp dụng chính sách bán hàng:
                                 </p>
                                 <ul>
-                                    <li>Truy cập website SportWolk, chọn sản phẩm và thêm vào giỏ hàng.</li>
-                                    <li>Điền thông tin giao hàng và thanh toán.</li>
-                                    <li>Xác nhận đơn hàng và chờ giao hàng trong vòng 2-5 ngày.</li>
+                                    <li>Sản phẩm được kiểm tra kỹ lưỡng trước khi giao đến khách hàng.</li>
+                                    <li>Thông tin sản phẩm (kích cỡ, màu sắc, chất liệu) được mô tả chi tiết và chính xác trên website.</li>
+                                    <li>Hỗ trợ đổi trả trong vòng <strong>7 ngày</strong> nếu sản phẩm bị lỗi hoặc không đúng mô tả.</li>
                                 </ul>
                                 <p>
-                                    Lưu ý: Khách hàng vui lòng kiểm tra kỹ thông tin sản phẩm (kích cỡ, màu sắc) trước khi đặt hàng.
+                                    Lưu ý: Khách hàng vui lòng kiểm tra sản phẩm ngay khi nhận hàng để đảm bảo quyền lợi.
                                 </p>
                                 <div className="read-more-btn">
                                     <a href="#">Liên hệ hỗ trợ</a>
@@ -61,8 +61,8 @@ export const OrderInstruct = () => {
                                     <span className="ion-ios-briefcase-outline"></span>
                                 </div>
                                 <div className="count-title">
-                                    <h2 className="count">2-5</h2>
-                                    <span>Ngày giao hàng</span>
+                                    <h2 className="count">100%</h2>
+                                    <span>Sản phẩm chính hãng</span>
                                 </div>
                             </div>
                         </div>
@@ -107,31 +107,31 @@ export const OrderInstruct = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
-                                <h2>Các bước mua hàng trực tuyến</h2>
-                                <p>Quy trình mua hàng tại SportWolk được thiết kế để đơn giản và thuận tiện cho bạn.</p>
+                                <h2>Quy trình mua sắm</h2>
+                                <p>Quy trình mua sắm tại SportWolk được thiết kế đơn giản, thuận tiện và minh bạch.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 1: Chọn sản phẩm</h3>
-                                    <p>Truy cập website SportWolk, tìm và chọn sản phẩm phù hợp.</p>
+                                    <p>Truy cập website hoặc cửa hàng SportWolk để lựa chọn sản phẩm phù hợp.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 2: Thêm vào giỏ hàng</h3>
-                                    <p>Chọn kích cỡ, màu sắc và thêm sản phẩm vào giỏ hàng.</p>
+                                    <h3>Bước 2: Đặt hàng</h3>
+                                    <p>Thêm sản phẩm vào giỏ hàng và hoàn tất thanh toán trực tuyến hoặc tại cửa hàng.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 3: Thanh toán</h3>
-                                    <p>Điền thông tin giao hàng và chọn phương thức thanh toán.</p>
+                                    <h3>Bước 3: Xác nhận đơn hàng</h3>
+                                    <p>SportWolk sẽ xác nhận đơn hàng qua email hoặc tin nhắn trong vòng 24 giờ.</p>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@ export const OrderInstruct = () => {
                             <div className="single-our-team">
                                 <div className="our-team-info">
                                     <h3>Bước 4: Nhận hàng</h3>
-                                    <p>Nhận sản phẩm tại địa chỉ đã cung cấp hoặc tại cửa hàng SportWolk.</p>
+                                    <p>Sản phẩm sẽ được giao đến địa chỉ của bạn hoặc bạn có thể nhận tại cửa hàng.</p>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@ export const OrderInstruct = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Mua sắm tại SportWolk rất dễ dàng, website thân thiện và giao hàng đúng hẹn!
+                                        Mua sắm tại SportWolk rất tiện lợi, sản phẩm chất lượng và giao hàng nhanh chóng!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
@@ -162,7 +162,7 @@ export const OrderInstruct = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Tôi rất hài lòng với quy trình mua hàng tại SportWolk, nhân viên hỗ trợ rất nhiệt tình!
+                                        Tôi rất hài lòng với dịch vụ của SportWolk, nhân viên tư vấn nhiệt tình và sản phẩm đúng như mô tả!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>

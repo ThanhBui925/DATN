@@ -104,7 +104,8 @@ export const OrdersShow = () => {
                         {
                             !(
                                 (record?.status === "canceled" && record?.payment_status === "cash") ||
-                                (record?.status === "refunded" && record?.payment_status === "refunded")
+                                (record?.status === "refunded" && record?.payment_status === "refunded") ||
+                                (record?.payment_status === "waiting_for_refunded")
                             ) && (
                                 <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                             )
@@ -156,7 +157,7 @@ export const OrdersShow = () => {
                     }
 
                     {['return_requested', 'return_accepted', 'return_rejected', 'canceled', 'refunded', 'completed'].includes(record?.status) &&
-                        record?.payment_status === "paid" && (
+                        record?.return && (
                             <Col xs={24}>
                                 <Card
                                     title={<Title level={4} style={{ margin: 0 }}>Thông tin tài khoản hoàn tiền</Title>}
@@ -274,18 +275,27 @@ export const OrdersShow = () => {
                                         {record?.status ? (
                                             record?.status == 'refunded' && record?.payment_status == 'refunded' ? (
                                                 <Tag
-                                                    color={statusMap[record.status]?.cssColor}
+                                                    color="purple"
                                                     style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
                                                 >
-                                                    Đơn hàng đã được hoàn thành công
+                                                    Đơn hàng đã được hoàn và hoàn tiền thành công
                                                 </Tag>
                                             ) : (
-                                                <Tag
-                                                    color={statusMap[record.status]?.cssColor}
-                                                    style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
-                                                >
-                                                    {statusMap[record.status]?.label || record.status}
-                                                </Tag>
+                                                record?.status == 'canceled' && record?.payment_status == 'refunded' ? (
+                                                    <Tag
+                                                        color="purple"
+                                                        style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                                    >
+                                                        Đơn hàng đã được huỷ và hoàn tiền thành công
+                                                    </Tag>
+                                                ) : (
+                                                    <Tag
+                                                        color={statusMap[record.status]?.cssColor}
+                                                        style={{padding: "4px 12px", fontSize: 14, borderRadius: 4}}
+                                                    >
+                                                        {statusMap[record.status]?.label || record.status}
+                                                    </Tag>
+                                                )
                                             )
                                         ) : (
                                             <TextField
@@ -353,7 +363,8 @@ export const OrdersShow = () => {
                                         )}
                                         {(
                                             (record?.status === "return_accepted" && record?.payment_status !== "refunded") ||
-                                            (record?.status === "canceled" && record?.payment_status === "paid")
+                                            (record?.status === "canceled" && record?.payment_status === "paid") ||
+                                            (record?.payment_status === "waiting_for_refund")
                                         ) && (
                                             <Button
                                                 type="dashed"

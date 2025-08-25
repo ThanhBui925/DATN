@@ -13,7 +13,7 @@ interface Product {
     images: { url: string }[];
 }
 
-export const SpecialProductList: React.FC = () => {
+export const NewProductList: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -22,7 +22,7 @@ export const SpecialProductList: React.FC = () => {
             setLoading(true);
             try {
                 const res = await axios.get(
-                    `${import.meta.env.VITE_APP_API_URL}/api/client/products/top-rated-product`
+                    `${import.meta.env.VITE_APP_API_URL}/api/client/new-arrival-product`
                 );
                 setProducts(Array.isArray(res.data.data) ? res.data.data : []);
             } catch (err) {
@@ -41,7 +41,7 @@ export const SpecialProductList: React.FC = () => {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="section-title-2">
-                            <h2>Sản phẩm được đánh giá tốt nhất</h2>
+                            <h2>Sản phẩm mới nhất</h2>
                         </div>
                     </div>
                 </div>

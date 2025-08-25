@@ -73,7 +73,8 @@ class ProductController extends Controller
         // New arrivals
     public function newArrivalProduct()
     {
-        $products = Product::withAvg('reviews as rating', 'rating')
+        $products = Product::with(['category']) // load thêm category
+            ->withAvg('reviews as rating', 'rating')
             ->orderBy('created_at', 'desc')
             ->take(8)
             ->get();
@@ -98,6 +99,23 @@ class ProductController extends Controller
 
         return $this->success($products);
     }
+
+    // Sản phẩm có đánh giá cao nhất
+    public function topRatedProduct()
+    {
+        $products = Product::with(['category']) // load thêm danh mục
+            ->withAvg('reviews as rating', 'rating')
+            ->withCount('reviews')
+            ->having('reviews_count', '>', 0) // Chỉ lấy sản phẩm có
+            ->orderBy('rating', 'desc')
+            ->take(8)
+            ->get();
+        // Làm tròn rating
+        $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
+        return $this->success($products);
+    }
+            
+
 
 
 

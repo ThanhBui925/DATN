@@ -14,7 +14,7 @@ class DashboardController extends Controller
 {
     use ApiResponseTrait;
     // Trạng thái được ghi nhận doanh thu (paid + status hợp lệ)
-    private array $orderStatusesForRevenue = ['delivered', 'completed'];
+    private array $orderStatusesForRevenue = ['delivered', 'completed', 'return_rejected', 'return_requested'];
 
     // Gom nhóm trạng thái cho thống kê đơn
     private array $statusBuckets = [
@@ -1027,16 +1027,12 @@ class DashboardController extends Controller
         ->groupBy('order_status')
         ->get();
 
-    $result = [
-        'order_status' => $rows->map(fn($row) => [
-            'status'        => $row->order_status,
-            'count'  => (int) $row->total,
-        ])->values(),
-    ];
+    $result = $rows->map(fn($row) => [
+        'status' => $row->order_status,
+        'count'  => (int) $row->total,
+    ])->values();
 
-    return response()->json([
-        'data'    => $result
-    ]);
+    return response()->json(['order_status' => $result]);
 }
 
 
@@ -1114,9 +1110,7 @@ class DashboardController extends Controller
     }
 
     return response()->json([
-        'status'  => true,
-        'message' => 'Thành công',
-        'data'    => $data
+        $data
     ]);
 }
 
@@ -1560,7 +1554,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn($r) => [
                 'method'       => (string)$r->method,
-                'orders_count' => (int)$r->orders_count,
+                'count' => (int)$r->orders_count,
                 'total_amount' => (float)$r->total_amount,
             ]);
 

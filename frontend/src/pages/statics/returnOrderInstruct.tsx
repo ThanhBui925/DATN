@@ -1,9 +1,9 @@
-import { Breadcrumb } from "../components/Breadcrumb";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
-export const SalesPolicy = () => {
+export const ReturnOrderInstruct = () => {
     const breadcrumb = {
         breadcrumb1: "Trang chủ",
-        breadcrumb2: "Chính sách bán hàng",
+        breadcrumb2: "Hướng dẫn hoàn hàng",
     };
 
     return (
@@ -14,9 +14,9 @@ export const SalesPolicy = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="about-info-wrapper text-center">
-                                <h2>Chính sách bán hàng tại SportWolk</h2>
+                                <h2>Hướng dẫn hoàn hàng tại SportWolk</h2>
                                 <p>
-                                    Tại SportWolk, chúng tôi cam kết cung cấp sản phẩm chất lượng và dịch vụ bán hàng chuyên nghiệp, minh bạch để mang lại trải nghiệm mua sắm tuyệt vời nhất cho khách hàng.
+                                    Tại SportWolk, chúng tôi cam kết mang đến trải nghiệm mua sắm tốt nhất cho khách hàng. Nếu bạn cần hoàn hàng, hãy tham khảo quy trình dưới đây để đảm bảo quá trình diễn ra nhanh chóng và thuận tiện.
                                 </p>
                             </div>
                         </div>
@@ -24,25 +24,25 @@ export const SalesPolicy = () => {
                     <div className="row mt-50">
                         <div className="col-lg-6">
                             <div className="about-us-img">
-                                <img alt="Chính sách bán hàng" src="img/about/about1.jpg" />
+                                <img alt="Hướng dẫn hoàn hàng" src="img/about/about1.jpg" />
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="about-info-wrapper">
-                                <h3>Cam kết bán hàng</h3>
+                                <h3>Chính sách hoàn hàng</h3>
                                 <p>
-                                    Tất cả sản phẩm tại SportWolk đều là hàng chính hãng, có nguồn gốc rõ ràng và được bảo hành theo chính sách của nhà sản xuất.
+                                    SportWolk chấp nhận hoàn hàng trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng, còn nguyên tem mác, hộp giày và hóa đơn mua hàng.
                                 </p>
                                 <p>
-                                    Điều kiện áp dụng chính sách bán hàng:
+                                    Các trường hợp được hoàn hàng:
                                 </p>
                                 <ul>
-                                    <li>Sản phẩm được kiểm tra kỹ lưỡng trước khi giao đến khách hàng.</li>
-                                    <li>Thông tin sản phẩm (kích cỡ, màu sắc, chất liệu) được mô tả chi tiết và chính xác trên website.</li>
-                                    <li>Hỗ trợ đổi trả trong vòng <strong>7 ngày</strong> nếu sản phẩm bị lỗi hoặc không đúng mô tả.</li>
+                                    <li>Sản phẩm bị lỗi do nhà sản xuất (rách, hỏng khóa kéo, bong keo, v.v.).</li>
+                                    <li>Sản phẩm không đúng với mô tả hoặc sai kích cỡ/màu sắc đã đặt.</li>
+                                    <li>Khách hàng đổi ý (chỉ áp dụng với sản phẩm còn mới 100%).</li>
                                 </ul>
                                 <p>
-                                    Lưu ý: Khách hàng vui lòng kiểm tra sản phẩm ngay khi nhận hàng để đảm bảo quyền lợi.
+                                    Lưu ý: Chi phí vận chuyển hoàn hàng sẽ do khách hàng chi trả, trừ trường hợp lỗi từ phía SportWolk.
                                 </p>
                                 <div className="read-more-btn">
                                     <a href="#">Liên hệ hỗ trợ</a>
@@ -61,8 +61,8 @@ export const SalesPolicy = () => {
                                     <span className="ion-ios-briefcase-outline"></span>
                                 </div>
                                 <div className="count-title">
-                                    <h2 className="count">100%</h2>
-                                    <span>Sản phẩm chính hãng</span>
+                                    <h2 className="count">7</h2>
+                                    <span>Ngày hoàn hàng</span>
                                 </div>
                             </div>
                         </div>
@@ -107,39 +107,39 @@ export const SalesPolicy = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="section-titel-three text-center">
-                                <h2>Quy trình mua sắm</h2>
-                                <p>Quy trình mua sắm tại SportWolk được thiết kế đơn giản, thuận tiện và minh bạch.</p>
+                                <h2>Các bước hoàn hàng</h2>
+                                <p>Quy trình hoàn hàng tại SportWolk được thiết kế để đơn giản và thuận tiện cho bạn.</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 1: Chọn sản phẩm</h3>
-                                    <p>Truy cập website hoặc cửa hàng SportWolk để lựa chọn sản phẩm phù hợp.</p>
+                                    <h3>Bước 1: Liên hệ SportWolk</h3>
+                                    <p>Gửi yêu cầu hoàn hàng qua hotline, email hoặc tại cửa hàng SportWolk gần nhất.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 2: Đặt hàng</h3>
-                                    <p>Thêm sản phẩm vào giỏ hàng và hoàn tất thanh toán trực tuyến hoặc tại cửa hàng.</p>
+                                    <h3>Bước 2: Đóng gói sản phẩm</h3>
+                                    <p>Đóng gói sản phẩm cẩn thận, kèm hóa đơn và tem mác nguyên vẹn.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 3: Xác nhận đơn hàng</h3>
-                                    <p>SportWolk sẽ xác nhận đơn hàng qua email hoặc tin nhắn trong vòng 24 giờ.</p>
+                                    <h3>Bước 3: Gửi sản phẩm</h3>
+                                    <p>Gửi sản phẩm về địa chỉ SportWolk cung cấp hoặc mang trực tiếp đến cửa hàng.</p>
                                 </div>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6">
                             <div className="single-our-team">
                                 <div className="our-team-info">
-                                    <h3>Bước 4: Nhận hàng</h3>
-                                    <p>Sản phẩm sẽ được giao đến địa chỉ của bạn hoặc bạn có thể nhận tại cửa hàng.</p>
+                                    <h3>Bước 4: Nhận hoàn tiền</h3>
+                                    <p>Sau khi kiểm tra, SportWolk sẽ hoàn tiền hoặc đổi sản phẩm trong vòng 3-5 ngày.</p>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@ export const SalesPolicy = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-1.png" />
                                     <p>
-                                        Mua sắm tại SportWolk rất tiện lợi, sản phẩm chất lượng và giao hàng nhanh chóng!
+                                        Quy trình hoàn hàng của SportWolk rất nhanh chóng và minh bạch. Tôi đã đổi một đôi giày sai kích cỡ và nhận được sản phẩm mới chỉ sau 3 ngày!
                                     </p>
                                     <h4>Nguyễn Minh Tuấn</h4>
                                     <span>Khách hàng thân thiết</span>
@@ -162,7 +162,7 @@ export const SalesPolicy = () => {
                                 <div className="single-testimonial text-center">
                                     <img alt="Khách hàng SportWolk" src="/img/team/customer-2.png" />
                                     <p>
-                                        Tôi rất hài lòng với dịch vụ của SportWolk, nhân viên tư vấn nhiệt tình và sản phẩm đúng như mô tả!
+                                        Nhân viên SportWolk hỗ trợ tôi rất nhiệt tình khi tôi cần hoàn hàng. Tôi rất hài lòng với dịch vụ của cửa hàng!
                                     </p>
                                     <h4>Lê Thị Hồng Nhung</h4>
                                     <span>Khách hàng</span>
