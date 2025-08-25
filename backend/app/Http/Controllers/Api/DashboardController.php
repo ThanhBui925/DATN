@@ -14,7 +14,7 @@ class DashboardController extends Controller
 {
     use ApiResponseTrait;
     // Trạng thái được ghi nhận doanh thu (paid + status hợp lệ)
-    private array $orderStatusesForRevenue = ['delivered', 'completed'];
+    private array $orderStatusesForRevenue = ['delivered', 'completed', 'return_rejected', 'return_requested'];
 
     // Gom nhóm trạng thái cho thống kê đơn
     private array $statusBuckets = [
