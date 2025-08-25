@@ -1032,7 +1032,7 @@ class DashboardController extends Controller
         'count'  => (int) $row->total,
     ])->values();
 
-    return response()->json($result);
+    return response()->json(['order_status' => $result]);
 }
 
 
@@ -1554,7 +1554,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn($r) => [
                 'method'       => (string)$r->method,
-                'orders_count' => (int)$r->orders_count,
+                'count' => (int)$r->orders_count,
                 'total_amount' => (float)$r->total_amount,
             ]);
 
