@@ -136,6 +136,9 @@ export const VoucherEdit = () => {
               <Form.Item
                   label="Số tiền giảm giá tối đa"
                   name="max_discount_amount"
+                  rules={[
+                    { required: true, message: "Không được bỏ trống trường này" },
+                  ]}
               >
                 <InputNumber
                     style={{ width: "100%" }}
@@ -149,6 +152,9 @@ export const VoucherEdit = () => {
               <Form.Item
                   label="Số tiền đơn hàng tối thiểu"
                   name="min_order_amount"
+                  rules={[
+                    { required: true, message: "Không được bỏ trống trường này" },
+                  ]}
               >
                 <InputNumber
                     style={{ width: "100%" }}
