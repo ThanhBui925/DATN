@@ -39,10 +39,9 @@ Route::prefix('client')->group(function () {
     // Route::get('/feature-product', [ClientProductController::class, 'featureProduct']);
     Route::prefix('products')->group(function () {
         Route::get('/', [ClientProductController::class, 'getAllProducts']);
+        Route::get('/top-rated-product', [ClientProductController::class, 'topRatedProduct']);
         Route::get('/{id}', [ClientProductController::class, 'show']);
         Route::get('/{id}/related-products', [ClientProductController::class, 'getRelatedProduct']);
-        Route::get('/top-rated-product', [ClientProductController::class, 'topRatedProduct']);
-        
     });
     Route::prefix('categories')->group(function () {
         Route::get('/', [ClientCategoryController::class, 'index']);
