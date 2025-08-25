@@ -70,9 +70,9 @@ export const BlogPostList = () => {
                                 allowClear
                                 defaultValue={'published'}
                                 options={[
-                                    { label: "Công khai", value: "published" },
-                                    { label: "Riêng tư", value: "private" },
-                                    { label: "Nháp", value: "draft" },
+                                    { label: "Công khai", value: "1" },
+                                    { label: "Riêng tư", value: "2" },
+                                    { label: "Nháp", value: "0" },
                                 ]}
                             />
                         </Form.Item>

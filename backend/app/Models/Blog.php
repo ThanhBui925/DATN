@@ -11,7 +11,9 @@ class Blog extends Model
 
     protected $fillable = ['title', 'description', 'content', 'image', 'status'];
 
-    protected $casts = ['status' => 'boolean'];
+    protected $casts = [
+        'status' => 'integer',
+    ];
 
     public function comments()
     {
