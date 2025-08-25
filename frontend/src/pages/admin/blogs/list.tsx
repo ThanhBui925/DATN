@@ -68,7 +68,6 @@ export const BlogPostList = () => {
                             <Select
                                 placeholder="Chọn trạng thái"
                                 allowClear
-                                defaultValue={'published'}
                                 options={[
                                     { label: "Công khai", value: "1" },
                                     { label: "Riêng tư", value: "2" },
