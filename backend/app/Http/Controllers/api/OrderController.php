@@ -246,7 +246,7 @@ public function show($id)
         }
 
         // Kiểm tra điều kiện hoàn tiền
-        if (!in_array($order->order_status, ['return_accepted', 'cancelled'])) {
+        if (!in_array($order->order_status, ['return_accepted', 'canceled'])) {
             return $this->errorResponse('Đơn hàng không đủ điều kiện hoàn tiền', null, 400);
         }
 
@@ -260,7 +260,7 @@ public function show($id)
             'transaction_code' => $transactionCode,
         ]);
 
-        if ($order->order_status === 'cancelled') {
+        if ($order->order_status === 'canceled') {
             // Nếu đã hủy thì chỉ cập nhật payment_status
             $order->payment_status = 'refunded';
         } else {
@@ -483,5 +483,30 @@ public function show($id)
             Log::error('Failed to generate PDF', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to generate PDF: ' . $e->getMessage()], 500);
         }
+    }
+
+    //Xác nhận hoàn tiền đơn hàng đã hủy khi thanh toan online
+    public function confirmRefund(Request $request, $id)
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại', null, 404);
+        }
+        if ($order->order_status !== 'canceled' || $order->payment_status !== 'waiting_for_refund') {
+            return $this->errorResponse('Đơn hàng không đủ điều kiện để hoàn tiền', null, 400);
+        }
+        $transactionCode = $request->input('transaction_code');
+        if (!$transactionCode) {
+            return $this->errorResponse('Vui lòng nhập mã giao dịch hoàn tiền', null, 422);
+        }
+        //Nhập thông tin mã giao dịch hoàn tiền bảng return_orders
+        $returnOrder = $order->return;
+        if ($returnOrder) {
+            $returnOrder->transaction_code = $transactionCode;
+            $returnOrder->save();
+        }
+        $order->payment_status = 'refunded';
+        $order->save();
+        return $this->successResponse($order->load(['customer', 'shipping', 'user']), 'Xác nhận hoàn tiền đơn hàng thành công');
     }
 }

@@ -6,17 +6,19 @@ import {SpecialProductList} from "../components/home/SpecialProductList";
 import {NewLetter} from "../components/home/NewLetter";
 import {ProductList} from "../components/home/ProductList";
 import {SliderBanner} from "../components/home/SliderBanner";
+import {NewProductList} from "../components/home/NewProductList";
 
 export const Home = () => {
     return (
         <>
             <SliderBanner/>
             <OurService/>
+            <NewProductList/>
             <Banner/>
             <FeatureProductList/>
             <SingleBanner/>
             <SpecialProductList/>
-            <ProductList/>
+            {/*<ProductList/>*/}
             <NewLetter/>
         </>
     )

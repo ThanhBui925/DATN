@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -32,8 +33,8 @@ class ProfileController extends Controller
                 'status'     => $user->status,
                 'phone'      => optional($customer)->phone,
                 'address'    => optional($customer)->address,
-                'avatar'     => optional($customer)->avatar,   // path lưu trong DB
-                'avatar_url' => $avatarUrl,                    // URL public cho FE
+                'avatar'     => optional($customer)->avatar,
+                'avatar_url' => $avatarUrl,
                 'dob'        => optional($customer)->dob,
                 'gender'     => optional($customer)->gender,
             ]
@@ -48,41 +49,63 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'name'     => ['sometimes', 'string', 'max:255'],
+            'email'    => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
 
-            // customer
             'phone'    => ['nullable', 'string', 'max:20'],
             'address'  => ['nullable', 'string', 'max:255'],
             'dob'      => ['nullable', 'date'],
             'gender'   => ['nullable', 'in:male,female,other'],
 
-            // avatar file
             'avatar'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
         ]);
 
         // Update users
-        $user->name  = $data['name'];
-        $user->email = $data['email'];
+        if (isset($data['name'])) {
+            $user->name = $data['name'];
+        }
+        if (isset($data['email'])) {
+            $user->email = $data['email'];
+        }
         if (!empty($data['password'])) {
             $user->password = Hash::make($data['password']);
         }
         $user->save();
+
 
         $customer = $user->customer;
         $newAvatarPath = $customer?->avatar;
 
         // Nếu upload avatar mới
         if ($request->hasFile('avatar')) {
-            // xóa avatar cũ nếu có (nằm trong storage)
-            if ($customer && $customer->avatar && Storage::disk('public')->exists($customer->avatar)) {
-                Storage::disk('public')->delete($customer->avatar);
-            }
+            $avatarFile = $request->file('avatar');
 
-            // lưu avatar mới vào storage/app/public/avatars/{user_id}/...
-            $newAvatarPath = $request->file('avatar')->store("avatars/{$user->id}", 'public');
+            Log::info('Avatar received: ' . $avatarFile->getClientOriginalName());
+            Log::info('Avatar size: ' . $avatarFile->getSize() . ' bytes');
+            Log::info('Avatar mime type: ' . $avatarFile->getMimeType());
+
+            if ($avatarFile->isValid()) {
+                // Lưu avatar mới
+                $storedPath = $avatarFile->store("avatars/{$user->id}", 'public');
+                $newAvatarPath = env('APP_URL', "http://127.0.0.1:8000") . Storage::url($storedPath);
+
+                Log::info('New avatar path: ' . $newAvatarPath);
+
+                // Xóa avatar cũ nếu có
+                if ($customer && $customer->avatar) {
+                    $oldImagePath = str_replace(env('APP_URL', "http://127.0.0.1:8000") . '/storage/', '', $customer->avatar);
+                    if (Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
+                    }
+                }
+            } else {
+                Log::error('Invalid avatar uploaded');
+                $newAvatarPath = $customer?->avatar; // Giữ ảnh cũ nếu file không hợp lệ
+            }
         }
+
+
 
         // Update hoặc tạo customer
         $user->customer()->updateOrCreate(

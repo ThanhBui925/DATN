@@ -34,8 +34,8 @@ class StoreVoucherRequest extends FormRequest
                 Rule::when($this->discount_type === 'percentage', 'max:100'),
                 Rule::when($this->discount_type === 'fixed', 'max:1000000'),
             ],
-            'max_discount_amount' => 'nullable|numeric|min:0',
-            'min_order_amount' => 'nullable|numeric|min:0',
+            'max_discount_amount' => 'required|numeric|min:0',
+            'min_order_amount' => 'required|numeric|min:0',
             'expiry_date' => 'nullable|date|after:now',
             'usage_limit' => 'nullable|integer|min:1',
             'usage_limit_per_user' => 'nullable|integer|min:1',
@@ -63,6 +63,8 @@ class StoreVoucherRequest extends FormRequest
 
             'max_discount_amount.numeric' => 'Giá trị giảm tối đa phải là số.',
             'max_discount_amount.min' => 'Giá trị giảm tối đa không được nhỏ hơn 0.',
+            'max_discount_amount.required' => 'Giá trị giảm tối đa là bắt buộc.',
+            'min_order_amount.required' => 'Giá trị đơn hàng tối thiểu là bắt buộc.',
 
             'min_order_amount.numeric' => 'Giá trị đơn hàng tối thiểu phải là số.',
             'min_order_amount.min' => 'Giá trị đơn hàng tối thiểu không được nhỏ hơn 0.',

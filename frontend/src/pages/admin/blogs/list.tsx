@@ -15,7 +15,7 @@ export const BlogPostList = () => {
         syncWithLocation: true,
         filters: {
             initial: [
-                { field: "name", operator: "contains", value: undefined },
+                { field: "title", operator: "contains", value: undefined },
                 { field: "status", operator: "eq", value: undefined },
             ],
         },
@@ -23,7 +23,7 @@ export const BlogPostList = () => {
 
     const handleFilter = (values: any) => {
         setFilters([
-            { field: "name", operator: "contains", value: values.name || undefined },
+            { field: "title", operator: "contains", value: values.title || undefined },
             { field: "status", operator: "eq", value: values.status || undefined },
         ]);
     };
@@ -33,7 +33,7 @@ export const BlogPostList = () => {
     const handleReset = () => {
         form.resetFields();
         setFilters([
-            { field: "name", operator: "contains", value: undefined },
+            { field: "title", operator: "contains", value: undefined },
             { field: "status", operator: "eq", value: undefined },
         ]);
     };
@@ -70,9 +70,9 @@ export const BlogPostList = () => {
                                 allowClear
                                 defaultValue={'published'}
                                 options={[
-                                    { label: "Công khai", value: "published" },
-                                    { label: "Riêng tư", value: "private" },
-                                    { label: "Nháp", value: "draft" },
+                                    { label: "Công khai", value: "1" },
+                                    { label: "Riêng tư", value: "2" },
+                                    { label: "Nháp", value: "0" },
                                 ]}
                             />
                         </Form.Item>
@@ -110,21 +110,20 @@ export const BlogPostList = () => {
                 <Table.Column
                     dataIndex="status"
                     title="Trạng thái"
-                    render={(value: string) => {
-                        if (!value) return null;
+                    render={(value: string | number) => {
+                        if (value === null || value === undefined) return null;
 
                         const statusMap: Record<string, { color: string; label: string }> = {
-                            1: { color: "green", label: "Công khai" },
-                            0: { color: "red", label: "Nháp" },
-                            2: { color: "blue", label: "Riêng tư" },
+                            "1": { color: "green", label: "Công khai" },
+                            "0": { color: "red", label: "Nháp" },
+                            "2": { color: "blue", label: "Riêng tư" },
                         };
 
-                        const status = statusMap[value];
+                        const status = statusMap[String(value)];
 
-                        return status && (
-                            <Tag color={status.color}>{status.label}</Tag>
-                        );
+                        return status && <Tag color={status.color}>{status.label}</Tag>;
                     }}
+
                 />
 
                 <Table.Column

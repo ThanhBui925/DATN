@@ -115,7 +115,12 @@ class CustomerController extends Controller
         }
 
         $user->status = $user->status ? 0 : 1;
+        //Xóa token đăng nhập
+        if ($user->status == 0) {
+            $user->tokens()->delete();
+        }
         $user->save();
+        
 
         return $this->success(null, $user->status ? 'Tài khoản đã được kích hoạt.' : 'Tài khoản đã bị vô hiệu hóa.');
     }
