@@ -590,6 +590,17 @@ export const OrderDetailContent = () => {
                                 <h2>Lý do yêu cầu hoàn tiền</h2>
                             </div>
                             <p>{order.return?.reason}</p>
+                            <b>Thông tin hoàn tiền:</b>
+                            <div className="d-flex flex-column mb-2">
+                                <span><b>Ngân hàng:</b> {order.return?.refund_bank}</span>
+                                <span><b>Người thụ hưởng:</b> {order.return?.refund_account_name}</span>
+                                <span><b>Số tài khoản:</b> {order.return?.refund_account_number}</span>
+                                {
+                                    order.return?.refund_account_number && (
+                                        <span><b>Mã giao dịch:</b> {order.return?.transaction_code}</span>
+                                    )
+                                }
+                            </div>
                             <i className="text-danger">
                                 Hình ảnh dẫn chứng:
                             </i>

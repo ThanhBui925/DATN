@@ -103,7 +103,7 @@ export const OrdersShow = () => {
                     <>
                         {
                             !(
-                                (record?.status === "canceled" && record?.payment_status === "cash") ||
+                                (record?.status === "canceled" && record?.payment_method === "cash") ||
                                 (record?.status === "refunded" && record?.payment_status === "refunded") ||
                                 (record?.payment_status === "waiting_for_refunded")
                             ) && (
@@ -381,6 +381,15 @@ export const OrdersShow = () => {
                                         <Text strong style={{color: "#595959", fontSize: 14}}>Mã giao dịch hoàn tiền</Text>
                                         <TextField
                                             value={record?.return?.transaction_code || "-"}
+                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                        />
+                                    </Col>
+                                )}
+                                {record?.order_code && (
+                                    <Col xs={24} sm={12}>
+                                        <Text strong style={{color: "#595959", fontSize: 14}}>Mã vận đơn</Text>
+                                        <TextField
+                                            value={record?.order_code || "-"}
                                             style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
                                         />
                                     </Col>
