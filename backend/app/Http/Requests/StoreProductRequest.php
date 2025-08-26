@@ -93,7 +93,7 @@ class StoreProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => 'Cập nhật sản phẩm thất bại !',
+            'message' => 'Thêm mới sản phẩm thất bại !',
             'errors' => $validator->errors(),
         ], 422));
     }
@@ -143,7 +143,7 @@ class StoreProductRequest extends FormRequest
 
             if ($existingProduct) {
                 foreach ($variants as $index => $variant) {
-                    $exists = \DB::table('product_variants')
+                    $exists = \DB::table('variant_products')
                         ->where('product_id', $existingProduct->id)
                         ->where('size_id', $variant['size_id'])
                         ->where('color_id', $variant['color_id'])

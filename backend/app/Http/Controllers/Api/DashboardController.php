@@ -167,7 +167,7 @@ class DashboardController extends Controller
                 break;
         }
 
-        $total = $query->sum(DB::raw('final_amount - discount_amount - shipping_fee'));
+        $total = $query->sum(DB::raw('total_price - discount_amount'));
 
         return response()->json([
             'total_revenue' => (float) $total
