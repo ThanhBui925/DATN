@@ -39,6 +39,9 @@ interface Images {
 interface Item {
     id: number;
     product: Product;
+    product_name: string;
+    size: string;
+    color: string;
     variant: Variant;
     quantity: number;
     price: string;
@@ -480,14 +483,14 @@ export const OrderDetailContent = () => {
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
                                                     src={item.variant.images[0]?.image_url || item.product.image || "/path/to/fallback-image.jpg"}
-                                                    alt={item.product.name}
+                                                    alt={item.product_name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
                                                 />
-                                                <span className="fw-medium">{item.product.name}</span>
+                                                <span className="fw-medium">{item.product_name}</span>
                                             </div>
                                         </td>
-                                        <td className="text-center">{item.variant?.size?.name}, {item.variant?.color?.name}</td>
+                                        <td className="text-center">{item.size}, {item.color}</td>
                                         <td className="text-center">{item.quantity}</td>
                                         <td className="text-end fw-bold text-original-base">{convertToInt(item.price)}₫</td>
                                         {order.status === "completed" && !item.is_review && (
