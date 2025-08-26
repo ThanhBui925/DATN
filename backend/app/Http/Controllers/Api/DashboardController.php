@@ -555,7 +555,9 @@ class DashboardController extends Controller
      */
     public function getUserGrowth(Request $request)
     {
-        $query = DB::table('users');
+        $query = DB::table('users')
+            ->where('role', 'client');
+
 
         $now = Carbon::now();
 

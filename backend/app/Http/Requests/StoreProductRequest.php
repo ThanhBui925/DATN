@@ -102,44 +102,70 @@ class StoreProductRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $variants = $this->input('variants', []);
-            $productName = $this->input('name');
 
-            // 1. Check trùng tên biến thể trong request
+            // 1. Check trùng name trong request
             $names = collect($variants)->pluck('name');
             if ($names->duplicates()->isNotEmpty()) {
-                throw new HttpResponseException(response()->json([
-                    'status' => false,
-                    'message' => 'Tên các biến thể không được trùng nhau.',
-                    'errors' => 422,
-                ], 422));
+                throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                    response()->json([
+                        'status' => false,
+                        'message' => 'Tên các biến thể không được trùng nhau.',
+                        'errors' => [
+                            'variants' => ['Tên các biến thể không được trùng nhau.']
+                        ]
+                    ], 422)
+                );
             }
 
-            // 2. Check biến thể đã tồn tại trong DB với size + color + product
+            // 2. Check trùng (size_id + color_id) trong request
+            $combos = [];
+            foreach ($variants as $index => $variant) {
+                $key = $variant['size_id'].'-'.$variant['color_id'];
+                if (isset($combos[$key])) {
+                    throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                        response()->json([
+                            'status' => false,
+                            'message' => 'Một số biến thể bị trùng size + color.',
+                            'errors' => [
+                                "variants.$index" => ['Kích cỡ và màu sắc đã bị trùng trong biến thể khác.']
+                            ]
+                        ], 422)
+                    );
+                }
+                $combos[$key] = true;
+            }
+
+            // 3. Check biến thể đã tồn tại trong DB
+            $productName = $this->input('name');
             $existingProduct = \DB::table('products')
                 ->where('name', $productName)
                 ->first();
 
             if ($existingProduct) {
-                $productId = $existingProduct->id;
-
-                foreach ($variants as $variant) {
+                foreach ($variants as $index => $variant) {
                     $exists = \DB::table('product_variants')
-                        ->where('product_id', $productId)
+                        ->where('product_id', $existingProduct->id)
                         ->where('size_id', $variant['size_id'])
                         ->where('color_id', $variant['color_id'])
                         ->exists();
 
                     if ($exists) {
-                        throw new HttpResponseException(response()->json([
-                            'status' => false,
-                            'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
-                            'errors' => 422,
-                        ], 422));
+                        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                            response()->json([
+                                'status' => false,
+                                'message' => 'Một số biến thể đã tồn tại trong hệ thống.',
+                                'errors' => [
+                                    "variants.$index" => ['Biến thể với size + color này đã tồn tại.']
+                                ]
+                            ], 422)
+                        );
                     }
                 }
             }
         });
     }
+
+
 
 
     //Tồn tại size và color trong variants
