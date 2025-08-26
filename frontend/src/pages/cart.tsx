@@ -69,6 +69,17 @@ export const Cart = () => {
                 notification.error({message: res.data.message});
             } else {
                 notification.success({message: "Cập nhật giỏ hàng thành công"});
+                setSelectedItems({});
+                setSelectedSizes({});
+                setSelectedColors({});
+                setErrorQty({});
+                setShowVariantModal(false);
+                setCurrentCartId(null);
+                setTempColor('');
+                setTempSize('');
+                setTempVariant(null);
+                setTempImage('');
+                setAvailableStock(0);
             }
         } catch (e) {
             notification.error({message: "Cập nhật giỏ hàng thất bại" + (e as Error).message});
