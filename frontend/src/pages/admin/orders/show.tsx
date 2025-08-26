@@ -104,8 +104,10 @@ export const OrdersShow = () => {
                         {
                             !(
                                 (record?.status === "canceled" && record?.payment_method === "cash") ||
+                                (record?.status === "canceled" && record?.payment_method === "vnpay" && record?.payment_status !== 'paid') ||
                                 (record?.status === "refunded" && record?.payment_status === "refunded") ||
-                                (record?.payment_status === "waiting_for_refunded")
+                                (record?.payment_status === "waiting_for_refunded") ||
+                                (record?.status === "completed")
                             ) && (
                                 <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                             )
@@ -457,7 +459,7 @@ export const OrdersShow = () => {
                                 >
                                     <Table.Column
                                         title="Tên sản phẩm"
-                                        dataIndex={["product", "name"]}
+                                        dataIndex={["product_name"]}
                                         render={(value) => (
                                             <TextField
                                                 value={value || "-"}

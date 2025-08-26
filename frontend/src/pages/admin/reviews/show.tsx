@@ -81,6 +81,7 @@ export const ReviewShow = () => {
                     </Breadcrumb.Item>
                 </Breadcrumb>
             }
+            headerButtons={() => null}
         >
             <Row gutter={[24, 24]} style={{ maxWidth: 1200, margin: "0 auto" }}>
                 <Col xs={24} lg={16}>
