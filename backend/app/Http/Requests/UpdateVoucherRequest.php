@@ -89,7 +89,7 @@ class UpdateVoucherRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => 'Validation failed',
+            'message' => 'Cập nhật voucher thất bại !',
             'errors' => $validator->errors(),
         ], 422));
     }

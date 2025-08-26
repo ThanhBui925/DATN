@@ -44,7 +44,7 @@ class StoreCategoryRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => 'Validation failed',
+            'message' => 'Thêm danh mục thất bại !',
             'errors' => $validator->errors(),
         ], 422));
     }

@@ -85,7 +85,7 @@ class UpdateProductRequest extends FormRequest
 {
     throw new HttpResponseException(response()->json([
         'status'  => false,
-        'message' => 'Validation failed',
+        'message' => 'Cập nhật sản phẩm thất bại !',
         'errors'  => $validator->errors()->toArray(),
     ], 422));
 }
