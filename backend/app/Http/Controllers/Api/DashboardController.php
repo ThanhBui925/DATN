@@ -254,72 +254,77 @@ class DashboardController extends Controller
      * GET /dashboard/total-customers
      */
     public function getTotalCustomers(Request $request)
-    {
-        $query = DB::table('customers');
-        $now = Carbon::now();
+{
+    $query = DB::table('customers')
+        ->join('users', 'users.id', '=', 'customers.user_id')
+        ->where('users.role', 'client')
+        ->select('customers.*');
 
-        switch ($request->input('filter')) {
-            case 'today':
-                $query->whereDate('created_at', $now->toDateString());
-                break;
-            case 'yesterday':
-                $yesterday = $now->copy()->subDay();
-                $query->whereDate('created_at', $yesterday->toDateString());
-                break;
-            case 'this_week':
-                $query->whereBetween('created_at', [
-                    $now->copy()->startOfWeek(),
-                    $now->copy()->endOfWeek()
-                ]);
-                break;
-            case 'last_week':
-                $lastWeekStart = $now->copy()->subWeek()->startOfWeek();
-                $lastWeekEnd   = $now->copy()->subWeek()->endOfWeek();
-                $query->whereBetween('created_at', [$lastWeekStart, $lastWeekEnd]);
-                break;
-            case 'this_month':
-                $query->whereYear('created_at', $now->year)
-                    ->whereMonth('created_at', $now->month);
-                break;
-            case 'last_month':
-                $lastMonth = $now->copy()->subMonth();
-                $query->whereYear('created_at', $lastMonth->year)
-                    ->whereMonth('created_at', $lastMonth->month);
-                break;
-            case 'month':
-                $month = $request->input('value');
-                if ($month) {
-                    try {
-                        $parsed = Carbon::createFromFormat('Y-m', $month);
-                        $query->whereYear('created_at', $parsed->year)
-                            ->whereMonth('created_at', $parsed->month);
-                    } catch (\Exception $e) {
-                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
-                    }
-                }
-                break;
-            case 'range':
-                $from = $request->input('from');
-                $to   = $request->input('to');
-                if (!$from || !$to) {
-                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
-                }
+    $now = Carbon::now();
+
+    switch ($request->input('filter')) {
+        case 'today':
+            $query->whereDate('customers.created_at', $now->toDateString());
+            break;
+        case 'yesterday':
+            $yesterday = $now->copy()->subDay();
+            $query->whereDate('customers.created_at', $yesterday->toDateString());
+            break;
+        case 'this_week':
+            $query->whereBetween('customers.created_at', [
+                $now->copy()->startOfWeek(),
+                $now->copy()->endOfWeek()
+            ]);
+            break;
+        case 'last_week':
+            $lastWeekStart = $now->copy()->subWeek()->startOfWeek();
+            $lastWeekEnd   = $now->copy()->subWeek()->endOfWeek();
+            $query->whereBetween('customers.created_at', [$lastWeekStart, $lastWeekEnd]);
+            break;
+        case 'this_month':
+            $query->whereYear('customers.created_at', $now->year)
+                ->whereMonth('customers.created_at', $now->month);
+            break;
+        case 'last_month':
+            $lastMonth = $now->copy()->subMonth();
+            $query->whereYear('customers.created_at', $lastMonth->year)
+                ->whereMonth('customers.created_at', $lastMonth->month);
+            break;
+        case 'month':
+            $month = $request->input('value');
+            if ($month) {
                 try {
-                    $fromDate = Carbon::parse($from)->startOfDay();
-                    $toDate   = Carbon::parse($to)->endOfDay();
-                    $query->whereBetween('created_at', [$fromDate, $toDate]);
+                    $parsed = Carbon::createFromFormat('Y-m', $month);
+                    $query->whereYear('customers.created_at', $parsed->year)
+                        ->whereMonth('customers.created_at', $parsed->month);
                 } catch (\Exception $e) {
-                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                    return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
                 }
-                break;
-        }
-
-        $total = $query->count();
-
-        return response()->json([
-            'total_customers' => $total
-        ]);
+            }
+            break;
+        case 'range':
+            $from = $request->input('from');
+            $to   = $request->input('to');
+            if (!$from || !$to) {
+                return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+            }
+            try {
+                $fromDate = Carbon::parse($from)->startOfDay();
+                $toDate   = Carbon::parse($to)->endOfDay();
+                $query->whereBetween('customers.created_at', [$fromDate, $toDate]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+            }
+            break;
     }
+
+    $total = $query->count();
+
+    return response()->json([
+        'total_customers' => $total
+    ]);
+}
+
 
 
     /**
@@ -1296,7 +1301,7 @@ class DashboardController extends Controller
     public function getUsedVoucherCount(Request $request)
     {
         $query = DB::table('shop_order')
-            ->whereNotNull('voucher_code'); // Chỉ lấy các đơn có voucher_code
+            ->whereNotNull('voucher_code');
 
         $now = Carbon::now();
 
@@ -1344,7 +1349,7 @@ class DashboardController extends Controller
 
         $count = $query->count();
 
-        return response()->json(['voucherUsageCount' => $count]);
+        return response()->json(['voucher_usage_count' => $count]);
     }
 
     // ======================== PRODUCT RATINGS ========================
@@ -1506,9 +1511,7 @@ class DashboardController extends Controller
     public function getPaymentMethods(Request $request)
     {
         // Chỉ tính các đơn đã thanh toán và đã hoàn tất/giao hàng
-        $q = DB::table('shop_order')
-            ->where('payment_status', 'paid')
-            ->whereIn('order_status', ['delivered', 'completed']);
+        $q = DB::table('shop_order');
 
         $now    = Carbon::now();
         $filter = $request->input('filter');
