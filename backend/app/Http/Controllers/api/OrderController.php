@@ -194,6 +194,9 @@ public function show($id)
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
+                    'product_name' => $item->product_name,
+                    'size' => $item->size,
+                    'color' => $item->color,
                     'product' => [
                         'id' => $item->product->id,
                         'category_id' => $item->product->category_id,

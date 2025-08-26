@@ -12,6 +12,9 @@ interface OrderItem {
         name: string;
         image: string | null;
     };
+    product_name: string;
+    size: string;
+    color: string;
     variant: {
         size: { name: string };
         color: { name: string };
@@ -458,14 +461,14 @@ export const OrderContent: React.FC = () => {
                                             >
                                                 <img
                                                     src={item.variant?.images[0]?.image_url || item.product?.image || "/path/to/fallback-image.jpg"}
-                                                    alt={item.product?.name}
+                                                    alt={item.product_name}
                                                     className="rounded"
                                                     style={{ width: "80px", height: "80px", objectFit: "cover" }}
                                                 />
                                                 <div className="flex-grow-1">
-                                                    <h6 className="fw-bold mb-1 text-dark">{item.product?.name}</h6>
+                                                    <h6 className="fw-bold mb-1 text-dark">{item.product_name}</h6>
                                                     <p className="text-muted mb-1 small">
-                                                        Phân loại: {item.variant?.size?.name}, {item.variant?.color?.name}
+                                                        Phân loại: {item.size}, {item.color}
                                                     </p>
                                                     <p className="text-muted mb-0 small">Số lượng: {item.quantity}</p>
                                                 </div>

@@ -202,10 +202,15 @@ class OrderController extends Controller
                 }
 
                 $variant->decrement('quantity', $item->quantity);
-
+                $size = $variant->size->name;
+                $color = $variant->color->name;
+                $productName = $product->name;
                 OrderItem::create([
                     'order_id'   => $order->id,
                     'product_id' => $item->product_id,
+                    'product_name' => $productName,
+                    'size'       => $size,
+                    'color'      => $color,
                     'quantity'   => $item->quantity,
                     'price'      => $price,
                     'variant_id' => $item->variant_id,
@@ -531,6 +536,9 @@ public function show(Request $request, $id)
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
+                    'product_name' => $item->product_name,
+                    'size' => $item->size,
+                    'color' => $item->color,
                     'product' => [
                         'id' => $item->product->id,
                         'category_id' => $item->product->category_id,

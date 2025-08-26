@@ -57,7 +57,6 @@ class ProductController extends Controller
             case 'rating_desc': $query->orderBy('rating', 'desc'); break; // <-- sort theo rating
             default: $query->latest();
         }
-
         $products = $query->get();
 
         // format rating
