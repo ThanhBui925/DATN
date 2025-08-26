@@ -58,9 +58,7 @@ export const CustomerList = () => {
                     <Breadcrumb.Item>Khách Hàng</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={() => (
-                <CreateButton>Thêm khách hàng</CreateButton>
-            )}
+            headerButtons={null}
         >
             <Form form={form} layout="inline" onFinish={handleSearch} style={{ marginBottom: 16 }}>
                 <Form.Item name="name" label="Tên khách hàng">

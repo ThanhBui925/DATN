@@ -70,6 +70,7 @@ export const CustomerShow = () => {
                     <Breadcrumb.Item>{record?.user?.name || "Không có tên"}</Breadcrumb.Item>
                 </Breadcrumb>
             }
+            headerButtons={() => null}
         >
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>

@@ -119,10 +119,35 @@ export const Cart = () => {
             await axiosInstance.delete(`/api/client/cart/items/${id}`);
             notification.success({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
             setSelectedItems((prev) => {
-                const newSelected = {...prev};
+                const newSelected = { ...prev };
                 delete newSelected[id];
                 return newSelected;
             });
+            setSelectedSizes((prev) => {
+                const newSizes = { ...prev };
+                delete newSizes[id];
+                return newSizes;
+            });
+            setSelectedColors((prev) => {
+                const newColors = { ...prev };
+                delete newColors[id];
+                return newColors;
+            });
+            setErrorQty((prev) => {
+                const newErrorQty = { ...prev };
+                delete newErrorQty[id];
+                return newErrorQty;
+            });
+
+            if (currentCartId === id) {
+                setShowVariantModal(false);
+                setCurrentCartId(null);
+                setTempColor('');
+                setTempSize('');
+                setTempVariant(null);
+                setTempImage('');
+                setAvailableStock(0);
+            }
             getCartData();
         } catch (e) {
             notification.error({message: (e as Error).message});
