@@ -15,7 +15,7 @@ export const BlogPostCreate = () => {
         formData.append("title", values.title || "");
         formData.append("description", values.description || "");
         formData.append("content", values.content || "");
-        formData.append("status", values.status || "1");
+        formData.append("status", values.status || "0");
 
         if (
             values.image &&
