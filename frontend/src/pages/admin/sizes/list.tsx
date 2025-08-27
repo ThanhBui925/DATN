@@ -1,28 +1,19 @@
-import {
-    Create,
-    CreateButton,
-    DeleteButton, Edit,
-    EditButton,
-    List,
-    useForm,
-    useTable,
-} from "@refinedev/antd";
-import type {BaseRecord} from "@refinedev/core";
-import {Breadcrumb, Col, Form, Input, Modal, Row, Space, Table} from "antd";
-import {useState} from "react";
+import { Create, CreateButton, DeleteButton, Edit, EditButton, List, useForm, useTable } from "@refinedev/antd";
+import type { BaseRecord } from "@refinedev/core";
+import { Breadcrumb, Col, Form, Input, Modal, Row, Space, Table } from "antd";
+import { useState, useEffect } from "react";
+import { useOne } from "@refinedev/core";
 
 export const SizeList = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<BaseRecord | null>(null);
-    const {tableProps} = useTable({
+    const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+
+    const { tableProps } = useTable({
         syncWithLocation: true,
     });
 
-    const {
-        saveButtonProps: createSaveButtonProps,
-        formProps: createFormProps,
-    } = useForm({
+    const { saveButtonProps: createSaveButtonProps, formProps: createFormProps } = useForm({
         resource: "sizes",
         action: "create",
         onMutationSuccess: () => {
@@ -31,17 +22,32 @@ export const SizeList = () => {
         },
     });
 
-    const {
-        saveButtonProps: editSaveButtonProps,
-        formProps: editFormProps,
-    } = useForm({
+    const { saveButtonProps: editSaveButtonProps, formProps: editFormProps, queryResult } = useForm({
         resource: "sizes",
         action: "edit",
-        id: selectedRecord?.id,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        id: selectedRecordId,
         onMutationSuccess: () => {
             setIsEditModalOpen(false);
         },
     });
+
+    const { data: selectedRecordData, refetch: refetchRecord } = useOne({
+        resource: "sizes",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        id: selectedRecordId,
+        queryOptions: {
+            enabled: !!selectedRecordId,
+        },
+    });
+
+    useEffect(() => {
+        if (selectedRecordData?.data && isEditModalOpen) {
+            editFormProps.form?.setFieldsValue(selectedRecordData.data);
+        }
+    }, [selectedRecordData, isEditModalOpen, editFormProps.form]);
 
     const onCreateFinish = async (values: any) => {
         const formData = new FormData();
@@ -68,42 +74,35 @@ export const SizeList = () => {
                 <CreateButton onClick={() => setIsCreateModalOpen(true)}>Thêm kích cỡ</CreateButton>
             )}
         >
-            <Table
-                {...tableProps}
-                rowKey="id"
-            >
-                <Table.Column
-                    title="STT"
-                    key="id"
-                    render={(value, record, index) => index + 1}
-                />
-                <Table.Column dataIndex="name" title="Tên kích cỡ"/>
+            <Table {...tableProps} rowKey="id">
+                <Table.Column title="STT" key="id" render={(value, record, index) => index + 1} />
+                <Table.Column dataIndex="name" title="Tên kích cỡ" />
                 <Table.Column
                     title="Hành động"
                     dataIndex="actions"
-                    render={(_, record: BaseRecord) => {
-                        return (
-                            <Space>
-                                <EditButton
-                                    hideText
-                                    size="large"
-                                    recordItemId={record.id}
-                                    onClick={() => {
-                                        setSelectedRecord(record);
-                                        setIsEditModalOpen(true);
-                                    }}
-                                />
-                                <DeleteButton
-                                    hideText
-                                    size="large"
-                                    recordItemId={record.id}
-                                    confirmTitle="Bạn có muốn xoá kích cỡ này?"
-                                    confirmOkText="Xoá"
-                                    confirmCancelText="Huỷ"
-                                />
-                            </Space>
-                        );
-                    }}
+                    render={(_, record: BaseRecord) => (
+                        <Space>
+                            <EditButton
+                                hideText
+                                size="large"
+                                recordItemId={record.id}
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    setSelectedRecordId(record.id);
+                                    setIsEditModalOpen(true);
+                                }}
+                            />
+                            <DeleteButton
+                                hideText
+                                size="large"
+                                recordItemId={record.id}
+                                confirmTitle="Bạn có muốn xoá kích cỡ này?"
+                                confirmOkText="Xoá"
+                                confirmCancelText="Huỷ"
+                            />
+                        </Space>
+                    )}
                 />
             </Table>
 
@@ -115,10 +114,7 @@ export const SizeList = () => {
             >
                 <Create
                     title="Tạo mới"
-                    saveButtonProps={{
-                        ...createSaveButtonProps,
-                        children: "Lưu",
-                    }}
+                    saveButtonProps={{ ...createSaveButtonProps, children: "Lưu" }}
                 >
                     <Form {...createFormProps} layout="vertical" onFinish={onCreateFinish}>
                         <Row gutter={16}>
@@ -126,9 +122,12 @@ export const SizeList = () => {
                                 <Form.Item
                                     label="Tên kích cỡ"
                                     name="name"
-                                    rules={[{required: true, message: "Không được bỏ trống trường này"}]}
+                                    rules={[
+                                        { required: true, message: "Không được bỏ trống trường này" },
+                                        { pattern: /^[0-9]+$/, message: "Chỉ được nhập số, không chứa ký tự đặc biệt" },
+                                    ]}
                                 >
-                                    <Input/>
+                                    <Input />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -138,37 +137,44 @@ export const SizeList = () => {
 
             <Modal
                 open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
+                onCancel={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedRecordId(null);
+                    editFormProps.form?.resetFields();
+                }}
                 closable={true}
                 footer={null}
             >
                 <Edit
                     title={"Cập nhật"}
-                    saveButtonProps={{
-                        ...editSaveButtonProps,
-                        children: "Lưu",
-                    }}
+                    saveButtonProps={{ ...editSaveButtonProps, children: "Lưu" }}
                     headerButtons={() => null}
                     deleteButtonProps={{
                         children: "Xóa",
-                        recordItemId: selectedRecord?.id,
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        recordItemId: selectedRecordId,
                         confirmTitle: "Bạn có muốn xóa kích cỡ này?",
                         confirmOkText: "Xóa",
                         confirmCancelText: "Hủy",
                         onSuccess: () => {
                             setIsEditModalOpen(false);
+                            setSelectedRecordId(null);
                         },
                     }}
                 >
-                    <Form {...editFormProps} layout="vertical" onFinish={onEditFinish} initialValues={selectedRecord!}>
+                    <Form {...editFormProps} layout="vertical" onFinish={onEditFinish}>
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item
                                     label="Tên kích cỡ"
                                     name="name"
-                                    rules={[{required: true, message: "Không được bỏ trống trường này"}]}
+                                    rules={[
+                                        { required: true, message: "Không được bỏ trống trường này" },
+                                        { pattern: /^[0-9]+$/, message: "Chỉ được nhập số, không chứa ký tự đặc biệt" },
+                                    ]}
                                 >
-                                    <Input/>
+                                    <Input />
                                 </Form.Item>
                             </Col>
                         </Row>
