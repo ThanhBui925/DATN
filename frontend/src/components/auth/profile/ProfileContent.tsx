@@ -50,6 +50,7 @@ export const ProfileContent = () => {
                         if (res.data.data.customer.avatar) {
                             setPreviewImage(res.data.data.customer.avatar);
                         }
+                        notification.success({ message: res.data.message || "Cập nhật thành công" });
                     } else {
                         notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
                     }
