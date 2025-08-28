@@ -116,7 +116,15 @@ export const VoucherList = () => {
                 <Table.Column
                     title="STT"
                     key="index"
-                    render={(text, record, index) => index + 1}
+                    render={(_, __, index) => {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const current = tableProps.pagination?.current || 1;
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const pageSize = tableProps.pagination?.pageSize || 10;
+                        return (current - 1) * pageSize + index + 1;
+                    }}
                 />
                 <Table.Column dataIndex="code" title="Mã Voucher" />
                 <Table.Column
