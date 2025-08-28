@@ -50,11 +50,10 @@ export const ProfileContent = () => {
                         if (res.data.data.customer.avatar) {
                             setPreviewImage(res.data.data.customer.avatar);
                         }
-                    } else {
-                        notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
                     }
                 } catch (e) {
-                    notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
+                    console.log(e);
+                    // notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
                 }
             };
             fetchProfile();

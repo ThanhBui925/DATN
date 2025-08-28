@@ -4,6 +4,7 @@ import {notification, Skeleton, Modal} from "antd";
 import {convertToInt} from "../helpers/common";
 import {axiosInstance} from "../utils/axios";
 import {debounce} from "lodash";
+import {TOKEN_KEY} from "../providers/authProvider";
 
 export const Cart = () => {
     const [cartData, setCartData] = useState({
@@ -16,6 +17,8 @@ export const Cart = () => {
     const [errorQty, setErrorQty] = useState<{ [key: number]: string }>({});
     const [selectedItems, setSelectedItems] = useState<{ [key: number]: boolean }>({});
     const navigate = useNavigate();
+    const [isAuth, setIsAuth] = useState(false);
+
 
     // Modal states
     const [showVariantModal, setShowVariantModal] = useState(false);
@@ -230,9 +233,20 @@ export const Cart = () => {
     };
 
     useEffect(() => {
-        setLoading(true)
-        getCartData();
-    }, []);
+        if (!localStorage.getItem(TOKEN_KEY)) {
+            notification.error({ message: "Vui lòng đăng nhập." });
+            navigate("/dang-nhap");
+        } else {
+            setIsAuth(true);
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        if (isAuth) {
+            setLoading(true);
+            getCartData();
+        }
+    }, [isAuth]);
 
     useEffect(() => {
         if (tempVariant && currentCartId) {

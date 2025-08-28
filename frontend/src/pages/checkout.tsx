@@ -170,11 +170,10 @@ export const Checkout = () => {
             const res = await axiosInstance.get("/api/profile");
             if (res.data.status) {
                 setProfile(res.data.data);
-            } else {
-                notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
             }
         } catch (e) {
-            notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
+            console.log(e)
+            // notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
         } finally {
             setLoading(false);
         }

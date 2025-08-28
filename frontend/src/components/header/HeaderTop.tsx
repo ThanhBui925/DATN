@@ -10,7 +10,7 @@ interface UserProfile {
 }
 
 export const HeaderTop = () => {
-    const isAuth = !!localStorage.getItem(TOKEN_KEY);
+    const [isAuth, setIsAuth] = useState<boolean>(!!localStorage.getItem(TOKEN_KEY));
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
@@ -23,25 +23,27 @@ export const HeaderTop = () => {
                     const res = await axiosInstance.get("/api/profile");
                     if (res.data.status) {
                         setProfile(res.data.data);
-                    } else {
-                        notification.error({ message: res.data.message || "Lỗi khi tải thông tin profile" });
                     }
                 } catch (e) {
-                    notification.error({ message: (e as Error).message || "Lỗi khi tải thông tin profile" });
+                    localStorage.removeItem(TOKEN_KEY);
+                    setIsAuth(false);
+                    setProfile(null);
+                    navigate("/dang-nhap");
                 } finally {
                     setLoading(false);
                 }
             };
             fetchProfile();
         }
-    }, [isAuth]);
+    }, [isAuth, navigate]);
 
     const handleLogout = async () => {
         try {
             const res = await axiosInstance.post("/api/logout");
             if (res.data.status) {
                 localStorage.removeItem(TOKEN_KEY);
-                setProfile(null); // Reset profile sau khi đăng xuất
+                setIsAuth(false);
+                setProfile(null);
                 notification.success({ message: "Đăng xuất thành công" });
                 navigate("/dang-nhap");
             } else {

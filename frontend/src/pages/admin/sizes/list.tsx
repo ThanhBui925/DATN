@@ -74,9 +74,24 @@ export const SizeList = () => {
                 <CreateButton onClick={() => setIsCreateModalOpen(true)}>Thêm kích cỡ</CreateButton>
             )}
         >
-            <Table {...tableProps} rowKey="id">
-                <Table.Column title="STT" key="id" render={(value, record, index) => index + 1} />
-                <Table.Column dataIndex="name" title="Tên kích cỡ" />
+            <Table
+                {...tableProps}
+                rowKey="id"
+            >
+                <Table.Column
+                    title="STT"
+                    key="id"
+                    render={(_, __, index) => {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const current = tableProps.pagination?.current || 1;
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const pageSize = tableProps.pagination?.pageSize || 10;
+                        return (current - 1) * pageSize + index + 1;
+                    }}
+                />
+                <Table.Column dataIndex="name" title="Tên kích cỡ"/>
                 <Table.Column
                     title="Hành động"
                     dataIndex="actions"
