@@ -131,17 +131,17 @@ export const OrderDetailContent = () => {
     const [hasRequestedReturn, setHasRequestedReturn] = useState(false);
     const [returnFiles, setReturnFiles] = useState<any[]>([]);
 
+    const fetchOrder = async () => {
+        try {
+            const res = await axiosInstance.get(`/api/client/orders/${orderId}`);
+            setOrder(res.data.data);
+            setLoading(false);
+        } catch (e: any) {
+            setError(e.message || "Lỗi khi tải dữ liệu đơn hàng");
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchOrder = async () => {
-            try {
-                const res = await axiosInstance.get(`/api/client/orders/${orderId}`);
-                setOrder(res.data.data);
-                setLoading(false);
-            } catch (e: any) {
-                setError(e.message || "Lỗi khi tải dữ liệu đơn hàng");
-                setLoading(false);
-            }
-        };
         fetchOrder();
     }, [orderId]);
 
@@ -151,6 +151,7 @@ export const OrderDetailContent = () => {
             if (res.data.status) {
                 notification.success({message: "Đã nhận được hàng !"})
                 setHidingBtnReceived(true);
+                await fetchOrder();
             } else {
                 notification.error({message: 'Cập nhật trạng thái thất bại !'});
             }
@@ -280,6 +281,7 @@ export const OrderDetailContent = () => {
             if (res.data.status) {
                 notification.success({message: "Yêu cầu trả hàng thành công!"});
                 setHasRequestedReturn(true);
+                await fetchOrder();
             } else {
                 notification.error({message: 'Yêu cầu trả hàng thất bại!'});
             }
@@ -365,6 +367,7 @@ export const OrderDetailContent = () => {
                 closeButtonRef.current.click();
             }
             closeReviewModal();
+            await fetchOrder();
         } catch (e: any) {
             setReviewError(e.response?.data?.message || "Lỗi khi gửi đánh giá");
         } finally {
@@ -471,9 +474,10 @@ export const OrderDetailContent = () => {
                                     <th scope="col" className="fw-medium text-center">Phân loại</th>
                                     <th scope="col" className="fw-medium text-center">Số lượng</th>
                                     <th scope="col" className="fw-medium text-end">Giá</th>
-                                    {order.status === "completed" && (
+                                    {order.status === "completed" && order.items.some(item => item.is_review == false) && (
                                         <th scope="col" className="fw-medium text-end">Đánh giá</th>
                                     )}
+
                                 </tr>
                                 </thead>
                                 <tbody>
