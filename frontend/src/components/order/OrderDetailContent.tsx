@@ -39,6 +39,9 @@ interface Images {
 interface Item {
     id: number;
     product: Product;
+    product_name: string;
+    size: string;
+    color: string;
     variant: Variant;
     quantity: number;
     price: string;
@@ -480,14 +483,14 @@ export const OrderDetailContent = () => {
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
                                                     src={item.variant.images[0]?.image_url || item.product.image || "/path/to/fallback-image.jpg"}
-                                                    alt={item.product.name}
+                                                    alt={item.product_name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
                                                 />
-                                                <span className="fw-medium">{item.product.name}</span>
+                                                <span className="fw-medium">{item.product_name}</span>
                                             </div>
                                         </td>
-                                        <td className="text-center">{item.variant?.size?.name}, {item.variant?.color?.name}</td>
+                                        <td className="text-center">{item.size}, {item.color}</td>
                                         <td className="text-center">{item.quantity}</td>
                                         <td className="text-end fw-bold text-original-base">{convertToInt(item.price)}₫</td>
                                         {order.status === "completed" && !item.is_review && (
@@ -590,6 +593,17 @@ export const OrderDetailContent = () => {
                                 <h2>Lý do yêu cầu hoàn tiền</h2>
                             </div>
                             <p>{order.return?.reason}</p>
+                            <b>Thông tin hoàn tiền:</b>
+                            <div className="d-flex flex-column mb-2">
+                                <span><b>Ngân hàng:</b> {order.return?.refund_bank}</span>
+                                <span><b>Người thụ hưởng:</b> {order.return?.refund_account_name}</span>
+                                <span><b>Số tài khoản:</b> {order.return?.refund_account_number}</span>
+                                {
+                                    order.return?.refund_account_number && (
+                                        <span><b>Mã giao dịch:</b> {order.return?.transaction_code}</span>
+                                    )
+                                }
+                            </div>
                             <i className="text-danger">
                                 Hình ảnh dẫn chứng:
                             </i>

@@ -1,7 +1,8 @@
 import {
     Create,
     CreateButton,
-    DeleteButton, Edit,
+    DeleteButton,
+    Edit,
     EditButton,
     List,
     useForm,
@@ -9,12 +10,14 @@ import {
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { Breadcrumb, Col, Form, Input, Modal, Row, Space, Table } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useOne } from "@refinedev/core";
 
 export const ColorList = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<BaseRecord | null>(null);
+    const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+
     const { tableProps } = useTable({
         syncWithLocation: true,
     });
@@ -34,14 +37,33 @@ export const ColorList = () => {
     const {
         saveButtonProps: editSaveButtonProps,
         formProps: editFormProps,
+        queryResult,
     } = useForm({
         resource: "colors",
         action: "edit",
-        id: selectedRecord?.id,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        id: selectedRecordId,
         onMutationSuccess: () => {
             setIsEditModalOpen(false);
         },
     });
+
+    const { data: selectedRecordData, refetch: refetchRecord } = useOne({
+        resource: "colors",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        id: selectedRecordId,
+        queryOptions: {
+            enabled: !!selectedRecordId,
+        },
+    });
+
+    useEffect(() => {
+        if (selectedRecordData?.data && isEditModalOpen) {
+            editFormProps.form?.setFieldsValue(selectedRecordData.data);
+        }
+    }, [selectedRecordData, isEditModalOpen, editFormProps.form]);
 
     return (
         <List
@@ -56,10 +78,7 @@ export const ColorList = () => {
                 <CreateButton onClick={() => setIsCreateModalOpen(true)}>Thêm màu sắc</CreateButton>
             )}
         >
-            <Table
-                {...tableProps}
-                rowKey="id"
-            >
+            <Table {...tableProps} rowKey="id">
                 <Table.Column
                     title="STT"
                     key="id"
@@ -73,33 +92,33 @@ export const ColorList = () => {
                         return (current - 1) * pageSize + index + 1;
                     }}
                 />
-                <Table.Column dataIndex="name" title="Tên màu sắc"/>
+                <Table.Column dataIndex="name" title="Tên màu sắc" />
                 <Table.Column
                     title="Hành động"
                     dataIndex="actions"
-                    render={(_, record: BaseRecord) => {
-                        return (
-                            <Space>
-                                <EditButton
-                                    hideText
-                                    size="large"
-                                    recordItemId={record.id}
-                                    onClick={() => {
-                                        setSelectedRecord(record);
-                                        setIsEditModalOpen(true);
-                                    }}
-                                />
-                                <DeleteButton
-                                    hideText
-                                    size="large"
-                                    recordItemId={record.id}
-                                    confirmTitle="Bạn có muốn xoá màu sắc này?"
-                                    confirmOkText="Xoá"
-                                    confirmCancelText="Huỷ"
-                                />
-                            </Space>
-                        );
-                    }}
+                    render={(_, record: BaseRecord) => (
+                        <Space>
+                            <EditButton
+                                hideText
+                                size="large"
+                                recordItemId={record.id}
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    setSelectedRecordId(record.id);
+                                    setIsEditModalOpen(true);
+                                }}
+                            />
+                            <DeleteButton
+                                hideText
+                                size="large"
+                                recordItemId={record.id}
+                                confirmTitle="Bạn có muốn xoá màu sắc này?"
+                                confirmOkText="Xoá"
+                                confirmCancelText="Huỷ"
+                            />
+                        </Space>
+                    )}
                 />
             </Table>
 
@@ -129,13 +148,16 @@ export const ColorList = () => {
                             </Col>
                         </Row>
                     </Form>
-
                 </Create>
             </Modal>
 
             <Modal
                 open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
+                onCancel={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedRecordId(null);
+                    editFormProps.form?.resetFields();
+                }}
                 closable={true}
                 footer={null}
             >
@@ -148,16 +170,19 @@ export const ColorList = () => {
                     headerButtons={() => null}
                     deleteButtonProps={{
                         children: "Xóa",
-                        recordItemId: selectedRecord?.id,
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        recordItemId: selectedRecordId,
                         confirmTitle: "Bạn có muốn xóa màu sắc này?",
                         confirmOkText: "Xóa",
                         confirmCancelText: "Hủy",
                         onSuccess: () => {
                             setIsEditModalOpen(false);
+                            setSelectedRecordId(null);
                         },
                     }}
                 >
-                    <Form {...editFormProps} layout="vertical" initialValues={selectedRecord!}>
+                    <Form {...editFormProps} layout="vertical">
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item

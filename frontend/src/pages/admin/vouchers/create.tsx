@@ -84,7 +84,7 @@ export const VoucherCreate = () => {
                     style={{ width: "100%" }}
                     min={0}
                     precision={2}
-                    placeholder="Để trống nếu không giới hạn"
+                    placeholder="Số tiền giảm giá tối đa"
                 />
               </Form.Item>
             </Col>

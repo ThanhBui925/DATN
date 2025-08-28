@@ -12,6 +12,9 @@ interface OrderItem {
         name: string;
         image: string | null;
     };
+    product_name: string;
+    size: string;
+    color: string;
     variant: {
         size: { name: string };
         color: { name: string };
@@ -76,13 +79,45 @@ export const OrderContent: React.FC = () => {
     const [pagination, setPagination] = useState<PaginationData | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
 
-    const internalStatuses = ['canceled', 'refunded', 'completed', 'pending', 'preparing', 'confirmed', 'delivered', 'returned'];
+    const internalStatuses = ['canceled','cancel', 'refunded', 'completed', 'pending',
+        'preparing', 'confirmed', 'delivered','returned', 'refunded', 'return_requested',
+        'return_accepted', 'return_rejected'];
 
-    const fetchOrders = useCallback(async (page = 1) => {
+    const getStatusQuery = (tab: string) => {
+        switch (tab) {
+            case 'all':
+                return null;
+            case 'pending':
+                return 'pending';
+            case 'confirming':
+                return 'confirming';
+            case 'confirmed':
+                return 'confirmed';
+            case 'preparing':
+                return 'preparing';
+            case 'shipping':
+                return 'shipping';
+            case 'delivered':
+                return 'delivered';
+            case 'completed':
+                return 'completed';
+            case 'canceled':
+                return 'canceled,cancel';
+            case 'return_request':
+                return 'return_requested,return_rejected,return_accepted';
+            default:
+                return null;
+        }
+    };
+
+    const fetchOrders = useCallback(async (page: number = 1, tab: string = 'all') => {
         try {
-            const res = await axiosInstance.get<{ status: boolean; data: PaginationData; message?: string }>(
-                `/api/client/orders?page=${page}`
-            );
+            const statusQuery = getStatusQuery(tab);
+            let url = `/api/client/orders?page=${page}`;
+            if (statusQuery) {
+                url += `&status=${statusQuery}`;
+            }
+            const res = await axiosInstance.get<{ status: boolean; data: PaginationData; message?: string }>(url);
             if (res.data.status) {
                 setOrders(res.data.data.data || []);
                 setPagination(res.data.data);
@@ -112,7 +147,7 @@ export const OrderContent: React.FC = () => {
                 );
                 if (res.data.status) {
                     notification.success({ message: "Đã hủy đơn hàng thành công" });
-                    fetchOrders(currentPage);
+                    fetchOrders(currentPage, activeTab);
                 } else {
                     notification.error({ message: res.data.message || "Không thể hủy đơn hàng" });
                 }
@@ -121,7 +156,7 @@ export const OrderContent: React.FC = () => {
                 notification.error({ message: "Có lỗi xảy ra khi hủy đơn hàng" });
             }
         },
-        [fetchOrders, currentPage, orders]
+        [fetchOrders, currentPage, activeTab, orders]
     );
 
     const showCancelModal = useCallback((orderId: number) => {
@@ -139,7 +174,7 @@ export const OrderContent: React.FC = () => {
             const res = await axiosInstance.put(`/api/client/orders/${orderId}/delivered`, { order_status: 'delivered' });
             if (res.data.status) {
                 notification.success({ message: "Đã nhận được hàng!" });
-                fetchOrders(currentPage);
+                fetchOrders(currentPage, activeTab);
             } else {
                 notification.error({ message: 'Cập nhật trạng thái thất bại!' });
             }
@@ -185,7 +220,7 @@ export const OrderContent: React.FC = () => {
             if (res.data.status) {
                 notification.success({ message: "Yêu cầu trả hàng thành công!" });
                 setOrders(prev => prev.map(o => o.id === orderId ? { ...o, hasRequestedReturn: true } : o));
-                fetchOrders(currentPage);
+                fetchOrders(currentPage, activeTab);
             } else {
                 notification.error({ message: 'Yêu cầu trả hàng thất bại!' });
             }
@@ -292,23 +327,25 @@ export const OrderContent: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        fetchOrders(page);
+        fetchOrders(page, activeTab);
     };
 
     useEffect(() => {
-        fetchOrders(currentPage);
-    }, [fetchOrders, currentPage]);
+        setCurrentPage(1);
+        fetchOrders(1, activeTab);
+    }, [activeTab, fetchOrders]);
 
     const tabs = {
         all: () => true,
-        pending: (order: any) => order.status === 'pending',
+        pending: (order: any) => order.status === 'pending' && order.order_status === 'pending',
         confirming: (order: any) => order.status === 'confirming',
         confirmed: (order: any) => order.status === 'confirmed',
         preparing: (order: any) => order.status === 'preparing',
-        shipping: (order: any) => !internalStatuses.includes(order.status),
+        shipping: (order: any) => !internalStatuses.includes(order.status) || (order.status === 'pending' && (order.order_status === 'shipping' || order.order_status === 'preparing')),
         delivered: (order: any) => order.status === 'delivered',
         completed: (order: any) => order.status === 'completed',
-        canceled: (order: any) => order.status === 'canceled',
+        canceled: (order: any) => ['canceled', 'cancel'].includes(order.status),
+        return_request: (order: any) => ['return_requested', 'return_rejected', 'return_accepted'].includes(order.status),
     };
 
     const filteredOrders = orders.filter(tabs[activeTab as keyof typeof tabs] || tabs.all);
@@ -340,6 +377,13 @@ export const OrderContent: React.FC = () => {
                             Đã xác nhận
                         </Link>
                         <Link
+                            className={`nav-link text-dark ${activeTab === 'preparing' ? 'active text-original-base' : ''}`}
+                            to={``}
+                            onClick={() => setActiveTab('preparing')}
+                        >
+                            Đang chuẩn bị hàng
+                        </Link>
+                        <Link
                             className={`nav-link text-dark ${activeTab === 'shipping' ? 'active text-original-base' : ''}`}
                             to={``}
                             onClick={() => setActiveTab('shipping')}
@@ -367,14 +411,14 @@ export const OrderContent: React.FC = () => {
                         >
                             Đã hủy
                         </Link>
+                        <Link
+                            className={`nav-link text-dark ${activeTab === 'return_request' ? 'active text-original-base' : ''}`}
+                            to={``}
+                            onClick={() => setActiveTab('return_request')}
+                        >
+                            Hoàn đơn
+                        </Link>
                     </nav>
-                    <div className="input-group mb-3 mt-3">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Bạn có thể tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
-                        />
-                    </div>
                     {filteredOrders.map((order: any) => {
                         const isRefundRequired = true; //order.payment_method === 'vnpay' && order.payment_status === 'paid';
                         return (
@@ -417,14 +461,14 @@ export const OrderContent: React.FC = () => {
                                             >
                                                 <img
                                                     src={item.variant?.images[0]?.image_url || item.product?.image || "/path/to/fallback-image.jpg"}
-                                                    alt={item.product?.name}
+                                                    alt={item.product_name}
                                                     className="rounded"
                                                     style={{ width: "80px", height: "80px", objectFit: "cover" }}
                                                 />
                                                 <div className="flex-grow-1">
-                                                    <h6 className="fw-bold mb-1 text-dark">{item.product?.name}</h6>
+                                                    <h6 className="fw-bold mb-1 text-dark">{item.product_name}</h6>
                                                     <p className="text-muted mb-1 small">
-                                                        Phân loại: {item.variant?.size?.name}, {item.variant?.color?.name}
+                                                        Phân loại: {item.size}, {item.color}
                                                     </p>
                                                     <p className="text-muted mb-0 small">Số lượng: {item.quantity}</p>
                                                 </div>

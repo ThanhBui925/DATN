@@ -19,7 +19,7 @@ export const VoucherList = () => {
             initial: [
                 { field: "code", operator: "eq", value: undefined },
                 // { field: "issue_date", operator: "eq", value: undefined },
-                // { field: "expiry_date", operator: "eq", value: undefined },
+                { field: "status", operator: "eq", value: undefined },
                 { field: "discount_type", operator: "eq", value: undefined },
             ],
         },
@@ -31,7 +31,7 @@ export const VoucherList = () => {
         setFilters([
             { field: "code", operator: "eq", value: values.code || undefined },
             // { field: "issue_date", operator: "eq", value: values.issue_date.format("YYYY-MM-DD hh:mm") || undefined },
-            // { field: "expiry_date", operator: "eq", value: values.expiry_date.format("YYYY-MM-DD hh:mm") || undefined },
+            { field: "status", operator: "eq", value: values.status || undefined },
             { field: "discount_type", operator: "eq", value: values.discount_type || undefined },
         ]);
     };
@@ -41,7 +41,7 @@ export const VoucherList = () => {
         setFilters([
             { field: "code", operator: "eq", value: undefined },
             // { field: "issue_date", operator: "eq", value: undefined },
-            // { field: "expiry_date", operator: "eq", value: undefined },
+            { field: "status", operator: "eq", value: undefined },
             { field: "discount_type", operator: "eq", value: undefined },
         ]);
     };
@@ -80,15 +80,14 @@ export const VoucherList = () => {
                     {/*        />*/}
                     {/*    </Form.Item>*/}
                     {/*</Col>*/}
-                    {/*<Col xs={24} sm={12} md={6}>*/}
-                    {/*    <Form.Item label="Ngày kết thúc" name="expiry_date">*/}
-                    {/*        <DatePicker*/}
-                    {/*            showTime*/}
-                    {/*            format="YYYY-MM-DD"*/}
-                    {/*            style={{ width: "100%" }}*/}
-                    {/*        />*/}
-                    {/*    </Form.Item>*/}
-                    {/*</Col>*/}
+                    <Col xs={24} sm={12} md={6}>
+                        <Form.Item label="Trạng thái" name="status">
+                            <Select placeholder={'Chọn trạng thái'}>
+                                <Select.Option value="1">Hoạt động</Select.Option>
+                                <Select.Option value="0">Không hoạt động</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
                     <Col xs={24} sm={12} md={6}>
                         <Form.Item
                             label="Loại giảm giá"
