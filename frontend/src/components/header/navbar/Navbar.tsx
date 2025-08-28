@@ -52,18 +52,20 @@ export const Navbar = () => {
                                 <li className={activeTab === "/danh-muc-san-pham" ? "active" : ""}>
                                     <a href="#">Danh mục sản phẩm<i className="ion-ios-arrow-down"></i></a>
                                     <ul className="mega-menu">
-                                        <li>
-                                            <a href="#">Đáng chú ý</a>
                                             {chunkArray(categories, 4).map((group, index) => (
-                                                <ul key={index}>
-                                                    {group.map((cat) => (
-                                                        <li key={cat.id}>
-                                                            <Link to={`/danh-muc-san-pham?category=${cat.id}`}>{cat.name}</Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                <li>
+                                                    {
+                                                        index == 0 ? <a href="#">Đáng chú ý</a> : <li className="col-header">&nbsp;</li>
+                                                    }
+                                                    <ul key={index}>
+                                                        {group.map((cat) => (
+                                                            <li key={cat.id}>
+                                                                <Link to={`/danh-muc-san-pham?category=${cat.id}`}>{cat.name}</Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </li>
                                             ))}
-                                        </li>
 
                                         <li>
                                             <Link to="/danh-muc-san-pham" onClick={() => handleTabClick("/danh-muc-san-pham")}>

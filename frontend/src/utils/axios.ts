@@ -20,6 +20,9 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+        }
         const isAdmin = window.location.pathname.startsWith("/admin");
 
         if (isAdmin) {
