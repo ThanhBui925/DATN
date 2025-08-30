@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -15,8 +16,14 @@ class UpdateCategoryRequest extends FormRequest
 
     public function rules(): array
     {
+        $categoryId = $this->route('id');
         return [
-            'name' => 'sometimes|string|max:255', // optional
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->ignore($categoryId),
+            ],
             'description' => 'nullable|string',
             'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:5120',
             'status' => 'sometimes|in:0,1', // optional
@@ -27,6 +34,7 @@ class UpdateCategoryRequest extends FormRequest
     {
         return [
             'name.string' => 'Tên danh mục phải là chuỗi.',
+            'name.unique' => 'Tên danh mục đã tồn tại.',
             'name.max' => 'Tên danh mục không được vượt quá 255 ký tự.',
 
             'description.string' => 'Mô tả phải là chuỗi.',

@@ -10,6 +10,7 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\VariantProduct;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 
 
@@ -23,8 +24,14 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
+        $id = $this->route('id');
         return [
-            'name' => 'sometimes|string|max:255',
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('products', 'name')->ignore($id),
+            ],
             'category_id' => 'sometimes|exists:categories,id',
             'description' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
@@ -45,6 +52,7 @@ class UpdateProductRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.unique' => 'Tên sản phẩm đã tồn tại.',
             'name.string' => 'Tên sản phẩm phải là chuỗi.',
             'name.max' => 'Tên sản phẩm không được vượt quá 255 ký tự.',
 
