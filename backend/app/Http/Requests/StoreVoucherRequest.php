@@ -23,65 +23,74 @@ class StoreVoucherRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules()
-    {
-        return [
-            'code' => 'required|string|max:50|unique:vouchers',
-            'discount_type' => ['required', Rule::in(['fixed', 'percentage'])],
-            'discount' => [
-                'required',
-                'numeric',
-                'min:0.01',
-                Rule::when($this->discount_type === 'percentage', 'max:100'),
-                Rule::when($this->discount_type === 'fixed', 'max:1000000'),
-            ],
-            'max_discount_amount' => 'required|numeric|min:0',
-            'min_order_amount' => 'required|numeric|min:0',
-            'expiry_date' => 'nullable|date|after:now',
-            'usage_limit' => 'nullable|integer|min:1',
-            'usage_limit_per_user' => 'nullable|integer|min:1',
-        ];
-    }
+{
+    return [
+        'code' => 'required|string|max:50|unique:vouchers',
+        'discount_type' => ['required', Rule::in(['fixed', 'percentage'])],
+        'discount' => [
+            'required',
+            'numeric',
+            'min:0.01',
+            Rule::when($this->discount_type === 'percentage', 'max:100'),
+            Rule::when($this->discount_type === 'fixed', 'max:1000000'),
+        ],
+        'max_discount_amount' => 'required|numeric|min:0',
+        'min_order_amount'    => 'required|numeric|min:0',
 
-    /**
-     * Custom message lỗi trả về cho từng rule.
-     */
-    public function messages()
-    {
-        return [
-            'code.required' => 'Mã giảm giá là bắt buộc.',
-            'code.string' => 'Mã giảm giá phải là chuỗi.',
-            'code.max' => 'Mã giảm giá không được vượt quá 50 ký tự.',
-            'code.unique' => 'Mã giảm giá đã tồn tại.',
+        // thêm start_date và expiry_date
+        'start_date' => 'required|date|before:expiry_date|different:expiry_date',
+        'expiry_date' => 'required|date|after:start_date|different:start_date',
 
-            'discount_type.required' => 'Loại giảm giá là bắt buộc.',
-            'discount_type.in' => 'Loại giảm giá không hợp lệ.',
+        'usage_limit'          => 'nullable|integer|min:1',
+        'usage_limit_per_user' => 'nullable|integer|min:1',
+    ];
+}
 
-            'discount.required' => 'Giá trị giảm là bắt buộc.',
-            'discount.numeric' => 'Giá trị giảm phải là số.',
-            'discount.min' => 'Giá trị giảm phải lớn hơn 0.',
-            'discount.max' => 'Phần trăm giảm không được vượt quá 100 hoặc số tiền vượt quá giới hạn cho phép.',
+/**
+ * Custom message lỗi trả về cho từng rule.
+ */
+public function messages()
+{
+    return [
+        'code.required' => 'Mã giảm giá là bắt buộc.',
+        'code.string'   => 'Mã giảm giá phải là chuỗi.',
+        'code.max'      => 'Mã giảm giá không được vượt quá 50 ký tự.',
+        'code.unique'   => 'Mã giảm giá đã tồn tại.',
 
-            'max_discount_amount.numeric' => 'Giá trị giảm tối đa phải là số.',
-            'max_discount_amount.min' => 'Giá trị giảm tối đa không được nhỏ hơn 0.',
-            'max_discount_amount.required' => 'Giá trị giảm tối đa là bắt buộc.',
-            'min_order_amount.required' => 'Giá trị đơn hàng tối thiểu là bắt buộc.',
+        'discount_type.required' => 'Loại giảm giá là bắt buộc.',
+        'discount_type.in'       => 'Loại giảm giá không hợp lệ.',
 
-            'min_order_amount.numeric' => 'Giá trị đơn hàng tối thiểu phải là số.',
-            'min_order_amount.min' => 'Giá trị đơn hàng tối thiểu không được nhỏ hơn 0.',
+        'discount.required' => 'Giá trị giảm là bắt buộc.',
+        'discount.numeric'  => 'Giá trị giảm phải là số.',
+        'discount.min'      => 'Giá trị giảm phải lớn hơn 0.',
+        'discount.max'      => 'Phần trăm giảm không được vượt quá 100 hoặc số tiền vượt quá giới hạn cho phép.',
 
-            'expiry_date.date' => 'Ngày hết hạn phải là ngày hợp lệ.',
-            'expiry_date.after' => 'Ngày hết hạn phải sau thời điểm hiện tại.',
+        'max_discount_amount.numeric'  => 'Giá trị giảm tối đa phải là số.',
+        'max_discount_amount.min'      => 'Giá trị giảm tối đa không được nhỏ hơn 0.',
+        'max_discount_amount.required' => 'Giá trị giảm tối đa là bắt buộc.',
 
-            'status.in' => 'Trạng thái không hợp lệ.',
+        'min_order_amount.required' => 'Giá trị đơn hàng tối thiểu là bắt buộc.',
+        'min_order_amount.numeric'  => 'Giá trị đơn hàng tối thiểu phải là số.',
+        'min_order_amount.min'      => 'Giá trị đơn hàng tối thiểu không được nhỏ hơn 0.',
 
-            'usage_limit.integer' => 'Số lượt sử dụng phải là số nguyên.',
-            'usage_limit.min' => 'Số lượt sử dụng phải lớn hơn 0.',
+        'start_date.required'  => 'Ngày bắt đầu là bắt buộc.',
+        'start_date.date'      => 'Ngày bắt đầu phải là ngày hợp lệ.',
+        'start_date.before'    => 'Ngày bắt đầu phải trước ngày hết hạn.',
+        'start_date.different' => 'Ngày bắt đầu và ngày hết hạn không được trùng nhau.',
 
-            'usage_limit_per_user.integer' => 'Số lượt sử dụng mỗi người phải là số nguyên.',
-            'usage_limit_per_user.min' => 'Số lượt sử dụng mỗi người phải lớn hơn 0.',
+        'expiry_date.required'  => 'Ngày hết hạn là bắt buộc.',
+        'expiry_date.date'      => 'Ngày hết hạn phải là ngày hợp lệ.',
+        'expiry_date.after'     => 'Ngày hết hạn phải sau ngày bắt đầu.',
+        'expiry_date.different' => 'Ngày hết hạn không được trùng với ngày bắt đầu.',
 
-        ];
-    }
+        'usage_limit.integer' => 'Số lượt sử dụng phải là số nguyên.',
+        'usage_limit.min'     => 'Số lượt sử dụng phải lớn hơn 0.',
+
+        'usage_limit_per_user.integer' => 'Số lượt sử dụng mỗi người phải là số nguyên.',
+        'usage_limit_per_user.min'     => 'Số lượt sử dụng mỗi người phải lớn hơn 0.',
+    ];
+}
+
 
     /**
      * Custom response trả về khi validation thất bại.
