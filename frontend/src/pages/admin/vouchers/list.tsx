@@ -148,7 +148,7 @@ export const VoucherList = () => {
                 />
 
                 <Table.Column
-                    dataIndex={["expiry_date"]}
+                    dataIndex={["created_at"]}
                     title={"Ngày tạo"}
                     render={(value: any) => <DateField value={value} format={'hh:mm DD/MM/YYYY'} />}
                 />
