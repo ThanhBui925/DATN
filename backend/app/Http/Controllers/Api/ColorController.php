@@ -12,7 +12,10 @@ class ColorController extends Controller
     // Lấy danh sách màu sắc
     public function index()
     {
-        return response()->json(Color::all());
+        return response()->json(
+            Color::orderBy('id', 'desc')->get()
+        );
+
     }
 
     // Tạo màu sắc mới

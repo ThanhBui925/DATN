@@ -170,7 +170,7 @@ class DashboardController extends Controller
         $total = $query->sum(DB::raw('total_price - discount_amount'));
 
         return response()->json([
-            'total_revenue' => (float) $total
+            'total_revenue' => number_format((float) $total, 0, ',', '.') . ' ₫',
         ]);
     }
 
@@ -541,7 +541,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn($r) => [
                 'month' => $r->month,
-                'total' => number_format((float)$r->total, 0, '.', ','),
+                'total' => number_format((float)$r->total, 0, '.', ',' ) . ' ₫',
             ]);
 
 
@@ -681,9 +681,16 @@ class DashboardController extends Controller
                 DB::raw('SUM(' . $this->itemFinalPriceSql() . ' * shop_order_items.quantity) as total_revenue'),
             ])
             ->orderBy($sortBy, $sortDir)
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->total_revenue = number_format((float) $item->total_revenue, 0, ',', '.') . ' ₫';
+                return $item;
+            });
 
         return response()->json(['revenue_by_category' => $data]);
+
+
+        
     }
 
     /**
@@ -764,12 +771,24 @@ class DashboardController extends Controller
 
     // Sắp xếp
     $allowed = ['total_revenue', 'quantity', 'orders_count', 'product_name'];
-    if (!in_array($sortBy, $allowed)) $sortBy = 'total_revenue';
+    if (!in_array($sortBy, $allowed)) {
+        $sortBy = 'total_revenue';
+    }
+
     $q->orderBy($sortBy, $sortDir);
 
     return response()->json([
-        'revenue_by_product' => $q->get(),
+        'revenue_by_product' => $q->get()->map(function ($item) {
+            return [
+                'product_name'             => $item->product_name,
+                'quantity'                 => (int) $item->quantity,
+                'orders_count'             => (int) $item->orders_count,
+                'total_revenue_formatted'            => (float) $item->total_revenue,
+                'total_revenue'  => number_format((float) $item->total_revenue, 0, ',', '.') . ' ₫',
+            ];
+        }),
     ]);
+
 }
 
 

@@ -272,6 +272,10 @@ class ManagerAdminController extends Controller
         }
 
         $admin->status = !$admin->status;
+        //Xóa token đăng nhập
+        if ($admin->status == 0) {
+            $admin->tokens()->delete();
+        }
         $admin->save();
 
         Log::info('Vô hiệu hóa tài khoản admin', ['admin_id' => $admin->id]);

@@ -8,9 +8,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use App\Traits\ApiResponseTrait;
+
 
 class ProfileController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Xem thông tin profile
      */
@@ -24,22 +28,23 @@ class ProfileController extends Controller
             ? Storage::disk('public')->url($customer->avatar)
             : null;
 
-        return response()->json([
-            'profile' => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role,
-                'status'     => $user->status,
-                'phone'      => optional($customer)->phone,
-                'address'    => optional($customer)->address,
-                'avatar'     => optional($customer)->avatar,
-                'avatar_url' => $avatarUrl,
-                'dob'        => optional($customer)->dob,
-                'gender'     => optional($customer)->gender,
-            ]
-        ]);
+        $profile = [
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role,
+            'status'     => $user->status,
+            'phone'      => optional($customer)->phone,
+            'address'    => optional($customer)->address,
+            'avatar'     => optional($customer)->avatar,
+            'avatar_url' => $avatarUrl,
+            'dob'        => optional($customer)->dob,
+            'gender'     => optional($customer)->gender,
+        ];
+
+        return $this->success($profile, 'Lấy thông tin hồ sơ thành công');
     }
+
 
     /**
      * Cập nhật thông tin profile + avatar
@@ -61,7 +66,7 @@ class ProfileController extends Controller
             'avatar'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
         ]);
 
-        // Update users
+        // Update user info
         if (isset($data['name'])) {
             $user->name = $data['name'];
         }
@@ -72,7 +77,6 @@ class ProfileController extends Controller
             $user->password = Hash::make($data['password']);
         }
         $user->save();
-
 
         $customer = $user->customer;
         $newAvatarPath = $customer?->avatar;
@@ -105,8 +109,6 @@ class ProfileController extends Controller
             }
         }
 
-
-
         // Update hoặc tạo customer
         $user->customer()->updateOrCreate(
             ['user_id' => $user->id],
@@ -124,21 +126,22 @@ class ProfileController extends Controller
             ? Storage::disk('public')->url($customer->avatar)
             : null;
 
-        return response()->json([
-            'profile' => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role,
-                'status'     => $user->status,
-                'phone'      => $customer?->phone,
-                'address'    => $customer?->address,
-                'avatar'     => $customer?->avatar,
-                'avatar_url' => $avatarUrl,
-                'dob'        => $customer?->dob,
-                'gender'     => $customer?->gender,
-                'updated_at' => optional($user->updated_at)->toDateTimeString(),
-            ]
-        ]);
+        $profile = [
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role,
+            'status'     => $user->status,
+            'phone'      => $customer?->phone,
+            'address'    => $customer?->address,
+            'avatar'     => $customer?->avatar,
+            'avatar_url' => $avatarUrl,
+            'dob'        => $customer?->dob,
+            'gender'     => $customer?->gender,
+            'updated_at' => optional($user->updated_at)->toDateTimeString(),
+        ];
+
+        return $this->success($profile, 'Cập nhật hồ sơ thành công');
     }
+
 }

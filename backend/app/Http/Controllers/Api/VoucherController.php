@@ -58,7 +58,7 @@ class VoucherController extends Controller
             $query->where('user_id', $userId);
         }
 
-        $vouchers = $query->get();
+        $vouchers = $query->orderBy('id', 'desc')->get();
 
         return $this->success($vouchers, 'Lấy danh sách voucher thành công');
     }
