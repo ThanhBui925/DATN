@@ -33,6 +33,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\RetryVNPayRequest;
 use App\Mail\NewOrderNotification;
 use App\Models\User;
+use App\Models\ShoppingCartItem;
+
 
 
 
@@ -907,6 +909,71 @@ public function show(Request $request, $id)
             'return' => $return->load('evidences'),
         ], 'Yêu cầu hoàn hàng thành công');
     }
+
+    // Mua lại đơn hàng
+    public function reorder(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->with('orderItems')
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập', null, 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+            $notAvailable = [];
+
+            foreach ($order->orderItems as $item) {
+                $variant = VariantProduct::find($item->variant_id);
+
+                if ($variant && $variant->quantity >= $item->quantity) {
+                    $cartItem = ShoppingCartItem::where('cart_id', $cart->id)
+                        ->where('product_id', $item->product_id)
+                        ->where('variant_id', $item->variant_id)
+                        ->first();
+
+                    if ($cartItem) {
+                        $cartItem->quantity += $item->quantity;
+                        $cartItem->save();
+                    } else {
+                        ShoppingCartItem::create([
+                            'cart_id'    => $cart->id,
+                            'product_id' => $item->product_id,
+                            'variant_id' => $item->variant_id,
+                            'quantity'   => $item->quantity,
+                        ]);
+                    }
+                } else {
+                    // Nếu variant hết hàng hoặc không tồn tại
+                    $notAvailable[] = [
+                        'product_id' => $item->product_id,
+                        'variant_id' => $item->variant_id,
+                    ];
+                }
+            }
+
+            DB::commit();
+
+            return $this->successResponse([
+                'cart'          => $cart->load('items.product', 'items.variant'),
+                'not_available' => $notAvailable,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Có lỗi xảy ra khi mua lại đơn hàng', $e->getMessage(), 500);
+        }
+    }
+
+
 
 
 
