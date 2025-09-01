@@ -104,7 +104,7 @@ class UpdateOrderStatusRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => 'Validation failed',
+            'message' => 'Cập nhật trạng thái đơn hàng thất bại !',
             'status'  => 'false',
             'errors'  => $validator->errors(),
         ], 422));

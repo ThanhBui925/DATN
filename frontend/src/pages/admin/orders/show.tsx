@@ -470,20 +470,18 @@ export const OrdersShow = () => {
                                     <Table.Column
                                         title="Biến thể"
                                         dataIndex="variant"
-                                        render={(variant) =>
-                                            variant ? (
-                                                <TextField
-                                                    value={`${variant.size?.name || ""} - ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
-                                                    style={{fontSize: 14, color: "#262626"}}
-                                                />
-                                            ) : (
-                                                <TextField
-                                                    value="Không có biến thể"
-                                                    style={{fontSize: 14, color: "#262626"}}
-                                                />
-                                            )
-                                        }
+                                        render={(_, record) => (
+                                            <TextField
+                                            value={
+                                                record.size || record.color
+                                                ? `${record.size || ""}${record.color ? " - " + record.color : ""}`
+                                                : "Không có biến thể"
+                                            }
+                                            style={{ fontSize: 14, color: "#262626" }}
+                                            />
+                                        )}
                                     />
+
                                     <Table.Column
                                         title="Số lượng"
                                         dataIndex="quantity"
