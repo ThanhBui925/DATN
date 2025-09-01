@@ -98,7 +98,7 @@ public function messages()
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => 'Thêm danh mục thất bại !',
+            'message' => 'Thêm voucher thất bại !',
             'errors' => $validator->errors(),
         ], 422));
     }
