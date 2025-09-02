@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from "react";
-import {useParams, Link, useSearchParams} from "react-router-dom";
+import {useParams, Link, useSearchParams, useNavigate} from "react-router-dom";
 import {axiosInstance} from "../../utils/axios";
 import {convertDate, convertToInt} from "../../helpers/common";
 import {Input, Modal, notification, Upload, Button} from "antd";
@@ -39,6 +39,9 @@ interface Images {
 interface Item {
     id: number;
     product: Product;
+    product_name: string;
+    size: string;
+    color: string;
     variant: Variant;
     quantity: number;
     price: string;
@@ -127,18 +130,19 @@ export const OrderDetailContent = () => {
     const [returnErrors, setReturnErrors] = useState<{ [key: string]: string }>({});
     const [hasRequestedReturn, setHasRequestedReturn] = useState(false);
     const [returnFiles, setReturnFiles] = useState<any[]>([]);
+    const navigate = useNavigate();
 
+    const fetchOrder = async () => {
+        try {
+            const res = await axiosInstance.get(`/api/client/orders/${orderId}`);
+            setOrder(res.data.data);
+            setLoading(false);
+        } catch (e: any) {
+            setError(e.message || "Lỗi khi tải dữ liệu đơn hàng");
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchOrder = async () => {
-            try {
-                const res = await axiosInstance.get(`/api/client/orders/${orderId}`);
-                setOrder(res.data.data);
-                setLoading(false);
-            } catch (e: any) {
-                setError(e.message || "Lỗi khi tải dữ liệu đơn hàng");
-                setLoading(false);
-            }
-        };
         fetchOrder();
     }, [orderId]);
 
@@ -148,6 +152,7 @@ export const OrderDetailContent = () => {
             if (res.data.status) {
                 notification.success({message: "Đã nhận được hàng !"})
                 setHidingBtnReceived(true);
+                await fetchOrder();
             } else {
                 notification.error({message: 'Cập nhật trạng thái thất bại !'});
             }
@@ -216,7 +221,7 @@ export const OrderDetailContent = () => {
     };
 
     const handleModalOk = () => {
-        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
+        const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
         let newErrors: { [key: string]: string } = {};
         if (!cancelReason.trim()) {
             newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";
@@ -258,6 +263,36 @@ export const OrderDetailContent = () => {
         setIsModalOpen(true);
     };
 
+    const fetchReorder = async () => {
+        try {
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/reorder`)
+            if (res.data.status) {
+                navigate('/gio-hang')
+            } else {
+                notification.error({message: res?.data?.message ?? 'Có lỗi sảy ra !'});
+            }
+        } catch (e: any) {
+            notification.error({message: e?.data?.message ?? 'Có lỗi sảy ra !'});
+        }
+    }
+
+    const { confirm } = Modal;
+    const showConfirmReorder = () => {
+        confirm({
+            title: "Xác nhận mua lại đơn hàng này ?",
+            content: "Hành động này không thể hoàn tác.",
+            okText: "Xác nhận",
+            okType: "primary",
+            cancelText: "Hủy",
+            onOk() {
+                fetchReorder();
+            },
+            onCancel() {
+                console.log("Hủy thao tác");
+            },
+        });
+    };
+
     const handleReturnOrder = async (reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
         try {
             const formData = new FormData();
@@ -277,6 +312,7 @@ export const OrderDetailContent = () => {
             if (res.data.status) {
                 notification.success({message: "Yêu cầu trả hàng thành công!"});
                 setHasRequestedReturn(true);
+                await fetchOrder();
             } else {
                 notification.error({message: 'Yêu cầu trả hàng thất bại!'});
             }
@@ -362,6 +398,7 @@ export const OrderDetailContent = () => {
                 closeButtonRef.current.click();
             }
             closeReviewModal();
+            await fetchOrder();
         } catch (e: any) {
             setReviewError(e.response?.data?.message || "Lỗi khi gửi đánh giá");
         } finally {
@@ -468,9 +505,10 @@ export const OrderDetailContent = () => {
                                     <th scope="col" className="fw-medium text-center">Phân loại</th>
                                     <th scope="col" className="fw-medium text-center">Số lượng</th>
                                     <th scope="col" className="fw-medium text-end">Giá</th>
-                                    {order.status === "completed" && (
+                                    {order.status === "completed" && order.items.some(item => item.is_review == false) && (
                                         <th scope="col" className="fw-medium text-end">Đánh giá</th>
                                     )}
+
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -480,14 +518,14 @@ export const OrderDetailContent = () => {
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
                                                     src={item.variant.images[0]?.image_url || item.product.image || "/path/to/fallback-image.jpg"}
-                                                    alt={item.product.name}
+                                                    alt={item.product_name}
                                                     className="rounded"
                                                     style={{width: "60px", height: "60px", objectFit: "cover"}}
                                                 />
-                                                <span className="fw-medium">{item.product.name}</span>
+                                                <span className="fw-medium">{item.product_name}</span>
                                             </div>
                                         </td>
-                                        <td className="text-center">{item.variant?.size?.name}, {item.variant?.color?.name}</td>
+                                        <td className="text-center">{item.size}, {item.color}</td>
                                         <td className="text-center">{item.quantity}</td>
                                         <td className="text-end fw-bold text-original-base">{convertToInt(item.price)}₫</td>
                                         {order.status === "completed" && !item.is_review && (
@@ -563,6 +601,16 @@ export const OrderDetailContent = () => {
                                     {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
                                 </button>
                             )}
+                            {
+                                order.status === 'completed' && (
+                                    <button
+                                        className="btn btn-outline-primary btn-sm px-4 fw-medium"
+                                        onClick={showConfirmReorder}
+                                    >
+                                        Mua lại
+                                    </button>
+                                )
+                            }
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
                                 Quay lại
                             </Link>
@@ -590,6 +638,17 @@ export const OrderDetailContent = () => {
                                 <h2>Lý do yêu cầu hoàn tiền</h2>
                             </div>
                             <p>{order.return?.reason}</p>
+                            <b>Thông tin hoàn tiền:</b>
+                            <div className="d-flex flex-column mb-2">
+                                <span><b>Ngân hàng:</b> {order.return?.refund_bank}</span>
+                                <span><b>Người thụ hưởng:</b> {order.return?.refund_account_name}</span>
+                                <span><b>Số tài khoản:</b> {order.return?.refund_account_number}</span>
+                                {
+                                    order.return?.refund_account_number && (
+                                        <span><b>Mã giao dịch:</b> {order.return?.transaction_code}</span>
+                                    )
+                                }
+                            </div>
                             <i className="text-danger">
                                 Hình ảnh dẫn chứng:
                             </i>

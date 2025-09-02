@@ -58,9 +58,7 @@ export const CustomerList = () => {
                     <Breadcrumb.Item>Khách Hàng</Breadcrumb.Item>
                 </Breadcrumb>
             }
-            headerButtons={() => (
-                <CreateButton>Thêm khách hàng</CreateButton>
-            )}
+            headerButtons={null}
         >
             <Form form={form} layout="inline" onFinish={handleSearch} style={{ marginBottom: 16 }}>
                 <Form.Item name="name" label="Tên khách hàng">
@@ -93,7 +91,15 @@ export const CustomerList = () => {
                 <Table.Column
                     title="STT"
                     key="index"
-                    render={(text, record, index) => index + 1}
+                    render={(_, __, index) => {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const current = tableProps.pagination?.current || 1;
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const pageSize = tableProps.pagination?.pageSize || 10;
+                        return (current - 1) * pageSize + index + 1;
+                    }}
                 />
                 <Table.Column
                     dataIndex="user_name"

@@ -192,6 +192,30 @@ class CartController extends Controller
         return $this->error('Sản phẩm đã hết hàng', 400);
     }
 
+    // Nếu trong giỏ đã có item cùng variant_id thì gộp lại
+    $existingItem = ShoppingCartItem::where('cart_id', $cartItem->cart_id)
+        ->where('variant_id', $request->variant_id)
+        ->where('id', '!=', $cartItemId)
+        ->first();
+
+    if ($existingItem) {
+        $newQuantity = $existingItem->quantity + $request->quantity;
+
+        if ($variant->quantity < $newQuantity) {
+            return $this->error("Chỉ còn {$variant->quantity} sản phẩm", 400);
+        }
+
+        // Cộng dồn số lượng vào item đã tồn tại
+        $existingItem->quantity = $newQuantity;
+        $existingItem->save();
+
+        // Xóa item cũ (đang update)
+        $cartItem->delete();
+
+        return $this->success($existingItem, 'Gộp biến thể trong giỏ hàng thành công');
+    }
+
+    // Trường hợp không có item trùng thì update bình thường
     if ($variant->quantity < $request->quantity) {
         return $this->error("Chỉ còn {$variant->quantity} sản phẩm", 400);
     }
@@ -202,6 +226,7 @@ class CartController extends Controller
 
     return $this->success($cartItem, 'Cập nhật giỏ hàng thành công');
 }
+
 
 
     public function getProductVariants(Request $request, $productId)

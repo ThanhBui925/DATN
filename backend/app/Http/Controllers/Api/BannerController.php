@@ -19,7 +19,7 @@ class BannerController extends Controller
         //         'data' => []
         //     ], 403);
         // }
-        $banners = Banner::orderBy('created_at', 'asc')->get();
+        $banners = Banner::orderBy('id', 'desc')->get();
         return response()->json([
             'message' => 'Danh Sách Banner Của Bạn',
             'data' => $banners

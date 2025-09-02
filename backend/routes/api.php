@@ -87,6 +87,7 @@ Route::prefix('client')->group(function () {
         Route::get('/{id}/retry', [ClientOrderController::class, 'retryVNPay']);
         Route::put('/{id}/delivered', [ClientOrderController::class, 'complete']);
         Route::put('/{id}/return', [ClientOrderController::class, 'requestReturn']);
+        Route::post('/{id}/reorder', [ClientOrderController::class, 'reorder']);
     });
 
 

@@ -103,9 +103,11 @@ export const OrdersShow = () => {
                     <>
                         {
                             !(
-                                (record?.status === "canceled" && record?.payment_status === "cash") ||
+                                (record?.status === "canceled" && record?.payment_method === "cash") ||
+                                (record?.status === "canceled" && record?.payment_method === "vnpay" && record?.payment_status !== 'paid') ||
                                 (record?.status === "refunded" && record?.payment_status === "refunded") ||
-                                (record?.payment_status === "waiting_for_refunded")
+                                (record?.payment_status === "waiting_for_refunded") ||
+                                (record?.status === "completed")
                             ) && (
                                 <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                             )
@@ -385,6 +387,15 @@ export const OrdersShow = () => {
                                         />
                                     </Col>
                                 )}
+                                {record?.order_code && (
+                                    <Col xs={24} sm={12}>
+                                        <Text strong style={{color: "#595959", fontSize: 14}}>Mã vận đơn</Text>
+                                        <TextField
+                                            value={record?.order_code || "-"}
+                                            style={{display: "block", fontSize: 16, color: "#262626", marginTop: 8}}
+                                        />
+                                    </Col>
+                                )}
                             </Row>
                         </Card>
                     </Col>
@@ -448,7 +459,7 @@ export const OrdersShow = () => {
                                 >
                                     <Table.Column
                                         title="Tên sản phẩm"
-                                        dataIndex={["product", "name"]}
+                                        dataIndex={["product_name"]}
                                         render={(value) => (
                                             <TextField
                                                 value={value || "-"}
@@ -459,20 +470,18 @@ export const OrdersShow = () => {
                                     <Table.Column
                                         title="Biến thể"
                                         dataIndex="variant"
-                                        render={(variant) =>
-                                            variant ? (
-                                                <TextField
-                                                    value={`${variant.size?.name || ""} - ${variant.color?.name || ""}`.trim() || "Không có biến thể"}
-                                                    style={{fontSize: 14, color: "#262626"}}
-                                                />
-                                            ) : (
-                                                <TextField
-                                                    value="Không có biến thể"
-                                                    style={{fontSize: 14, color: "#262626"}}
-                                                />
-                                            )
-                                        }
+                                        render={(_, record) => (
+                                            <TextField
+                                            value={
+                                                record.size || record.color
+                                                ? `${record.size || ""}${record.color ? " - " + record.color : ""}`
+                                                : "Không có biến thể"
+                                            }
+                                            style={{ fontSize: 14, color: "#262626" }}
+                                            />
+                                        )}
                                     />
+
                                     <Table.Column
                                         title="Số lượng"
                                         dataIndex="quantity"

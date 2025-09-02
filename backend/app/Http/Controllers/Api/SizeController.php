@@ -11,7 +11,9 @@ class SizeController extends Controller
     // Lấy danh sách tất cả size
     public function index()
     {
-        return response()->json(Size::all());
+        return response()->json(
+            Size::orderBy('id', 'desc')->get()
+        );
     }
 
     // Tạo size mới

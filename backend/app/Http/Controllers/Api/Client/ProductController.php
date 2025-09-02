@@ -57,7 +57,6 @@ class ProductController extends Controller
             case 'rating_desc': $query->orderBy('rating', 'desc'); break; // <-- sort theo rating
             default: $query->latest();
         }
-
         $products = $query->get();
 
         // format rating
@@ -141,7 +140,7 @@ class ProductController extends Controller
         $product = Product::with([
             'category',
             'images',
-            'reviews.user',
+            'reviews.user.customer', // load luôn customer kèm avatar
             'variants' => function ($q) {
                 $q->where('status', 1)
                     ->with(['images', 'size', 'color']);
@@ -150,17 +149,18 @@ class ProductController extends Controller
         ->withCount([
             'orderItems as total_ordered_quantity' => function ($q) {
                 $q->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id')
-                ->whereIn('shop_order.order_status', ['completed', 'delivered'])
-                ->select(DB::raw("COALESCE(SUM(shop_order_items.quantity),0)"));
+                    ->whereIn('shop_order.order_status', ['completed', 'delivered'])
+                    ->select(DB::raw("COALESCE(SUM(shop_order_items.quantity),0)"));
             },
             'reviews as review_count'
         ])
         ->selectSub(function($q) {
             $q->from('reviews')
-            ->selectRaw('ROUND(AVG(rating), 1)')
-            ->whereColumn('reviews.product_id', 'products.id');
+                ->selectRaw('ROUND(AVG(rating), 1)')
+                ->whereColumn('reviews.product_id', 'products.id');
         }, 'rating')
         ->findOrFail($id);
+
 
         return $this->success($product);
     }
@@ -171,10 +171,12 @@ class ProductController extends Controller
 
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $id)
+            ->with('category:id,name') // Chỉ lấy id và name của danh mục
             ->withAvg('reviews as rating', 'rating')
             ->take(8)
             ->get();
 
+        // Làm tròn rating
         $relatedProducts->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
 
         return $this->success($relatedProducts);
@@ -183,10 +185,11 @@ class ProductController extends Controller
 
 
 
+
     public function getReviewsByProduct($id)
     {
         $reviews = Review::where('product_id', $id)
-            ->with('user')
+            ->with('user', 'user.customer')
             ->orderBy('created_at', 'desc')
             ->get();
 

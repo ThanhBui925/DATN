@@ -33,6 +33,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\RetryVNPayRequest;
 use App\Mail\NewOrderNotification;
 use App\Models\User;
+use App\Models\ShoppingCartItem;
+
 
 
 
@@ -67,17 +69,8 @@ class OrderController extends Controller
 
         // Lọc theo trạng thái dựa theo giá trị use_shipping_status đã lưu trong DB
         if ($request->has('status')) {
-            $status = $request->input('status');
-
-            $query->where(function ($q) use ($status) {
-                $q->where('use_shipping_status', 1)
-                ->where('shipping_status', $status);
-
-                $q->orWhere(function ($sub) use ($status) {
-                    $sub->where('use_shipping_status', 0)
-                        ->where('order_status', $status);
-                });
-            });
+            $statuses = explode(',', $request->input('status'));
+            $query->whereIn('order_status', $statuses);
         }
 
 
@@ -211,10 +204,15 @@ class OrderController extends Controller
                 }
 
                 $variant->decrement('quantity', $item->quantity);
-
+                $size = $variant->size->name;
+                $color = $variant->color->name;
+                $productName = $product->name;
                 OrderItem::create([
                     'order_id'   => $order->id,
                     'product_id' => $item->product_id,
+                    'product_name' => $productName,
+                    'size'       => $size,
+                    'color'      => $color,
                     'quantity'   => $item->quantity,
                     'price'      => $price,
                     'variant_id' => $item->variant_id,
@@ -540,6 +538,9 @@ public function show(Request $request, $id)
             'items' => $order->orderItems->map(function ($item) {
                 return [
                     'id' => $item->id,
+                    'product_name' => $item->product_name,
+                    'size' => $item->size,
+                    'color' => $item->color,
                     'product' => [
                         'id' => $item->product->id,
                         'category_id' => $item->product->category_id,
@@ -908,6 +909,71 @@ public function show(Request $request, $id)
             'return' => $return->load('evidences'),
         ], 'Yêu cầu hoàn hàng thành công');
     }
+
+    // Mua lại đơn hàng
+    public function reorder(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->errorResponse('Người dùng chưa đăng nhập', null, 401);
+        }
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->with('orderItems')
+            ->first();
+
+        if (!$order) {
+            return $this->errorResponse('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập', null, 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+            $notAvailable = [];
+
+            foreach ($order->orderItems as $item) {
+                $variant = VariantProduct::find($item->variant_id);
+
+                if ($variant && $variant->quantity >= $item->quantity) {
+                    $cartItem = ShoppingCartItem::where('cart_id', $cart->id)
+                        ->where('product_id', $item->product_id)
+                        ->where('variant_id', $item->variant_id)
+                        ->first();
+
+                    if ($cartItem) {
+                        $cartItem->quantity += $item->quantity;
+                        $cartItem->save();
+                    } else {
+                        ShoppingCartItem::create([
+                            'cart_id'    => $cart->id,
+                            'product_id' => $item->product_id,
+                            'variant_id' => $item->variant_id,
+                            'quantity'   => $item->quantity,
+                        ]);
+                    }
+                } else {
+                    // Nếu variant hết hàng hoặc không tồn tại
+                    $notAvailable[] = [
+                        'product_id' => $item->product_id,
+                        'variant_id' => $item->variant_id,
+                    ];
+                }
+            }
+
+            DB::commit();
+
+            return $this->successResponse([
+                'cart'          => $cart->load('items.product', 'items.variant'),
+                'not_available' => $notAvailable,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Có lỗi xảy ra khi mua lại đơn hàng', $e->getMessage(), 500);
+        }
+    }
+
+
 
 
 

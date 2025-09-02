@@ -10,6 +10,7 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\VariantProduct;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 
 
@@ -23,8 +24,15 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
+        $id = $this->route('product');
+        Log::info('Product ID being updated: ' . $id);
         return [
-            'name' => 'sometimes|string|max:255',
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('products', 'name')->ignore($id),
+            ],
             'category_id' => 'sometimes|exists:categories,id',
             'description' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
@@ -45,6 +53,7 @@ class UpdateProductRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.unique' => 'Tên sản phẩm đã tồn tại.',
             'name.string' => 'Tên sản phẩm phải là chuỗi.',
             'name.max' => 'Tên sản phẩm không được vượt quá 255 ký tự.',
 
@@ -82,86 +91,71 @@ class UpdateProductRequest extends FormRequest
     }
 
     protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'status' => false,
-            'message' => 'Validation failed',
-            'errors' => $validator->errors(),
-        ], 422));
-    }
+{
+    throw new HttpResponseException(response()->json([
+        'status'  => false,
+        'message' => 'Cập nhật sản phẩm thất bại !',
+        'errors'  => $validator->errors()->toArray(),
+    ], 422));
+}
 
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $variants = $this->input('variants', []);
-            $productId = $this->route('id'); // Lấy id sản phẩm từ route nếu đang cập nhật
-            Log::info('Checking product ID: ' . $productId);
+public function withValidator($validator)
+{
+    $validator->after(function ($validator) {
+        $variants = $this->input('variants', []);
+        $productId = $this->route('id');
 
-            $names = collect($variants)->pluck('name');
-            if ($names->duplicates()->isNotEmpty()) {
-                $validator->errors()->add('variants', 'Tên các biến thể không được trùng nhau.');
+        // 1. Check duplicate names
+        $names = collect($variants)->pluck('name');
+        if ($names->duplicates()->isNotEmpty()) {
+            throw new HttpResponseException(response()->json([
+                'status'  => false,
+                'message' => 'Tên các biến thể không được trùng nhau.',
+                'errors'  => ['variants' => ['Tên các biến thể không được trùng nhau.']],
+            ], 422));
+        }
+
+        // 2. Check duplicate size+color
+        $combinations = [];
+        foreach ($variants as $variant) {
+            $sizeId = $variant['size_id'] ?? null;
+            $colorId = $variant['color_id'] ?? null;
+            $variantId = $variant['id'] ?? null;
+
+            if (!$sizeId || !$colorId) {
+                continue;
+            }
+
+            $key = $sizeId . '-' . $colorId;
+            if (in_array($key, $combinations)) {
                 throw new HttpResponseException(response()->json([
-                    'status' => false,
-                    'message' => 'Tên các biến thể không được trùng nhau.',
-                    'errors' => $validator->errors(),
+                    'status'  => false,
+                    'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc trùng nhau.',
+                    'errors'  => ['variants' => ['Màu sắc và kích cỡ không được trùng nhau.']],
                 ], 422));
-                return;
+            }
+            $combinations[] = $key;
+
+            // Check DB
+            $query = \App\Models\VariantProduct::where('product_id', $productId)
+                ->where('size_id', $sizeId)
+                ->where('color_id', $colorId);
+
+            if ($variantId) {
+                $query->where('id', '!=', $variantId);
             }
 
-            $combinations = [];
-
-            foreach ($variants as $variant) {
-                Log::info('Checking variant: ', $variant);
-
-                $sizeId = $variant['size_id'] ?? null;
-                $colorId = $variant['color_id'] ?? null;
-                $variantId = $variant['id'] ?? null;
-
-                if (!$sizeId || !$colorId) {
-                    continue;
-                }
-
-                // Kiểm tra trùng lặp trong chính request
-                $key = $sizeId . '-' . $colorId;
-                if (in_array($key, $combinations)) {
-                    // $validator->errors()->add('variants', 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc bị trùng trong form.');
-                    throw new HttpResponseException(response()->json([
-                        'status' => false,
-                        'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
-                        'errors' => $validator->errors(),
-                    ], 422));
-                    return;
-                }
-                $combinations[] = $key;
-
-                // Kiểm tra trùng với DB (trừ chính nó khi update)
-                $query = \App\Models\VariantProduct::where('product_id', $productId)
-                    ->where('size_id', $sizeId)
-                    ->where('color_id', $colorId);
-
-                if ($variantId) {
-                    $query->where('id', '!=', $variantId);
-                }
-
-                Log::info('Final query for checking DB:', [
-                    'product_id' => $productId,
-                    'size_id' => $sizeId,
-                    'color_id' => $colorId,
-                    'excluded_id' => $variantId,
-                ]);
-
-                if ($query->exists()) {
-                    // $validator->errors()->add('variants', 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại trong hệ thống.');
-                    throw new HttpResponseException(response()->json([
-                        'status' => false,
-                        'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
-                        'errors' => $validator->errors(),
-                    ], 422));
-                    return;
-                }
+            if ($query->exists()) {
+                throw new HttpResponseException(response()->json([
+                    'status'  => false,
+                    'message' => 'Một hoặc nhiều biến thể với cùng kích cỡ và màu sắc đã tồn tại.',
+                    'errors'  => ['variants' => ['Màu sắc và kích cỡ đã tồn tại.']],
+                ], 422));
             }
-        });
-    }
+        }
+    });
+}
+
 
 
 

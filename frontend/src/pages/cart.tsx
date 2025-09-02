@@ -4,6 +4,7 @@ import {notification, Skeleton, Modal} from "antd";
 import {convertToInt} from "../helpers/common";
 import {axiosInstance} from "../utils/axios";
 import {debounce} from "lodash";
+import {TOKEN_KEY} from "../providers/authProvider";
 
 export const Cart = () => {
     const [cartData, setCartData] = useState({
@@ -16,6 +17,8 @@ export const Cart = () => {
     const [errorQty, setErrorQty] = useState<{ [key: number]: string }>({});
     const [selectedItems, setSelectedItems] = useState<{ [key: number]: boolean }>({});
     const navigate = useNavigate();
+    const [isAuth, setIsAuth] = useState(false);
+
 
     // Modal states
     const [showVariantModal, setShowVariantModal] = useState(false);
@@ -69,6 +72,17 @@ export const Cart = () => {
                 notification.error({message: res.data.message});
             } else {
                 notification.success({message: "Cập nhật giỏ hàng thành công"});
+                setSelectedItems({});
+                setSelectedSizes({});
+                setSelectedColors({});
+                setErrorQty({});
+                setShowVariantModal(false);
+                setCurrentCartId(null);
+                setTempColor('');
+                setTempSize('');
+                setTempVariant(null);
+                setTempImage('');
+                setAvailableStock(0);
             }
         } catch (e) {
             notification.error({message: "Cập nhật giỏ hàng thất bại" + (e as Error).message});
@@ -119,10 +133,35 @@ export const Cart = () => {
             await axiosInstance.delete(`/api/client/cart/items/${id}`);
             notification.success({description: "Đã xóa sản phẩm khỏi giỏ hàng!", message: "Thành công !"});
             setSelectedItems((prev) => {
-                const newSelected = {...prev};
+                const newSelected = { ...prev };
                 delete newSelected[id];
                 return newSelected;
             });
+            setSelectedSizes((prev) => {
+                const newSizes = { ...prev };
+                delete newSizes[id];
+                return newSizes;
+            });
+            setSelectedColors((prev) => {
+                const newColors = { ...prev };
+                delete newColors[id];
+                return newColors;
+            });
+            setErrorQty((prev) => {
+                const newErrorQty = { ...prev };
+                delete newErrorQty[id];
+                return newErrorQty;
+            });
+
+            if (currentCartId === id) {
+                setShowVariantModal(false);
+                setCurrentCartId(null);
+                setTempColor('');
+                setTempSize('');
+                setTempVariant(null);
+                setTempImage('');
+                setAvailableStock(0);
+            }
             getCartData();
         } catch (e) {
             notification.error({message: (e as Error).message});
@@ -194,9 +233,20 @@ export const Cart = () => {
     };
 
     useEffect(() => {
-        setLoading(true)
-        getCartData();
-    }, []);
+        if (!localStorage.getItem(TOKEN_KEY)) {
+            notification.error({ message: "Vui lòng đăng nhập." });
+            navigate("/dang-nhap");
+        } else {
+            setIsAuth(true);
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        if (isAuth) {
+            setLoading(true);
+            getCartData();
+        }
+    }, [isAuth]);
 
     useEffect(() => {
         if (tempVariant && currentCartId) {
