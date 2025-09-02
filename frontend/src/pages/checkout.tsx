@@ -322,6 +322,7 @@ export const Checkout = () => {
         try {
             const res = await axiosInstance.post("/api/client/checkout/apply_coupon", {
                 voucher_code: code,
+                cartItemsId: sessionStorage.getItem("cartItemsId")
             });
 
             if (res.data.status) {
