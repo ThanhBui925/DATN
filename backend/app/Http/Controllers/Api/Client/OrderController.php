@@ -931,6 +931,8 @@ public function show(Request $request, $id)
         try {
             $cart = Cart::firstOrCreate(['user_id' => $user->id]);
             $notAvailable = [];
+            //Biến lưu các item vừa thêm vào giỏ
+            $addedItems = [];
 
             foreach ($order->orderItems as $item) {
                 $variant = VariantProduct::find($item->variant_id);
@@ -951,6 +953,11 @@ public function show(Request $request, $id)
                             'variant_id' => $item->variant_id,
                             'quantity'   => $item->quantity,
                         ]);
+                        //Lấy item vừa thêm
+                        $addedItems[] = ShoppingCartItem::where('cart_id', $cart->id)
+                            ->where('product_id', $item->product_id)
+                            ->where('variant_id', $item->variant_id)
+                            ->first();
                     }
                 } else {
                     return $this->errorResponse("Sản phẩm '{$item->product_name}' không đủ số lượng tồn kho để mua lại.", null, 400);
@@ -960,9 +967,12 @@ public function show(Request $request, $id)
             DB::commit();
 
             return $this->successResponse([
-                'cart'          => $cart->load('items.product', 'items.variant'),
+                'cart' => [
+                    'items' => $addedItems,
+                ],
                 'not_available' => $notAvailable,
             ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->errorResponse('Có lỗi xảy ra khi mua lại đơn hàng', $e->getMessage(), 500);
