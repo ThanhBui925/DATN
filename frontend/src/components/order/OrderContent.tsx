@@ -230,6 +230,36 @@ export const OrderContent: React.FC = () => {
         }
     };
 
+    const fetchReorder = async (orderId: number) => {
+        try {
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/reorder`)
+            if (res.data.status) {
+                navigate('/gio-hang', {state: {cartItemNeedSelected: res.data.data.cart.items.map((item: any) => item.id)}})
+            } else {
+                notification.error({message: res.data.message});
+            }
+        } catch (e: any) {
+            notification.error({message: e?.error?.message ?? 'Có lỗi sảy ra !'});
+        }
+    }
+
+    const { confirm } = Modal;
+    const showConfirmReorder = (id: number) => {
+        confirm({
+            title: "Xác nhận mua lại đơn hàng này ?",
+            content: "Hành động này không thể hoàn tác.",
+            okText: "Xác nhận",
+            okType: "primary",
+            cancelText: "Hủy",
+            onOk() {
+                fetchReorder(id);
+            },
+            onCancel() {
+                console.log("Hủy thao tác");
+            },
+        });
+    };
+
 
     const handleModalOk = useCallback(() => {
         const selectedOrder = orders.find(o => o.id === selectedOrderId);
@@ -537,6 +567,16 @@ export const OrderContent: React.FC = () => {
                                                         {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
                                                     </button>
                                                 )}
+                                                {
+                                                    ['completed', 'canceled', 'cancel'] .includes(order.status) && (
+                                                        <button
+                                                            className="btn btn-outline-primary btn-sm px-4 fw-medium"
+                                                            onClick={() => showConfirmReorder(order.id)}
+                                                        >
+                                                            Mua lại
+                                                        </button>
+                                                    )
+                                                }
                                             </div>
                                         </div>
                                     </div>

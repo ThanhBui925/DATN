@@ -267,7 +267,7 @@ export const OrderDetailContent = () => {
         try {
             const res = await axiosInstance.post(`/api/client/orders/${orderId}/reorder`)
             if (res.data.status) {
-                navigate('/gio-hang')
+                navigate('/gio-hang', {state: {cartItemNeedSelected: res.data.data.cart.items.map((item: any) => item.id)}})
             } else {
                 notification.error({message: res?.data?.message ?? 'Có lỗi sảy ra !'});
             }
@@ -602,7 +602,7 @@ export const OrderDetailContent = () => {
                                 </button>
                             )}
                             {
-                                order.status === 'completed' && (
+                                 ['completed', 'canceled', 'cancel'] .includes(order.status) && (
                                     <button
                                         className="btn btn-outline-primary btn-sm px-4 fw-medium"
                                         onClick={showConfirmReorder}
