@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from "react";
-import {useParams, Link, useSearchParams} from "react-router-dom";
+import {useParams, Link, useSearchParams, useNavigate} from "react-router-dom";
 import {axiosInstance} from "../../utils/axios";
 import {convertDate, convertToInt} from "../../helpers/common";
 import {Input, Modal, notification, Upload, Button} from "antd";
@@ -130,6 +130,7 @@ export const OrderDetailContent = () => {
     const [returnErrors, setReturnErrors] = useState<{ [key: string]: string }>({});
     const [hasRequestedReturn, setHasRequestedReturn] = useState(false);
     const [returnFiles, setReturnFiles] = useState<any[]>([]);
+    const navigate = useNavigate();
 
     const fetchOrder = async () => {
         try {
@@ -260,6 +261,36 @@ export const OrderDetailContent = () => {
 
     const showCancelModal = () => {
         setIsModalOpen(true);
+    };
+
+    const fetchReorder = async () => {
+        try {
+            const res = await axiosInstance.post(`/api/client/orders/${orderId}/reorder`)
+            if (res.data.status) {
+                navigate('/gio-hang')
+            } else {
+                notification.error({message: res?.data?.message ?? 'Có lỗi sảy ra !'});
+            }
+        } catch (e: any) {
+            notification.error({message: e?.data?.message ?? 'Có lỗi sảy ra !'});
+        }
+    }
+
+    const { confirm } = Modal;
+    const showConfirmReorder = () => {
+        confirm({
+            title: "Xác nhận mua lại đơn hàng này ?",
+            content: "Hành động này không thể hoàn tác.",
+            okText: "Xác nhận",
+            okType: "primary",
+            cancelText: "Hủy",
+            onOk() {
+                fetchReorder();
+            },
+            onCancel() {
+                console.log("Hủy thao tác");
+            },
+        });
     };
 
     const handleReturnOrder = async (reason: string, refundBank?: string, refundAccountName?: string, refundAccountNumber?: string) => {
@@ -570,6 +601,16 @@ export const OrderDetailContent = () => {
                                     {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
                                 </button>
                             )}
+                            {
+                                order.status === 'completed' && (
+                                    <button
+                                        className="btn btn-outline-primary btn-sm px-4 fw-medium"
+                                        onClick={showConfirmReorder}
+                                    >
+                                        Mua lại
+                                    </button>
+                                )
+                            }
                             <Link to="/don-hang-cua-toi" className="btn btn-outline-secondary btn-sm px-4 fw-medium">
                                 Quay lại
                             </Link>
