@@ -953,11 +953,7 @@ public function show(Request $request, $id)
                         ]);
                     }
                 } else {
-                    // Nếu variant hết hàng hoặc không tồn tại
-                    $notAvailable[] = [
-                        'product_id' => $item->product_id,
-                        'variant_id' => $item->variant_id,
-                    ];
+                    return $this->errorResponse("Sản phẩm '{$item->product_name}' không đủ số lượng tồn kho để mua lại.", null, 400);
                 }
             }
 
