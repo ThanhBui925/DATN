@@ -1,4 +1,4 @@
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useCallback, useEffect, useState} from "react";
 import {notification, Skeleton, Modal} from "antd";
 import {convertToInt} from "../helpers/common";
@@ -28,6 +28,8 @@ export const Cart = () => {
     const [tempVariant, setTempVariant] = useState<any>(null);
     const [tempImage, setTempImage] = useState('');
     const [availableStock, setAvailableStock] = useState<number>(0);
+    const location = useLocation();
+    const { cartItemNeedSelected } = location.state || {};
 
     const getCartData = async () => {
         try {
@@ -36,7 +38,6 @@ export const Cart = () => {
                 const items = res.data.data.items.map((item: any) => {
                     setSelectedSizes((prev) => ({...prev, [item.id]: item.size}));
                     setSelectedColors((prev) => ({...prev, [item.id]: item.color}));
-                    setSelectedItems((prev) => ({...prev, [item.id]: true})); // Default select all
                     return item;
                 });
                 setCartData({
@@ -72,9 +73,6 @@ export const Cart = () => {
                 notification.error({message: res.data.message});
             } else {
                 notification.success({message: "Cập nhật giỏ hàng thành công"});
-                setSelectedItems({});
-                setSelectedSizes({});
-                setSelectedColors({});
                 setErrorQty({});
                 setShowVariantModal(false);
                 setCurrentCartId(null);
@@ -247,6 +245,41 @@ export const Cart = () => {
             getCartData();
         }
     }, [isAuth]);
+
+    useEffect(() => {
+        if (cartData.items.length > 0) {
+            setSelectedItems((prevSelected) => {
+                const newSelected = { ...prevSelected };
+
+                if (Array.isArray(cartItemNeedSelected) && cartItemNeedSelected.length > 0) {
+                    cartData.items.forEach((item: any) => {
+                        newSelected[item.id] = cartItemNeedSelected.includes(item.id);
+                    });
+                } else {
+                    cartData.items.forEach((item: any) => {
+                        if (newSelected[item.id] === undefined) {
+                            newSelected[item.id] = true;
+                        }
+                    });
+                }
+
+                Object.keys(newSelected).forEach((key) => {
+                    if (!cartData.items.some((item: any) => item.id === parseInt(key))) {
+                        delete newSelected[parseInt(key)];
+                    }
+                });
+
+                return newSelected;
+            });
+        }
+    }, [cartData.items, cartItemNeedSelected]);
+
+    useEffect(() => {
+        const newTotal = cartData.items
+            .filter((item: any) => selectedItems[item.id])
+            .reduce((sum: number, item: any) => sum + item.total, 0);
+        setCartData((prev) => ({ ...prev, total: newTotal }));
+    }, [selectedItems, cartData.items]);
 
     useEffect(() => {
         if (tempVariant && currentCartId) {
