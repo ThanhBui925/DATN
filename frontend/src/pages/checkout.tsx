@@ -480,7 +480,8 @@ export const Checkout = () => {
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (profile.role === 'admin' || profile.role === 'super_admin') {
+
+        if (profile.role === "admin" || profile.role === "super_admin") {
             return notification.error({ message: "Admin không thể mua hàng" });
         }
 
@@ -491,7 +492,7 @@ export const Checkout = () => {
             return;
         }
 
-        let payload: any = {
+        const basePayload: any = {
             recipient_name: formData.recipient_name ?? profile.name,
             recipient_phone: formData.recipient_phone ?? profile.customer.phone,
             recipient_email: formData.recipient_email ?? profile.email,
@@ -501,44 +502,69 @@ export const Checkout = () => {
             cartItemsId: sessionStorage.getItem("cartItemsId"),
         };
 
-        if (useNewAddress) {
-            const provinceName = provinces.find((p) => p.ProvinceID === formData.province)?.ProvinceName || "";
-            const districtName = districts.find((d) => d.DistrictID === formData.district)?.DistrictName || "";
-            const wardName = wards.find((w) => w.WardCode === formData.ward)?.WardName || "";
+        const buildPayload = (is_save_address: number) => {
+            if (useNewAddress) {
+                const provinceName =
+                    provinces.find((p) => p.ProvinceID === formData.province)?.ProvinceName || "";
+                const districtName =
+                    districts.find((d) => d.DistrictID === formData.district)?.DistrictName || "";
+                const wardName =
+                    wards.find((w) => w.WardCode === formData.ward)?.WardName || "";
 
-            payload = {
-                ...payload,
-                detailed_address: formData.detailed_address,
-                province_name: provinceName,
-                district_name: districtName,
-                ward_name: wardName,
-                province_id: formData.province,
-                district_id: formData.district,
-                ward_code: formData.ward,
-            };
-        } else {
-            payload = {
-                ...payload,
-                address_id: selectedAddressId,
-            };
-        }
-
-        try {
-            const res = await axiosInstance.post("/api/client/orders", payload);
-            if (res.data.status) {
-                if (res.data.data.order && res.data.data.order.payment_method === 'vnpay' && res.data.data.payment_url) {
-                    return window.location.href = res.data.data.payment_url;
-                }
-                notification.success({ message: res.data.message || "Đặt hàng thành công" });
-                sessionStorage.removeItem('cartItemsId');
-                navigate("/don-hang-cua-toi");
+                return {
+                    ...basePayload,
+                    detailed_address: formData.detailed_address,
+                    province_name: provinceName,
+                    district_name: districtName,
+                    ward_name: wardName,
+                    province_id: formData.province,
+                    district_id: formData.district,
+                    ward_code: formData.ward,
+                    is_save_address,
+                };
             } else {
-                notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
+                return {
+                    ...basePayload,
+                    address_id: selectedAddressId,
+                };
             }
-        } catch (e: any) {
-            notification.error({ message: e.message || "Lỗi khi đặt hàng" });
+        };
+
+        const submitOrder = async (payload: any) => {
+            try {
+                const res = await axiosInstance.post("/api/client/orders", payload);
+                if (res.data.status) {
+                    if (
+                        res.data.data.order &&
+                        res.data.data.order.payment_method === "vnpay" &&
+                        res.data.data.payment_url
+                    ) {
+                        return (window.location.href = res.data.data.payment_url);
+                    }
+                    notification.success({ message: res.data.message || "Đặt hàng thành công" });
+                    sessionStorage.removeItem("cartItemsId");
+                    navigate("/don-hang-cua-toi");
+                } else {
+                    notification.error({ message: res.data.message || "Lỗi khi đặt hàng" });
+                }
+            } catch (e: any) {
+                notification.error({ message: e.message || "Lỗi khi đặt hàng" });
+            }
+        };
+
+        if (useNewAddress) {
+            Modal.confirm({
+                title: "Bạn có muốn lưu địa chỉ này không?",
+                okText: "Có",
+                cancelText: "Không",
+                onOk: () => submitOrder(buildPayload(1)),
+                onCancel: () => submitOrder(buildPayload(0)),
+            });
+        } else {
+            submitOrder(buildPayload(0));
         }
     };
+
 
     const baseTotal = appliedCoupon ? appliedCoupon.final_price : cartData.total;
     const displayTotal = parseFloat(baseTotal) + shippingFee;
