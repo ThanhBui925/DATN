@@ -300,6 +300,24 @@ class OrderController extends Controller
                 ], 'Tạo đơn hàng và chuyển đến VNPay', 201);
             }
             
+            //lưu địa chỉ nếu người dùng chọn
+            $is_save_address = $request->input('is_save_address');
+            
+            if ($is_save_address == 1 && !$request->filled('address_id')) {
+                Address::create([
+                    'user_id'         => $userId,
+                    'recipient_name'  => $recipientName,
+                    'recipient_phone' => $recipientPhone,
+                    'recipient_email' => $recipientEmail,
+                    'address'         => $detailed_address,
+                    'ward_name'       => $wardName,
+                    'district_name'   => $districtName,
+                    'province_name'   => $provinceName,
+                    'is_default'      => 0,
+                ]);
+            }
+
+            
 
             $cart->items()->whereIn('id', $cartItemsIds)->delete(); 
 
@@ -956,7 +974,7 @@ public function show(Request $request, $id)
                         //Lấy item vừa thêm
                         $addedItems[] = ShoppingCartItem::where('cart_id', $cart->id)
                             ->where('product_id', $item->product_id)
-                            ->where('variant_id', $item->variant_id)
+                            ->where('variant_id', $item->variant_id)  
                             ->first();
                     }
                 } else {
