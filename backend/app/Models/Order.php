@@ -32,6 +32,7 @@ class Order extends Model
         'recipient_name',
         'recipient_phone',
         'recipient_email',
+        'note',
         'cancel_reason',
         'use_shipping_status',
         'shipping_status'
