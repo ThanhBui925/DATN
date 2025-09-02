@@ -282,7 +282,7 @@ export const Sidebar = () => {
             <div className="shop-banner">
                 <div className="single-banner">
                     <a href="#">
-                        <img src="img/banner/shop-banner.jpg" alt="" />
+                        <img src="img/banner/doc1.jpg" alt="" />
                     </a>
                 </div>
             </div>
