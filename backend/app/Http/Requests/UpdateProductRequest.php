@@ -24,7 +24,8 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('id');
+        $id = $this->route('product');
+        Log::info('Product ID being updated: ' . $id);
         return [
             'name' => [
                 'sometimes',
