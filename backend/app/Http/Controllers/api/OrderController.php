@@ -186,6 +186,7 @@ public function show($id)
             'recipient_name' => $order->recipient_name,
             'recipient_phone' => $order->recipient_phone,
             'recipient_email' => $order->recipient_email,
+            'note' => $order->note,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
             'voucher_code' => $order->voucher_code,

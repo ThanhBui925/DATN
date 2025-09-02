@@ -177,6 +177,7 @@ class OrderController extends Controller
                 'recipient_name'    => $recipientName,
                 'recipient_phone'   => $recipientPhone,
                 'recipient_email'   => $recipientEmail,
+                'note'              => $request->note,
                 'discount_amount'   => 0,
                 'shipping_fee'      => $shippingFee,
                 'final_amount'      => 0,
@@ -300,6 +301,24 @@ class OrderController extends Controller
                 ], 'Tạo đơn hàng và chuyển đến VNPay', 201);
             }
             
+            //lưu địa chỉ nếu người dùng chọn
+            $is_save_address = $request->input('is_save_address');
+            
+            if ($is_save_address == 1 && !$request->filled('address_id')) {
+                Address::create([
+                    'user_id'         => $userId,
+                    'recipient_name'  => $recipientName,
+                    'recipient_phone' => $recipientPhone,
+                    'recipient_email' => $recipientEmail,
+                    'address'         => $detailed_address,
+                    'ward_name'       => $wardName,
+                    'district_name'   => $districtName,
+                    'province_name'   => $provinceName,
+                    'is_default'      => 0,
+                ]);
+            }
+
+            
 
             $cart->items()->whereIn('id', $cartItemsIds)->delete(); 
 
@@ -349,8 +368,16 @@ class OrderController extends Controller
         $userId = $request->user()->id;
 
         $voucher = Voucher::where('code', $request->voucher_code)->first();
+        $cartItemsId = json_decode($request->cartItemsId, true);
 
-        $cart = Cart::with('items.product')->where('user_id', $userId)->first();
+        $cart = Cart::whereHas('items', function ($q) use ($cartItemsId) {
+                $q->whereIn('id', $cartItemsId);
+            })
+            ->with(['items' => function ($q) use ($cartItemsId) {
+                $q->whereIn('id', $cartItemsId)->with('product');
+            }])
+            ->where('user_id', $userId)
+            ->first();
         $items = $cart->items->filter(fn($item) => $item->product);
         $totalPrice = $items->reduce(function ($carry, $item) {
             return $carry + ($item->product->price * $item->quantity);
@@ -526,6 +553,7 @@ public function show(Request $request, $id)
             'recipient_name' => $order->recipient_name,
             'recipient_phone' => $order->recipient_phone,
             'recipient_email' => $order->recipient_email,
+            'note' => $order->note,
             'customer_id' => $order->customer_id,
             'shipping_id' => $order->shipping_id,
             'user' => $order->user ? [
@@ -956,7 +984,7 @@ public function show(Request $request, $id)
                         //Lấy item vừa thêm
                         $addedItems[] = ShoppingCartItem::where('cart_id', $cart->id)
                             ->where('product_id', $item->product_id)
-                            ->where('variant_id', $item->variant_id)
+                            ->where('variant_id', $item->variant_id)  
                             ->first();
                     }
                 } else {
