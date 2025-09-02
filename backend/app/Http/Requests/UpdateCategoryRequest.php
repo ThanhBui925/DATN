@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -16,7 +17,9 @@ class UpdateCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        $categoryId = $this->route('id');
+        $categoryId = (int) $this->route('category');
+        Log::info('Category ID being updated: ' . $categoryId);
+
         return [
             'name' => [
                 'sometimes',
@@ -26,9 +29,10 @@ class UpdateCategoryRequest extends FormRequest
             ],
             'description' => 'nullable|string',
             'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'status' => 'sometimes|in:0,1', // optional
+            'status' => 'sometimes|in:0,1',
         ];
     }
+
 
     public function messages(): array
     {
