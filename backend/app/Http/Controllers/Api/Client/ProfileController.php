@@ -58,13 +58,24 @@ class ProfileController extends Controller
             'email'    => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
 
-            'phone'    => ['nullable', 'string', 'max:20'],
+            'phone'    => ['nullable', 'regex:/^(0|\+84|84)[0-9]{9}$/'],
             'address'  => ['nullable', 'string', 'max:255'],
             'dob'      => ['nullable', 'date'],
             'gender'   => ['nullable', 'in:male,female,other'],
 
             'avatar'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:2048'],
+        ], [
+            'email.unique'     => 'Email đã tồn tại trong hệ thống.',
+            'password.min'     => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
+            'phone.regex'      => 'Số điện thoại không hợp lệ (phải là 10 số và bắt đầu bằng 0 hoặc +84/84).',
+            'dob.date'         => 'Ngày sinh phải có định dạng ngày hợp lệ.',
+            'gender.in'        => 'Giới tính chỉ được chọn: male, female hoặc other.',
+            'avatar.image'     => 'Ảnh đại diện phải là tệp hình ảnh.',
+            'avatar.mimes'     => 'Ảnh đại diện chỉ chấp nhận định dạng: jpg, jpeg, png, webp, avif.',
+            'avatar.max'       => 'Ảnh đại diện không được vượt quá 2MB.',
         ]);
+
 
         // Update user info
         if (isset($data['name'])) {
