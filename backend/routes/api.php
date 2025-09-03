@@ -241,6 +241,7 @@ Route::prefix('reviews')->controller(ReviewController::class)->group(function ()
     Route::put('/{id}', 'update');
     Route::delete('/{id}', 'destroy');
     Route::post('/{id}/reply', 'reply');
+    Route::put('/{id}/toggle-visibility', 'toggleVisibility');
 });
 
 Route::prefix('blogs')->controller(BlogController::class)->group(function () {

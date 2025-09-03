@@ -19,6 +19,7 @@ class StoreOrderRequest extends FormRequest
         'recipient_name'  => 'required_without:address_id|nullable|string|max:255',
         'recipient_phone' => 'required_without:address_id|nullable|string|max:20',
         'recipient_email' => 'required_without:address_id|nullable|email|max:255',
+        'note'            => 'nullable|string|max:500',
     ];
 }
 
