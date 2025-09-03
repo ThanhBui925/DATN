@@ -17,6 +17,10 @@ class ReviewController extends Controller
         if ($request->has('product_id')) {
             $query->where('product_id', $request->input('product_id'));
         }
+        //Lọc theo đánh giá sao
+        if ($request->has('rating')) {
+            $query->where('rating', $request->input('rating'));
+        }
 
         $reviews = $query->orderBy('created_at', 'desc')->get();
 
