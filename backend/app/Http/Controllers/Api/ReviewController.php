@@ -11,19 +11,21 @@ class ReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Review::with(['product', 'user'])->where('is_visible', 1);
+        $query = Review::with(['product', 'user'])
+            ->where('is_visible', 1);
 
         if ($request->has('product_id')) {
             $query->where('product_id', $request->input('product_id'));
         }
 
-        $reviews = $query->get();
+        $reviews = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'message' => 'Reviews retrieved successfully',
-            'data' => $reviews,
+            'data'    => $reviews,
         ], 200);
     }
+
 
     
     public function show($id)
@@ -115,5 +117,14 @@ class ReviewController extends Controller
             'message' => 'Reply added successfully',
             'data' => $review->load(['product', 'user']),
         ], 200);
+    }
+
+    //Dừng hoạt động hoặc kích hoạt đánh giá
+    public function toggleVisibility($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->is_visible = !$review->is_visible;
+        $review->save();
+        return $this->success($review, 'Cập nhật trạng thái đánh giá thành công');
     }
 }
