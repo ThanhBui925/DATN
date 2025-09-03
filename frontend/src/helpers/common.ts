@@ -20,3 +20,9 @@ export function convertDate(isoString?: string | null): string {
     return `${hours}:${minutes} ${day}/${month}/${year}`;
 }
 
+export const isWithin7Days = (deliveredAt: string) => {
+    const deliveredDate = new Date(deliveredAt);
+    const now = new Date();
+    const diff = now.getTime() - deliveredDate.getTime();
+    return diff <= 7 * 24 * 60 * 60 * 1000;
+};

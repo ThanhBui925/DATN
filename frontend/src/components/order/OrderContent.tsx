@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { axiosInstance } from "../../utils/axios";
-import { convertDate, convertToInt } from "../../helpers/common";
+import {convertDate, convertToInt, isWithin7Days} from "../../helpers/common";
 import { Link, useNavigate } from "react-router-dom";
 import { notification, Modal, Input, Checkbox, Upload, Button } from "antd";
 import { statusMap } from "../../types/OrderStatusInterface";
@@ -119,6 +119,8 @@ export const OrderContent: React.FC = () => {
             }
             const res = await axiosInstance.get<{ status: boolean; data: PaginationData; message?: string }>(url);
             if (res.data.status) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 setOrders(res.data.data.data || []);
                 setPagination(res.data.data);
                 setCurrentPage(res.data.data.current_page);
@@ -264,7 +266,7 @@ export const OrderContent: React.FC = () => {
     const handleModalOk = useCallback(() => {
         const selectedOrder = orders.find(o => o.id === selectedOrderId);
         const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid';
-        let newErrors: { [key: string]: string } = {};
+        const newErrors: { [key: string]: string } = {};
         if (!cancelReason.trim()) {
             newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";
         }
@@ -298,7 +300,7 @@ export const OrderContent: React.FC = () => {
     const handleReturnModalOk = useCallback(() => {
         const selectedOrder = orders.find(o => o.id === selectedOrderId);
         const isRefundRequired = selectedOrder?.payment_method === 'vnpay' && selectedOrder?.payment_status === 'paid' || selectedOrder?.payment_method === 'cash';
-        let newErrors: { [key: string]: string } = {};
+        const newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
         }
@@ -559,14 +561,21 @@ export const OrderContent: React.FC = () => {
                                                         Đã nhận được hàng
                                                     </button>
                                                 )}
-                                                {["completed"].includes(order.status) && !order?.return && !order.hasRequestedReturn && (
-                                                    <button
-                                                        className="btn btn-outline-warning btn-sm px-4 fw-medium"
-                                                        onClick={() => showReturnModal(order.id)}
-                                                    >
-                                                        {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
-                                                    </button>
-                                                )}
+                                                {
+                                                    ["completed"].includes(order.status) &&
+                                                    !order?.return &&
+                                                    !order.hasRequestedReturn &&
+                                                    order.delivered_at &&
+                                                    isWithin7Days(order.delivered_at) && (
+                                                        <button
+                                                            className="btn btn-outline-warning btn-sm px-4 fw-medium"
+                                                            onClick={() => showReturnModal(order.id)}
+                                                        >
+                                                            {isRefundRequired ? "Yêu cầu trả hàng hoàn tiền" : "Yêu cầu trả hàng"}
+                                                        </button>
+                                                    )
+                                                }
+
                                                 {
                                                     ['completed', 'canceled', 'cancel'] .includes(order.status) && (
                                                         <button
