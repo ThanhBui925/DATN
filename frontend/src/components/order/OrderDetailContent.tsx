@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from "react";
 import {useParams, Link, useSearchParams, useNavigate} from "react-router-dom";
 import {axiosInstance} from "../../utils/axios";
-import {convertDate, convertToInt} from "../../helpers/common";
+import {convertDate, convertToInt, isWithin7Days} from "../../helpers/common";
 import {Input, Modal, notification, Upload, Button} from "antd";
 import {statusMap} from "../../types/OrderStatusInterface";
 import {paymentMethodMap} from "../../types/PaymentMethodMap";
@@ -73,7 +73,7 @@ interface Order {
     recipient_name: string;
     recipient_phone: string;
     shipped_at: string | null;
-    delivered_at: string | null;
+    delivered_at: any;
     discount_amount: string | null;
     user: User;
     customer_id: number | null;
@@ -222,7 +222,7 @@ export const OrderDetailContent = () => {
 
     const handleModalOk = () => {
         const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid';
-        let newErrors: { [key: string]: string } = {};
+        const newErrors: { [key: string]: string } = {};
         if (!cancelReason.trim()) {
             newErrors.cancel_reason = "Vui lòng nhập lý do hủy đơn";
         }
@@ -324,7 +324,7 @@ export const OrderDetailContent = () => {
 
     const handleReturnModalOk = () => {
         const isRefundRequired = order?.payment_method === 'vnpay' && order?.payment_status === 'paid' || order?.payment_method === 'cash';
-        let newErrors: { [key: string]: string } = {};
+        const newErrors: { [key: string]: string } = {};
         if (!returnReason.trim()) {
             newErrors.return_reason = "Vui lòng nhập lý do trả hàng";
         }
@@ -593,7 +593,9 @@ export const OrderDetailContent = () => {
                                     Đã nhận được hàng
                                 </button>
                             )}
-                            {order.status === "completed" && !order?.return && !hasRequestedReturn && (
+                            {order.status === "completed" && !order?.return && !hasRequestedReturn &&
+                            isWithin7Days(order.delivered_at) &&
+                                (
                                 <button
                                     className="btn btn-outline-warning btn-sm px-4 fw-medium"
                                     onClick={showReturnModal}
