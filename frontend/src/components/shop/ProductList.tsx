@@ -20,8 +20,9 @@ export const ProductList = ({ search }: ProductListProps) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
+    const [totalItems, setTotalItems] = useState<number>(0);
     const [searchParams, setSearchParams] = useSearchParams();
-    const productsPerPage = 9;
+    const productsPerPage = 12; // Đồng bộ với per_page từ API
 
     const changeTab = (tab: "grid_view" | "list_view") => {
         setRecentTab(tab);
@@ -44,11 +45,19 @@ export const ProductList = ({ search }: ProductListProps) => {
             console.log("API Request URL:", apiUrl); // Debug URL
 
             const res = await axiosInstance.get<{
-                data: Product[];
-                meta?: { totalPages: number };
+                data: {
+                    current_page: number;
+                    data: Product[];
+                    total: number;
+                    per_page: number;
+                    last_page: number;
+                };
             }>(apiUrl);
-            setProducts(res.data.data || []);
-            setTotalPages(res.data.meta?.totalPages || 1);
+
+            setProducts(res.data.data.data || []);
+            setTotalPages(res.data.data.last_page || 1);
+            setTotalItems(res.data.data.total || 0);
+            setCurrentPage(res.data.data.current_page || 1);
         } catch (err) {
             console.error("Lỗi khi tải sản phẩm:", err);
         } finally {
@@ -89,16 +98,20 @@ export const ProductList = ({ search }: ProductListProps) => {
                         </ul>
                     </div>
                     <div className="toolbar-amount">
-                        <span>
-                            Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
-                            {Math.min(currentPage * productsPerPage, products.length)} của {products.length} sản phẩm
-                        </span>
+            <span>
+              Hiển thị {(currentPage - 1) * productsPerPage + 1} đến{" "}
+                {Math.min(currentPage * productsPerPage, totalItems)} của {totalItems} sản phẩm
+            </span>
                     </div>
                 </div>
                 <div className="product-select-box">
                     <div className="product-short">
                         <p>Sắp xếp theo:</p>
-                        <select className="nice-select" onChange={handleSortChange} value={searchParams.get("sort") || "relevance"}>
+                        <select
+                            className="nice-select"
+                            onChange={handleSortChange}
+                            value={searchParams.get("sort") || "relevance"}
+                        >
                             <option value="relevance">Mức độ liên quan</option>
                             <option value="name_asc">Tên (A - Z)</option>
                             <option value="name_desc">Tên (Z - A)</option>
@@ -157,7 +170,7 @@ export const ProductList = ({ search }: ProductListProps) => {
                                     <li>
                                         <a
                                             href="#"
-                                            className="Previous"
+                                            className={currentPage === 1 ? "disabled" : "Previous"}
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 if (currentPage > 1) handlePageChange(currentPage - 1);
@@ -182,7 +195,7 @@ export const ProductList = ({ search }: ProductListProps) => {
                                     <li>
                                         <a
                                             href="#"
-                                            className="Next"
+                                            className={currentPage === totalPages ? "disabled" : "Next"}
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 if (currentPage < totalPages) handlePageChange(currentPage + 1);
