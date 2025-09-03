@@ -467,22 +467,38 @@ public function show($id)
      */
     public function generatePDF($id)
     {
-        $order = Order::with(['customer', 'shipping', 'user', 'orderItems.product', 'orderItems.variant'])
-            ->find($id);
+        $order = Order::with([
+            'customer',
+            'shipping',
+            'user',
+            'orderItems.product',
+            'orderItems.variant',
+        ])->find($id);
 
         if (!$order) {
             return response()->json(['error' => 'Order not found'], 404);
         }
 
         $data = [
-            'order' => $order,
-            'title' => 'Hóa Đơn #' . $order->id,
-            'date' => Carbon::now()->format('Y-m-d H:i:s')
+            'order'        => $order,
+            'title'        => 'Hóa Đơn #' . $order->id,
+            'date'         => Carbon::now()->format('Y-m-d H:i:s'),
+
+            // thông tin bổ sung
+            'voucher_code' => $order->voucher_code,
+            'voucher_value'=> $order->voucher?->discount_value,
+            'shipping_fee' => $order->shipping_fee ?? 0,
+            'discount'     => $order->discount_amount ?? 0,
+            'total'        => $order->total_amount ?? 0,
+            'final_amount' => $order->final_amount ?? (
+                ($order->total_amount - ($order->discount_amount ?? 0)) + ($order->shipping_fee ?? 0)
+            )
         ];
 
         try {
             $pdf = Pdf::loadView('pdf.invoice', $data);
-            return $pdf->download('invoice_' . $order->id . '.pdf');
+            return $pdf->stream('invoice_' . $order->id . '.pdf');
+
         } catch (\Exception $e) {
             Log::error('Failed to generate PDF', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to generate PDF: ' . $e->getMessage()], 500);
