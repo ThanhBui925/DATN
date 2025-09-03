@@ -22,6 +22,8 @@ class DashboardController extends Controller
         'processing' => ['preparing', 'shipping'],
         'delivered'  => ['delivered'],
         'canceled'   => ['canceled'],
+        'refunded'   => ['refunded'],
+        'completed'  => ['completed'],
     ];
 
     private function revenueOrderFilter($q)
@@ -1805,4 +1807,140 @@ class DashboardController extends Controller
 
         return response()->json(['shipping_status' => $data]);
     }
+
+    //Sản phẩm đã bán
+    public function getTotalSoldProducts(Request $request)
+    {
+        $q = DB::table('shop_order_items')
+            ->join('shop_order', 'shop_order.id', '=', 'shop_order_items.order_id');
+        $this->applyDateFilter($q, $request, 'shop_order.date_order');
+        $totalSold = $q->sum('shop_order_items.quantity');
+        return response()->json(['total_product' => (int) $totalSold]);
+    }
+    //đơn hàng đã hoàn thành
+    public function getTotalCompletedOrders(Request $request)
+    {
+        $q = DB::table('shop_order')
+            ->whereIn('order_status', $this->statusBuckets['completed']);
+        $this->applyDateFilter($q, $request, 'shop_order.date_order');
+        $totalCompleted = $q->count();
+        return response()->json(['total_variant' => (int) $totalCompleted]);
+    }
+
+    // // Tổng số sản phẩm trong hệ thống
+    // public function getTotalProducts(Request $request)
+    // {
+    //     $q = DB::table('products');
+    //     $this->applyDateFilter($q, $request, 'products.created_at');
+
+    //     $totalProducts = $q->count();
+
+    //     return response()->json(['total_product' => $totalProducts]);
+    // }
+
+    // // Tổng số lượng tồn kho
+    // public function getTotalStock(Request $request)
+    // {
+    //     $q = DB::table('variant_products')
+    //         ->join('products', 'products.id', '=', 'variant_products.product_id')
+    //         ->where('products.status', 1)
+    //         ->whereNull('variant_products.deleted_at');
+
+    //     $this->applyDateFilter($q, $request, 'variant_products.created_at');
+
+    //     $totalStock = $q->sum('variant_products.quantity');
+
+    //     return response()->json([
+    //         'total_variant' => (int) $totalStock
+    //     ]);
+    // }
+
+
+    // Tỷ lệ hoàn trả đơn hàng
+    public function getReturnRate(Request $request)
+    {
+        $q = DB::table('shop_order');
+        $this->applyDateFilter($q, $request, 'shop_order.date_order');
+
+        // Tổng số đơn trong khoảng thời gian
+        $total = (clone $q)->count();
+
+        // Đơn có trạng thái "trả hàng"
+        $returned = (clone $q)
+            ->whereIn('order_status', $this->statusBuckets['refunded'])
+            ->count();
+
+        // Tỷ lệ hoàn = số đơn trả hàng / tổng số đơn * 100
+        $rate = $total > 0 ? round($returned * 100 / $total, 2) : 0.0;
+
+        return response()->json([
+            'return_order_rate' => (int) $rate
+        ]);
+    }
+
+
+    // Hàm dùng chung để áp dụng filter theo thời gian
+    protected function applyDateFilter($q, Request $request, $column)
+    {
+        $filter = $request->input('filter');
+        $now = Carbon::now();
+
+        switch ($filter) {
+            case 'today':
+                $q->whereDate($column, $now->toDateString());
+                break;
+            case 'yesterday':
+                $q->whereDate($column, $now->copy()->subDay()->toDateString());
+                break;
+            case 'this_week':
+                $q->whereBetween($column, [$now->startOfWeek(), $now->endOfWeek()]);
+                break;
+            case 'last_week':
+                $start = $now->copy()->subWeek()->startOfWeek();
+                $end   = $now->copy()->subWeek()->endOfWeek();
+                $q->whereBetween($column, [$start, $end]);
+                break;
+            case 'this_month':
+                $q->whereYear($column, $now->year)
+                ->whereMonth($column, $now->month);
+                break;
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                $q->whereYear($column, $lastMonth->year)
+                ->whereMonth($column, $lastMonth->month);
+                break;
+            case 'month': // ?filter=month&value=YYYY-MM
+                $value = $request->input('value');
+                if ($value) {
+                    try {
+                        $parsed = Carbon::createFromFormat('Y-m', $value);
+                        $q->whereYear($column, $parsed->year)
+                        ->whereMonth($column, $parsed->month);
+                    } catch (\Exception $e) {
+                        return response()->json(['error' => 'Tháng không hợp lệ (YYYY-MM)'], 400);
+                    }
+                }
+                break;
+            case 'range': // ?filter=range&from=YYYY-MM-DD&to=YYYY-MM-DD
+                $from = $request->input('from');
+                $to   = $request->input('to');
+                if (!$from || !$to) {
+                    return response()->json(['error' => 'Thiếu ngày bắt đầu hoặc kết thúc'], 400);
+                }
+                try {
+                    $q->whereBetween($column, [
+                        Carbon::parse($from)->startOfDay(),
+                        Carbon::parse($to)->endOfDay(),
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Định dạng ngày không hợp lệ (YYYY-MM-DD)'], 400);
+                }
+                break;
+        }
+    }
+
+
+
+
+
 }

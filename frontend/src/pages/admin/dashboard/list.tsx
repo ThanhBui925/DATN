@@ -638,9 +638,9 @@ const Dashboard = () => {
                 <Col xs={24} sm={12} md={8}>
                     <Card>
                         <Statistic
-                            title="Tổng sản phẩm"
+                            title="Số lượng sản phẩm đã bán"
                             value={stats.totalProduct}
-                            suffix="sản phẩm"
+                            suffix=""
                             valueStyle={{ color: "#2f54eb" }}
                         />
                     </Card>
@@ -648,9 +648,9 @@ const Dashboard = () => {
                 <Col xs={24} sm={12} md={8}>
                     <Card>
                         <Statistic
-                            title="Tổng biến thể"
+                            title="Đơn đã hoàn thành"
                             value={stats.totalVariant}
-                            suffix="biến thể"
+                            suffix=""
                             valueStyle={{ color: "#2f54eb" }}
                         />
                     </Card>

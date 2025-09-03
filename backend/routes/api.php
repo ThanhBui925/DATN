@@ -169,9 +169,9 @@ Route::get('/dashboard/order-status', [DashboardController::class, 'getOrderStat
 Route::get('/dashboard/weekly-sales', [DashboardController::class, 'getWeeklySales']);
 Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts']);
 Route::get('/dashboard/order-completion-time', [DashboardController::class, 'getOrderCompletionTime']);
-Route::get('/dashboard/total-product',  [DashboardController::class, 'getTotalProducts']);
-Route::get('/dashboard/total-variant',  [DashboardController::class, 'getTotalVariants']);
-Route::get('/dashboard/return-order-rate',     [DashboardController::class, 'getRefundRate']);
+Route::get('/dashboard/total-product',  [DashboardController::class, 'getTotalSoldProducts']);
+Route::get('/dashboard/total-variant',  [DashboardController::class, 'getTotalCompletedOrders']);
+Route::get('/dashboard/return-order-rate',     [DashboardController::class, 'getReturnRate']);
 
 
 Route::get('/dashboard/out-of-stock-products', [DashboardController::class, 'getOutOfStockProducts']);
