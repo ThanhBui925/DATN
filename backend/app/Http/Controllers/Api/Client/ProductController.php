@@ -86,17 +86,21 @@ class ProductController extends Controller
         // Best sellers
     public function bestSellerProduct()
     {
-        $products = Product::with(['category']) // load thêm danh mục
-            ->withCount('orderItems')
+        $products = Product::with(['category'])
+            ->withSum(['orderItems as total_sold' => function ($q) {
+                $q->whereHas('order', function ($orderQuery) {
+                    $orderQuery->whereIn('order_status', ['completed', 'delivered']);
+                });
+            }], 'quantity') // chỉ tính quantity khi order đã hoàn thành hoặc đã giao
             ->withAvg('reviews as rating', 'rating')
-            ->orderBy('order_items_count', 'desc')
+            ->orderByDesc('total_sold')
             ->take(8)
             ->get();
 
-        // Làm tròn rating
         $products->each(fn($p) => $p->rating = $p->rating ? round($p->rating, 1) : null);
 
         return $this->success($products);
+
     }
 
     // Sản phẩm có đánh giá cao nhất
