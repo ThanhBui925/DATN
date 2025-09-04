@@ -19,7 +19,7 @@ class CompleteDeliveredOrders extends Command
         $sevenDaysAgo = Carbon::now()->subMinutes(15);
 
         $orders = Order::whereIn('order_status', ['delivered', 'return_rejected'])
-            ->where('updated_at', '<=', $sevenDaysAgo)
+            ->where('delivered_at', '<=', $sevenDaysAgo)
             ->get();
 
         if ($orders->isEmpty()) {
@@ -32,7 +32,7 @@ class CompleteDeliveredOrders extends Command
             $order->order_status = 'completed';
             $order->payment_status = 'paid';
             $order->use_shipping_status = 0;
-            $order->completed_at = Carbon::now();
+            // $order-> = Carbon::now();
             $order->save();
 
             $this->info("Đơn hàng ID {$order->id} đã chuyển sang completed.");
