@@ -96,7 +96,7 @@ export const SingleProduct = ({ product }: { product: any }) => {
                                         Xem chi tiết
                                     </Link>
                                 </li>
-                                <li>
+                                {/* <li>
                                     <a
                                         className="quick-view"
                                         data-bs-toggle="modal"
@@ -105,7 +105,7 @@ export const SingleProduct = ({ product }: { product: any }) => {
                                     >
                                         <i className="ion-android-open"></i>
                                     </a>
-                                </li>
+                                </li> */}
                                 <li>
                                     <a
                                         className="links-details"
