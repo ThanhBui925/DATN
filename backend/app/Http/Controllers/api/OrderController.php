@@ -152,9 +152,7 @@ public function show($id)
 
                 if ($shippingStatus == 'delivered') {
                     $order->order_status = 'delivered';
-                    $order->delivered_at = isset($ghnShippingInfo['leadtime_order']['delivered_date'])
-                        ? Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date'])
-                        : Carbon::now();
+                    $order->delivered_at = Carbon::now();
                     $order->use_shipping_status = 0;
                 }
 
