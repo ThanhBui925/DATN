@@ -15,8 +15,8 @@ class CompleteDeliveredOrders extends Command
     public function handle()
     {
         // Lấy những đơn delivered >= 7 ngày
-        $sevenDaysAgo = Carbon::now()->subDays(7);
-        // $sevenDaysAgo = Carbon::now()->subMinutes(15);
+        // $sevenDaysAgo = Carbon::now()->subDays(7);
+        $sevenDaysAgo = Carbon::now()->subMinutes(15);
 
         $orders = Order::whereIn('order_status', ['delivered', 'return_rejected'])
             ->where('updated_at', '<=', $sevenDaysAgo)
