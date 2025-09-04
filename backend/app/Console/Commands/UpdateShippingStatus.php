@@ -52,7 +52,7 @@ class UpdateShippingStatus extends Command
 
                         if ($shippingStatus === 'delivered' && !in_array($order->order_status, ['delivered', 'completed'])) {
                             $order->order_status = 'delivered';
-                            $order->delivered_at = Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date']);
+                            $order->delivered_at = Carbon::now();
                             $order->use_shipping_status = 0;
                         }
 

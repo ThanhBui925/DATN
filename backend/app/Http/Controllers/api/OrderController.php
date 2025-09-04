@@ -152,9 +152,7 @@ public function show($id)
 
                 if ($shippingStatus == 'delivered') {
                     $order->order_status = 'delivered';
-                    $order->delivered_at = isset($ghnShippingInfo['leadtime_order']['delivered_date'])
-                        ? Carbon::parse($ghnShippingInfo['leadtime_order']['delivered_date'])
-                        : Carbon::now();
+                    $order->delivered_at = Carbon::now();
                     $order->use_shipping_status = 0;
                 }
 
@@ -396,6 +394,8 @@ public function show($id)
             }
         }
 
+
+
         //Nếu trạng thái là return_rejected, xóa toàn bộ thông tin trả hàng và lưu lý do từ chối
         if ($newStatus === 'return_rejected') {
             $reason = $request->input('reject_reason');
@@ -414,7 +414,17 @@ public function show($id)
                 $returnOrder->reason_for_refusal = $reason;
                 $returnOrder->save();
             }
+            //Gửi mail thông báo từ chối trả hàng cho khách
+            try {
+                \Mail::to($order->recipient_email)->queue(new \App\Mail\ReturnRejectedMail($order));
+            } catch (\Exception $e) {
+                Log::error("Failed to queue return rejected email for order ID {$order->id}: " . $e->getMessage());
+            }   
+
         }
+
+        //gửi mail thông báo có yêu cầu trả hàng cho admin
+            
 
         // if ($newStatus === 'refunded') {
         //     $transactionCode = $request->input('transaction_code');

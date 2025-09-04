@@ -9,5 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('orders:cancel-unpaid')->everyMinute();
-Schedule::command('shipping:update-status')->everyMinute();
+Schedule::command('shipping:update-status')->everyTwoMinutes();
 Schedule::command('orders:complete-delivered')->everyMinute();
