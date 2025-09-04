@@ -91,8 +91,8 @@ interface Address {
 
 const paymentMethodMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     cash: { label: "Tiền mặt", color: "black", icon: <MoneyCollectOutlined /> },
-    card: { label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined /> },
-    paypal: { label: "PayPal", color: "black", icon: <WalletOutlined /> },
+    // card: { label: "Thẻ tín dụng", color: "black", icon: <CreditCardOutlined /> },
+    // paypal: { label: "PayPal", color: "black", icon: <WalletOutlined /> },
     vnpay: { label: "VNPay", color: "black", icon: <BankOutlined /> },
 };
 

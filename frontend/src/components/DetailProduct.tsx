@@ -478,16 +478,9 @@ export const DetailProduct: React.FC = () => {
                                         value={quantity}
                                         onChange={(e) => {
                                             const value = parseInt(e.target.value) || 1;
-                                            if (value > availableQuantity) {
-                                                setErrorQty(
-                                                    availableQuantity > 0
-                                                        ? `Chỉ còn ${availableQuantity} sản phẩm khả dụng (đã trừ ${cartQuantity} trong giỏ hàng).`
-                                                        : `Sản phẩm đã hết hàng.`
-                                                );
-                                            } else {
-                                                setErrorQty('');
-                                            }
-                                            setQuantity(Math.max(1, Math.min(value, availableQuantity)));
+                                            const newQuantity = Math.max(1, Math.min(value, availableQuantity));
+                                            setQuantity(newQuantity);
+                                            setErrorQty('');
                                         }}
                                         min="1"
                                         max={availableQuantity}
