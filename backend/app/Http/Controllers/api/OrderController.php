@@ -349,7 +349,7 @@ public function show($id)
                 if (!$toProvinceId || !$toDistrictId || !$toWardCode) {
                     $order->order_status = $oldStatus;
                     $order->save();
-                    return $this->errorResponse("Không tìm được ID địa chỉ từ tên đã lưu trong đơn hàng.", null, 400);
+                    return $this->errorResponse('Hệ thống Giao Hàng Nhanh đang quá tải tại khu vực này, Vui lòng thử lại sau !', 500);
                 }
 
                 $shippingData = [
@@ -375,11 +375,17 @@ public function show($id)
                     $oldStatus
                 );
 
-                if (!isset($ghnResponse['code']) || (int)$ghnResponse['code'] !== 200) {
+                if (!is_array($ghnResponse) || !array_key_exists('code', $ghnResponse)) {
+                    return $this->errorResponse('Hệ thống Giao Hàng Nhanh đang quá tải tại khu vực này, Vui lòng thử lại sau !', 500);
+                }
+
+                if ((int) $ghnResponse['code'] !== 200) {
                     $order->order_status = $oldStatus;
                     $order->save();
-                    return $this->errorResponse('Tạo đơn GHN thất bại: ' . ($ghnResponse['message'] ?? json_encode($ghnResponse)), null, 500);
+
+                    return $this->errorResponse('Hệ thống Giao Hàng Nhanh đang quá tải tại khu vực này, Vui lòng thử lại sau !', 500);
                 }
+
 
                 // Cập nhật thông tin GHN
                 $order->order_code         = $ghnResponse['data']['order_code'] ?? null;
@@ -390,7 +396,7 @@ public function show($id)
             } catch (\Exception $e) {
                 $order->order_status = $oldStatus;
                 $order->save();
-                return $this->errorResponse("GHN tạo đơn thất bại: " . $e->getMessage(), null, 500);
+                return $this->errorResponse('Hệ thống Giao Hàng Nhanh đang quá tải tại khu vực này, Vui lòng thử lại sau !', 500);
             }
         }
 
