@@ -19,7 +19,7 @@ class CompleteDeliveredOrders extends Command
         $sevenDaysAgo = Carbon::now()->subMinutes(15);
 
         $orders = Order::whereIn('order_status', ['delivered', 'return_rejected'])
-            ->where('delivered_at', '<=', $sevenDaysAgo)
+            ->where('delivered_at', '>=', $sevenDaysAgo)
             ->get();
 
         if ($orders->isEmpty()) {
