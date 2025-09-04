@@ -108,7 +108,8 @@ export const OrdersShow = () => {
                                 (record?.status === "refunded" && record?.payment_status === "refunded") ||
                                 (record?.payment_status === "waiting_for_refunded") ||
                                 (record?.status === "completed") ||
-                                (record?.status === "return_rejected")
+                                (record?.status === "return_rejected") ||
+                                (record?.status === "return_accepted")
                             ) && (
                                 <EditButton onClick={handleUpdateStatus}>Cập nhật trạng thái</EditButton>
                             )
